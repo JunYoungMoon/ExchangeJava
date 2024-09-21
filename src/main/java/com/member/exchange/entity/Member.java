@@ -13,7 +13,6 @@ import java.util.List;
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(
-        name = "member",
         indexes = @Index(name = "idx_uuid", columnList = "uuid")
 )
 public class Member {
@@ -51,6 +50,7 @@ public class Member {
     }
 
     @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "MemberRoles")
     private List<String> roles = new ArrayList<>();
 
     @PrePersist

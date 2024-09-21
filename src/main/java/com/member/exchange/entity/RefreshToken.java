@@ -7,7 +7,6 @@ import java.time.Instant;
 
 @Getter
 @Entity
-@Table(name = "refresh_tokens")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class RefreshToken {
     @Id
