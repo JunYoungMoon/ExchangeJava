@@ -1,0 +1,6 @@
+[mysqld]
+server-id=2
+read_only=1
+log-bin=mysql-bin
+gtid-mode=ON
+enforce-gtid-consistency=true
