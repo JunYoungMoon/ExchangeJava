@@ -14,7 +14,7 @@ import java.math.BigDecimal;
 @Getter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class CoinOrderKRWBTC {
+public class CoinOrder {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,6 +22,12 @@ public class CoinOrderKRWBTC {
 
     @Column(nullable = false)
     private Long memberId; // 주문 등록인, member_id
+
+    @Column(nullable = false)
+    private String marketName; // 예: KRW
+
+    @Column(nullable = false)
+    private String coinName; // 예: BTC
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

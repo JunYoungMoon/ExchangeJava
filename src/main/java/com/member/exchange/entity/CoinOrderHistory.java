@@ -15,11 +15,17 @@ import java.time.LocalDateTime;
 @Getter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class CoinOrderHistoryKRWBTC {
+public class CoinOrderHistory {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idx; // 체결 히스토리 ID
+
+    @Column(nullable = false)
+    private String marketName; // 예: KRW
+
+    @Column(nullable = false)
+    private String coinName; // 예: BTC
 
     @Column(nullable = false, precision = 18, scale = 8)
     private BigDecimal executionPrice; // 체결 가격

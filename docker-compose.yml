@@ -1,45 +1,82 @@
 version: '3'
 
 services:
-  mysql-master:
+  # 샤드 1: KRW 마켓 메이저 코인 체결 정보 (마스터)
+  shard1-krw-major-master:
     image: mysql:8.0.30
     command: --server-id=1 --log-bin=mysql-bin --gtid-mode=ON --enforce-gtid-consistency=true
     environment:
       MYSQL_ROOT_PASSWORD: 1234
     volumes:
-      - ./db/mysql-master-data:/var/lib/mysql
+      - ./db/shard1-krw-major-master-data:/var/lib/mysql
       - ./config/mysql/master-my.cnf:/etc/mysql/conf.d/master-my.cnf
       - ./scripts/master-init.sql:/docker-entrypoint-initdb.d/master-init.sql
     ports:
-      - "13306:3306"
-    # healthcheck: 서비스가 정상적으로 작동하는지 확인하는 설정
+      - "14306:3306"
     healthcheck:
-      # test: 컨테이너의 상태를 확인하기 위한 명령어
-      # 여기서는 'mysqladmin' 도구를 사용하여 MySQL 서버가 'ping' 명령에 응답하는지 확인합니다.
-      # "CMD"와 함께 명령어를 배열 형식으로 작성합니다.
       test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
-      # interval: 상태 확인 명령어를 실행할 간격을 설정합니다 (여기서는 10초).
       interval: 10s
-      # timeout: 상태 확인 명령어가 응답을 기다리는 최대 시간을 설정합니다 (여기서는 5초).
       timeout: 5s
-      # retries: 서비스가 정상 상태로 간주되기 전에 실패할 수 있는 최대 횟수를 설정합니다 (여기서는 5회).
       retries: 5
 
-  mysql-slave:
+  shard1-krw-major-slave:
     image: mysql:8.0.30
     command: --server-id=2 --log-bin=mysql-bin --gtid-mode=ON --enforce-gtid-consistency=true
     environment:
       MYSQL_ROOT_PASSWORD: 1234
     depends_on:
-      # depends_on: 이 서비스가 시작되기 전에 mysql-master 서비스가 정상 상태인지 확인합니다.
-      mysql-master:
-        condition: service_healthy  # mysql-master의 healthcheck가 통과해야 mysql-slave가 시작됩니다.
+      mysql-major-master:
+        condition: service_healthy
     volumes:
-      - ./db/mysql-slave-data:/var/lib/mysql
+      - ./db/shard1-krw-major-slave-data:/var/lib/mysql
       - ./config/mysql/slave-my.cnf:/etc/mysql/conf.d/slave-my.cnf
       - ./scripts/slave-init.sql:/docker-entrypoint-initdb.d/slave-init.sql
     ports:
-      - "14306:3306"
+      - "15306:3306"
+
+  # 샤드 2: KRW 마켓 기타 코인 체결 정보 (마스터)
+  shard2-krw-minor-master:
+    image: mysql:8.0.30
+    command: --server-id=1 --log-bin=mysql-bin --gtid-mode=ON --enforce-gtid-consistency=true
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+    volumes:
+      - ./db/shard2-krw-minor-master-data:/var/lib/mysql
+      - ./config/mysql/master-my.cnf:/etc/mysql/conf.d/master-my.cnf
+      - ./scripts/master-init.sql:/docker-entrypoint-initdb.d/master-init.sql
+    ports:
+      - "16306:3306"
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  shard2-krw-minor-slave:
+    image: mysql:8.0.30
+    command: --server-id=2 --log-bin=mysql-bin --gtid-mode=ON --enforce-gtid-consistency=true
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+    depends_on:
+      mysql-major-master:
+        condition: service_healthy
+    volumes:
+      - ./db/shard2-krw-minor-slave-data:/var/lib/mysql
+      - ./config/mysql/slave-my.cnf:/etc/mysql/conf.d/slave-my.cnf
+      - ./scripts/slave-init.sql:/docker-entrypoint-initdb.d/slave-init.sql
+    ports:
+      - "17306:3306"
+
+  # 회원 정보 및 기타 정보 저장 DB (리플리케이션 없음)
+  exchange:
+    image: mysql:8.0.30
+    command: --server-id=4
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+    volumes:
+      - ./db/exchange-data:/var/lib/mysql
+    ports:
+      - "13306:3306"
 
   redis:
     image: redis:latest
@@ -48,10 +85,3 @@ services:
       - ./config/redis/redis.conf:/etc/redis/redis.conf
     ports:
       - "6379:6379"
-
-#  mongodb:
-#    image: mongo:latest
-#    volumes:
-#      - ./db/mongodb-data:/data/db
-#    ports:
-#      - "27017:27017"
