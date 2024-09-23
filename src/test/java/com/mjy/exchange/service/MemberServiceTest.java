@@ -1,10 +1,10 @@
-package com.member.exchange.service;
+package com.mjy.exchange.service;
 
-import com.member.exchange.dto.MemberResponse;
-import com.member.exchange.entity.Member;
-import com.member.exchange.dto.MemberRequest;
-import com.member.exchange.repository.master.MasterMemberRepository;
-import com.member.exchange.repository.slave.SlaveMemberRepository;
+import com.mjy.exchange.dto.MemberResponse;
+import com.mjy.exchange.entity.Member;
+import com.mjy.exchange.dto.MemberRequest;
+import com.mjy.exchange.repository.master.MasterMemberRepository;
+import com.mjy.exchange.repository.slave.SlaveMemberRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

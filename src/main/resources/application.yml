@@ -33,14 +33,14 @@ spring:
     pathmatch:
       matching-strategy: ant_path_matcher
 
-  exchange:
-    datasource:
-      hikari:
-        jdbc-url: jdbc:mysql://localhost:13306/Exchange
-        username: root
-        password: 1234
-      hibernate:
-        ddl-auto: update
+#  exchange:
+#    datasource:
+#      hikari:
+#        jdbc-url: jdbc:mysql://localhost:13306/Exchange
+#        username: root
+#        password: 1234
+#      hibernate:
+#        ddl-auto: update
 
   master:
     datasource:
