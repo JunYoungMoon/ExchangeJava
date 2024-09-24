@@ -1,7 +1,7 @@
 package com.mjy.exchange.service;
 
 import com.mjy.exchange.dto.*;
-import com.mjy.exchange.entity.Member;
+import com.mjy.exchange.entity.member.Member;
 import com.mjy.exchange.repository.master.MasterMemberRepository;
 import com.mjy.exchange.repository.slave.SlaveMemberRepository;
 import com.mjy.exchange.security.JwtTokenProvider;

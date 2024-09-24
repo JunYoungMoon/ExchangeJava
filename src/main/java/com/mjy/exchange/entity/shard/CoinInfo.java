@@ -1,4 +1,4 @@
-package com.mjy.exchange.entity;
+package com.mjy.exchange.entity.shard;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;

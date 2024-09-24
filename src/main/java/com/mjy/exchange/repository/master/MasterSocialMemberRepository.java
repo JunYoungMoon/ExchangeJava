@@ -1,6 +1,6 @@
 package com.mjy.exchange.repository.master;
 
-import com.mjy.exchange.entity.SocialMember;
+import com.mjy.exchange.entity.member.SocialMember;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

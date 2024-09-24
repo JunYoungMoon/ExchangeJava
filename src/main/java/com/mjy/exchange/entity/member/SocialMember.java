@@ -1,4 +1,4 @@
-package com.mjy.exchange.entity;
+package com.mjy.exchange.entity.member;
 
 import com.mjy.exchange.enums.AuthProvider;
 import jakarta.persistence.*;

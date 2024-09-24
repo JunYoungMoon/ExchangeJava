@@ -1,7 +1,7 @@
 package com.mjy.exchange.service;
 
-import com.mjy.exchange.entity.Member;
-import com.mjy.exchange.entity.SocialMember;
+import com.mjy.exchange.entity.member.Member;
+import com.mjy.exchange.entity.member.SocialMember;
 import com.mjy.exchange.enums.AuthProvider;
 import com.mjy.exchange.oauth2.OAuth2UserInfo;
 import com.mjy.exchange.oauth2.OAuth2UserInfoFactory;

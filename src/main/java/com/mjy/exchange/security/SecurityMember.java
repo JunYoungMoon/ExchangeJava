@@ -1,6 +1,6 @@
 package com.mjy.exchange.security;
 
-import com.mjy.exchange.entity.Member;
+import com.mjy.exchange.entity.member.Member;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

@@ -4,15 +4,15 @@ services:
   # 샤드 1: KRW 마켓 메이저 코인 체결 정보 (마스터)
   shard1-krw-major-master:
     image: mysql:8.0.30
-    command: --server-id=1 --log-bin=mysql-bin --gtid-mode=ON --enforce-gtid-consistency=true
+    command: --server-id=3 --log-bin=mysql-bin --gtid-mode=ON --enforce-gtid-consistency=true
     environment:
       MYSQL_ROOT_PASSWORD: 1234
     volumes:
       - ./db/shard1-krw-major-master-data:/var/lib/mysql
-      - ./config/mysql/master-my.cnf:/etc/mysql/conf.d/master-my.cnf
-      - ./scripts/master-init.sql:/docker-entrypoint-initdb.d/master-init.sql
+      - ./config/mysql/shard1-krw-major-master-my.cnf:/etc/mysql/conf.d/shard1-krw-major-master-my.cnf
+      - ./scripts/mysql/shard1-krw-major-master-init.sql:/docker-entrypoint-initdb.d/shard1-krw-major-master-init.sql
     ports:
-      - "14306:3306"
+      - "15306:3306"
     healthcheck:
       test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
       interval: 10s
@@ -21,31 +21,31 @@ services:
 
   shard1-krw-major-slave:
     image: mysql:8.0.30
-    command: --server-id=2 --log-bin=mysql-bin --gtid-mode=ON --enforce-gtid-consistency=true
+    command: --server-id=4 --log-bin=mysql-bin --gtid-mode=ON --enforce-gtid-consistency=true
     environment:
       MYSQL_ROOT_PASSWORD: 1234
     depends_on:
-      mysql-major-master:
+      shard1-krw-major-master:
         condition: service_healthy
     volumes:
       - ./db/shard1-krw-major-slave-data:/var/lib/mysql
-      - ./config/mysql/slave-my.cnf:/etc/mysql/conf.d/slave-my.cnf
-      - ./scripts/slave-init.sql:/docker-entrypoint-initdb.d/slave-init.sql
+      - ./config/mysql/shard1-krw-major-slave-my.cnf:/etc/mysql/conf.d/shard1-krw-major-slave-my.cnf
+      - ./scripts/mysql/shard1-krw-major-slave-init.sql:/docker-entrypoint-initdb.d/shard1-krw-major-slave-init.sql
     ports:
-      - "15306:3306"
+      - "16306:3306"
 
   # 샤드 2: KRW 마켓 기타 코인 체결 정보 (마스터)
   shard2-krw-minor-master:
     image: mysql:8.0.30
-    command: --server-id=1 --log-bin=mysql-bin --gtid-mode=ON --enforce-gtid-consistency=true
+    command: --server-id=5 --log-bin=mysql-bin --gtid-mode=ON --enforce-gtid-consistency=true
     environment:
       MYSQL_ROOT_PASSWORD: 1234
     volumes:
       - ./db/shard2-krw-minor-master-data:/var/lib/mysql
-      - ./config/mysql/master-my.cnf:/etc/mysql/conf.d/master-my.cnf
-      - ./scripts/master-init.sql:/docker-entrypoint-initdb.d/master-init.sql
+      - ./config/mysql/shard2-krw-minor-master-my.cnf:/etc/mysql/conf.d/shard2-krw-minor-master-my.cnf
+      - ./scripts/mysql/shard2-krw-minor-master-init.sql:/docker-entrypoint-initdb.d/shard2-krw-minor-master-init.sql
     ports:
-      - "16306:3306"
+      - "17306:3306"
     healthcheck:
       test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
       interval: 10s
@@ -54,29 +54,51 @@ services:
 
   shard2-krw-minor-slave:
     image: mysql:8.0.30
+    command: --server-id=6 --log-bin=mysql-bin --gtid-mode=ON --enforce-gtid-consistency=true
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+    depends_on:
+      shard2-krw-minor-master:
+        condition: service_healthy
+    volumes:
+      - ./db/shard2-krw-minor-slave-data:/var/lib/mysql
+      - ./config/mysql/shard2-krw-minor-slave-my.cnf:/etc/mysql/conf.d/shard2-krw-minor-slave-my.cnf
+      - ./scripts/mysql/shard2-krw-minor-slave-init.sql:/docker-entrypoint-initdb.d/shard2-krw-minor-slave-init.sql
+    ports:
+      - "18306:3306"
+
+  # 회원 및 기타 정보 저장 DB
+  exchange-master:
+    image: mysql:8.0.30
+    command: --server-id=1 --log-bin=mysql-bin --gtid-mode=ON --enforce-gtid-consistency=true
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+    volumes:
+      - ./db/mysql-master-data:/var/lib/mysql
+      - ./config/mysql/exchange-master-my.cnf:/etc/mysql/conf.d/exchange-master-my.cnf
+      - ./scripts/mysql/exchange-master-init.sql:/docker-entrypoint-initdb.d/exchange-master-init.sql
+    ports:
+      - "13306:3306"
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  exchange-slave:
+    image: mysql:8.0.30
     command: --server-id=2 --log-bin=mysql-bin --gtid-mode=ON --enforce-gtid-consistency=true
     environment:
       MYSQL_ROOT_PASSWORD: 1234
     depends_on:
-      mysql-major-master:
+      exchange-master:
         condition: service_healthy
     volumes:
-      - ./db/shard2-krw-minor-slave-data:/var/lib/mysql
-      - ./config/mysql/slave-my.cnf:/etc/mysql/conf.d/slave-my.cnf
-      - ./scripts/slave-init.sql:/docker-entrypoint-initdb.d/slave-init.sql
+      - ./db/mysql-slave-data:/var/lib/mysql
+      - ./config/mysql/exchange-slave-my.cnf:/etc/mysql/conf.d/exchange-slave-my.cnf
+      - ./scripts/mysql/exchange-slave-init.sql:/docker-entrypoint-initdb.d/exchange-slave-init.sql
     ports:
-      - "17306:3306"
-
-  # 회원 정보 및 기타 정보 저장 DB (리플리케이션 없음)
-  exchange:
-    image: mysql:8.0.30
-    command: --server-id=4
-    environment:
-      MYSQL_ROOT_PASSWORD: 1234
-    volumes:
-      - ./db/exchange-data:/var/lib/mysql
-    ports:
-      - "13306:3306"
+      - "14306:3306"
 
   redis:
     image: redis:latest

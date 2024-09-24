@@ -33,29 +33,47 @@ spring:
     pathmatch:
       matching-strategy: ant_path_matcher
 
-#  exchange:
-#    datasource:
-#      hikari:
-#        jdbc-url: jdbc:mysql://localhost:13306/Exchange
-#        username: root
-#        password: 1234
-#      hibernate:
-#        ddl-auto: update
+  exchange:
+    master:
+      datasource:
+        hikari:
+          jdbc-url: jdbc:mysql://localhost:13306/Exchange
+          username: root
+          password: 1234
+    slave:
+      datasource:
+        hikari:
+          jdbc-url: jdbc:mysql://localhost:14306/Exchange
+          username: root
+          password: 1234
 
-  master:
-    datasource:
-      hikari:
-        jdbc-url: jdbc:mysql://localhost:13306/Exchange
-        username: root
-        password: 1234
-      hibernate:
-        ddl-auto: update
-  slave:
-    datasource:
-      hikari:
-        jdbc-url: jdbc:mysql://localhost:14306/Exchange
-        username: root
-        password: 1234
+  shard1:
+    master:
+      datasource:
+        hikari:
+          jdbc-url: jdbc:mysql://localhost:15306/Exchange
+          username: root
+          password: 1234
+    slave:
+      datasource:
+        hikari:
+          jdbc-url: jdbc:mysql://localhost:16306/Exchange
+          username: root
+          password: 1234
+
+  shard2:
+    master:
+      datasource:
+        hikari:
+          jdbc-url: jdbc:mysql://localhost:17306/Exchange
+          username: root
+          password: 1234
+    slave:
+      datasource:
+        hikari:
+          jdbc-url: jdbc:mysql://localhost:18306/Exchange
+          username: root
+          password: 1234
 
   #    url: jdbc:h2:tcp://localhost/~/test
   #    driverClassName: org.h2.Driver
