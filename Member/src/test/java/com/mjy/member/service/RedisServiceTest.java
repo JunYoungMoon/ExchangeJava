@@ -1,5 +1,6 @@
-package com.mjy.coin.service;
+package com.mjy.member.service;
 
+import com.mjy.member.service.RedisService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

@@ -1,8 +1,12 @@
-package com.mjy.coin.service;
+package com.mjy.member.service;
 
-import com.mjy.coin.entity.member.Member;
-import com.mjy.coin.repository.member.master.MasterMemberRepository;
-import com.mjy.coin.repository.member.slave.SlaveMemberRepository;
+import com.mjy.member.dto.MemberResponse;
+import com.mjy.member.entity.Member;
+import com.mjy.member.dto.MemberRequest;
+import com.mjy.member.repository.master.MasterMemberRepository;
+import com.mjy.member.repository.slave.SlaveMemberRepository;
+import com.mjy.member.service.MemberService;
+import com.mjy.member.service.RedisService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
