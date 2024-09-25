@@ -11,18 +11,27 @@ spring:
     restart:
       enabled: true
 
-  master:
-    datasource:
-      hikari:
-        jdbc-url: jdbc:mysql://localhost:${SHARD_MASTER_PORT}/Exchange
-        username: root
-        password: 1234
-  slave:
-    datasource:
-      hikari:
-        jdbc-url: jdbc:mysql://localhost:${SHARD_SLAVE_PORT}/Exchange
-        username: root
-        password: 1234
+  exchange:
+    slave:
+      datasource:
+        hikari:
+          jdbc-url: jdbc:mysql://localhost:14306/Exchange
+          username: root
+          password: 1234
+
+  coin:
+    master:
+      datasource:
+        hikari:
+          jdbc-url: jdbc:mysql://localhost:${SHARD_MASTER_PORT}/Exchange
+          username: root
+          password: 1234
+    slave:
+      datasource:
+        hikari:
+          jdbc-url: jdbc:mysql://localhost:${SHARD_SLAVE_PORT}/Exchange
+          username: root
+          password: 1234
 
   jpa:
     properties:

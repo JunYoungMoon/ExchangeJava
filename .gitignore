@@ -1,6 +1,8 @@
 HELP.md
-.gradle
-build/
+Coin/.gradle
+Exchange/.gradle
+Coin/build/
+Exchange/.gradle
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
@@ -19,7 +21,8 @@ bin/
 !**/src/test/**/bin/
 
 ### IntelliJ IDEA ###
-.idea
+Coin/.idea
+Exchange/.idea
 *.iws
 *.iml
 *.ipr
