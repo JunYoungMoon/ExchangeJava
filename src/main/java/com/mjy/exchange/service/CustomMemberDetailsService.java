@@ -1,6 +1,6 @@
 package com.mjy.exchange.service;
 
-import com.mjy.exchange.repository.slave.SlaveMemberRepository;
+import com.mjy.exchange.repository.member.slave.SlaveMemberRepository;
 import com.mjy.exchange.security.SecurityMember;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.support.MessageSourceAccessor;

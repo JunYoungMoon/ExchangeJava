@@ -1,4 +1,4 @@
-package com.mjy.exchange.repository.slave;
+package com.mjy.exchange.repository.member.slave;
 
 import com.mjy.exchange.entity.member.SocialMember;
 import org.springframework.data.jpa.repository.JpaRepository;

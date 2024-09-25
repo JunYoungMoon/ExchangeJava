@@ -3,7 +3,7 @@ package com.mjy.exchange.config;
 import com.mjy.exchange.exception.CustomAuthenticationEntryPoint;
 import com.mjy.exchange.handler.OAuth2LoginFailureHandler;
 import com.mjy.exchange.handler.OAuth2LoginSuccessHandler;
-import com.mjy.exchange.repository.slave.SlaveMemberRepository;
+import com.mjy.exchange.repository.member.slave.SlaveMemberRepository;
 import com.mjy.exchange.security.JwtAuthenticationFilter;
 import com.mjy.exchange.security.JwtTokenProvider;
 import com.mjy.exchange.service.CustomOAuth2UserService;

@@ -2,8 +2,8 @@ package com.mjy.exchange.service;
 
 import com.mjy.exchange.dto.*;
 import com.mjy.exchange.entity.member.Member;
-import com.mjy.exchange.repository.master.MasterMemberRepository;
-import com.mjy.exchange.repository.slave.SlaveMemberRepository;
+import com.mjy.exchange.repository.member.master.MasterMemberRepository;
+import com.mjy.exchange.repository.member.slave.SlaveMemberRepository;
 import com.mjy.exchange.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;

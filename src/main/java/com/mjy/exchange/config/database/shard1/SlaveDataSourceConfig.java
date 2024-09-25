@@ -1,4 +1,4 @@
-package com.mjy.exchange.config.database.member;
+package com.mjy.exchange.config.database.shard1;
 
 import jakarta.persistence.EntityManagerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -7,7 +7,6 @@ import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.boot.orm.jpa.EntityManagerFactoryBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
@@ -15,46 +14,36 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import javax.sql.DataSource;
-import java.util.HashMap;
-import java.util.Map;
 
 @Configuration
 @EnableTransactionManagement
 @EnableJpaRepositories(
-        basePackages = "com.mjy.exchange.repository.member.master",
-        entityManagerFactoryRef = "masterEntityManagerFactory",
-        transactionManagerRef = "masterTransactionManager"
+        basePackages = "com.mjy.exchange.repository.shard1.slave",
+        entityManagerFactoryRef = "slaveEntityManagerFactory",
+        transactionManagerRef = "slaveTransactionManager"
 )
-public class MasterDataSourceConfig {
+public class SlaveDataSourceConfig {
 
-    @Bean(name = "masterDataSource")
-    @Primary
-    @ConfigurationProperties(prefix = "spring.exchange.master.datasource.hikari")
-    public DataSource masterDataSource() {
+    @Bean(name = "slaveDataSource")
+    @ConfigurationProperties(prefix = "spring.shard1.slave.datasource.hikari")
+    public DataSource slaveDataSource() {
         return DataSourceBuilder.create().build();
     }
 
-    @Bean(name = "masterEntityManagerFactory")
-    @Primary
+    @Bean(name = "slaveEntityManagerFactory")
     public LocalContainerEntityManagerFactoryBean entityManagerFactory(
             EntityManagerFactoryBuilder builder,
-            @Qualifier("masterDataSource") DataSource dataSource) {
-
-        Map<String, Object> properties = new HashMap<>();
-        properties.put("hibernate.hbm2ddl.auto", "update");
-
+            @Qualifier("slaveDataSource") DataSource dataSource) {
         return builder
                 .dataSource(dataSource)
-                .packages("com.mjy.exchange.entity.member")
-                .persistenceUnit("master")
-                .properties(properties)
+                .packages("com.mjy.exchange.entity.shard")
+                .persistenceUnit("slave")
                 .build();
     }
 
-    @Bean(name = "masterTransactionManager")
-    @Primary
+    @Bean(name = "slaveTransactionManager")
     public PlatformTransactionManager transactionManager(
-            @Qualifier("masterEntityManagerFactory") EntityManagerFactory entityManagerFactory) {
+            @Qualifier("slaveEntityManagerFactory") EntityManagerFactory entityManagerFactory) {
         return new JpaTransactionManager(entityManagerFactory);
     }
 }

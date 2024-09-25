@@ -18,7 +18,7 @@ import javax.sql.DataSource;
 @Configuration
 @EnableTransactionManagement
 @EnableJpaRepositories(
-        basePackages = "com.mjy.exchange.repository.slave",
+        basePackages = "com.mjy.exchange.repository.member.slave",
         entityManagerFactoryRef = "slaveEntityManagerFactory",
         transactionManagerRef = "slaveTransactionManager"
 )
@@ -36,7 +36,7 @@ public class SlaveDataSourceConfig {
             @Qualifier("slaveDataSource") DataSource dataSource) {
         return builder
                 .dataSource(dataSource)
-                .packages("com.mjy.exchange.entity")
+                .packages("com.mjy.exchange.entity.member")
                 .persistenceUnit("slave")
                 .build();
     }

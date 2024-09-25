@@ -1,4 +1,4 @@
-package com.mjy.exchange.config.database.member;
+package com.mjy.exchange.config.database.shard1;
 
 import jakarta.persistence.EntityManagerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -21,7 +21,7 @@ import java.util.Map;
 @Configuration
 @EnableTransactionManagement
 @EnableJpaRepositories(
-        basePackages = "com.mjy.exchange.repository.member.master",
+        basePackages = "com.mjy.exchange.repository.shard1.master",
         entityManagerFactoryRef = "masterEntityManagerFactory",
         transactionManagerRef = "masterTransactionManager"
 )
@@ -29,7 +29,7 @@ public class MasterDataSourceConfig {
 
     @Bean(name = "masterDataSource")
     @Primary
-    @ConfigurationProperties(prefix = "spring.exchange.master.datasource.hikari")
+    @ConfigurationProperties(prefix = "spring.shard1.master.datasource.hikari")
     public DataSource masterDataSource() {
         return DataSourceBuilder.create().build();
     }
@@ -45,7 +45,7 @@ public class MasterDataSourceConfig {
 
         return builder
                 .dataSource(dataSource)
-                .packages("com.mjy.exchange.entity.member")
+                .packages("com.mjy.exchange.entity.shard")
                 .persistenceUnit("master")
                 .properties(properties)
                 .build();

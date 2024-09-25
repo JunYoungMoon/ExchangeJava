@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mjy.exchange.dto.ApiResponse;
 import com.mjy.exchange.dto.TokenInfo;
 import com.mjy.exchange.entity.member.Member;
-import com.mjy.exchange.repository.slave.SlaveMemberRepository;
+import com.mjy.exchange.repository.member.slave.SlaveMemberRepository;
 import com.mjy.exchange.util.CommonUtil;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;

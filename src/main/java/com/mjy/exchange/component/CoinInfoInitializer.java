@@ -3,7 +3,7 @@ package com.mjy.exchange.component;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mjy.exchange.entity.shard.CoinInfo;
-import com.mjy.exchange.repository.slave.SlaveCoinInfoRepository;
+import com.mjy.exchange.repository.member.slave.SlaveCoinInfoRepository;
 import com.mjy.exchange.service.RedisService;
 import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Component;
