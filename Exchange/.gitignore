@@ -19,8 +19,7 @@ bin/
 !**/src/test/**/bin/
 
 ### IntelliJ IDEA ###
-Coin/.idea
-Exchange/.idea
+.idea
 *.iws
 *.iml
 *.ipr
