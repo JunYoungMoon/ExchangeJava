@@ -4,7 +4,6 @@ build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
-/images/profile/**
 
 ### STS ###
 .apt_generated
@@ -36,6 +35,3 @@ out/
 
 ### VS Code ###
 .vscode/
-
-## app ##
-.db

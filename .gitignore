@@ -1,2 +1,5 @@
-## app ##
-.db
+## database ##
+db
+
+### IntelliJ IDEA ###
+.idea
