@@ -41,6 +41,8 @@ dependencies {
     implementation 'com.google.guava:guava:33.2.0-jre'
 //    implementation 'io.springfox:springfox-boot-starter:3.0.0'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0'
+    implementation 'org.springframework.kafka:spring-kafka'
+    implementation 'org.apache.kafka:kafka-clients'
 //    runtimeOnly 'com.h2database:h2'
     runtimeOnly 'mysql:mysql-connector-java:8.0.30'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'

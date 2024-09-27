@@ -125,6 +125,15 @@ spring:
       host: localhost
       port: 6379
 
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: coinOrderGroup
+      auto-offset-reset: earliest
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
 jwt:
   secret: yVKaYUnumwN8sALxPE7Hkae9F/OOJqRZqlaBBcW9vvw= # 32바이트 Base64 인코딩 비밀 키
   expiration:
@@ -143,6 +152,3 @@ server:
   app:
     url: http://localhost:8080
 
-upload:
-  profile:
-    directory: /images/profile

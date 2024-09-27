@@ -31,6 +31,7 @@ public class RedisService {
     @Transactional(readOnly = true)
     public String getValues(String key) {
         ValueOperations<String, Object> values = redisTemplate.opsForValue();
+
         if (values.get(key) == null) {
             return "false";
         }
