@@ -126,7 +126,7 @@ spring:
       port: 6379
 
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: localhost:9092 #도커로 내부망일떄는 kafka:9092
     consumer:
       group-id: coinOrderGroup
       auto-offset-reset: earliest
@@ -151,4 +151,8 @@ cors:
 server:
   app:
     url: http://localhost:8080
+
+upload:
+  profile:
+    directory: /images/profile
 

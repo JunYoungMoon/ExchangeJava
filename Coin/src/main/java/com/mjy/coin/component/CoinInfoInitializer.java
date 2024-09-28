@@ -18,49 +18,51 @@ import java.util.*;
 public class CoinInfoInitializer {
 
     private final SlaveCoinOrderRepository slaveCoinOrderRepository;
-    private final RedisService redisService;
+    private final PriorityQueueManager priorityQueueManager;
 
-    public CoinInfoInitializer(RedisService redisService, SlaveCoinOrderRepository slaveCoinOrderRepository) {
+    public CoinInfoInitializer(SlaveCoinOrderRepository slaveCoinOrderRepository, PriorityQueueManager priorityQueueManager) {
         this.slaveCoinOrderRepository = slaveCoinOrderRepository;
-        this.redisService = redisService;
+        this.priorityQueueManager = priorityQueueManager;
     }
-
-    private String coinTypeEnv;
 
     @PostConstruct
     public void init() {
         // 각 코인과 마켓별 우선순위 큐를 초기화
         List<CoinOrder> pendingOrders = slaveCoinOrderRepository.findPendingOrders();
-        Map<String, Map<String, PriorityQueue<CoinOrder>>> buyOrderQueues = new HashMap<>();
-        Map<String, Map<String, PriorityQueue<CoinOrder>>> sellOrderQueues = new HashMap<>();
+
+        Map<String, PriorityQueue<CoinOrder>> buyOrderQueues = new HashMap<>();
+        Map<String, PriorityQueue<CoinOrder>> sellOrderQueues = new HashMap<>();
 
         for (CoinOrder order : pendingOrders) {
             String coinName = order.getCoinName();
-            String marketName = order.getMarketName ();
+            String marketName = order.getMarketName();
+
+            String key = coinName + "-" + marketName;
 
             // 매수 주문일 경우
             if (order.getOrderType() == CoinOrder.OrderType.BUY) {
-                buyOrderQueues.putIfAbsent(coinName, new HashMap<>());
-                buyOrderQueues.get(coinName).putIfAbsent(marketName, new PriorityQueue<>(
+                buyOrderQueues.putIfAbsent(key, new PriorityQueue<>(
                         Comparator.comparing(CoinOrder::getOrderPrice).reversed()
                                 .thenComparing(CoinOrder::getCreatedAt)
                 ));
-                buyOrderQueues.get(coinName).get(marketName).add(order);
+                buyOrderQueues.get(key).add(order);
+            }
 
-                // 매도 주문일 경우
-            } else if (order.getOrderType() == CoinOrder.OrderType.SELL) {
-                sellOrderQueues.putIfAbsent(coinName, new HashMap<>());
-                sellOrderQueues.get(coinName).putIfAbsent(marketName, new PriorityQueue<>(
+            // 매도 주문일 경우
+            else if (order.getOrderType() == CoinOrder.OrderType.SELL) {
+                sellOrderQueues.putIfAbsent(key, new PriorityQueue<>(
                         Comparator.comparing(CoinOrder::getOrderPrice)
                                 .thenComparing(CoinOrder::getCreatedAt)
                 ));
-                sellOrderQueues.get(coinName).get(marketName).add(order);
+                sellOrderQueues.get(key).add(order);
             }
         }
 
-        // 큐 초기화 완료 메시지 출력
+        // 초기화된 큐를 PriorityQueueManager에 전달
+        priorityQueueManager.initializeQueues(buyOrderQueues, sellOrderQueues);
         System.out.println("Buy/Sell queues initialized with pending orders.");
     }
+}
 //
 //    @PostConstruct
 //    public void init() throws JsonProcessingException {
@@ -130,6 +132,3 @@ public class CoinInfoInitializer {
 //        }
 //
 //        System.out.println(orderData);
-
-
-}
