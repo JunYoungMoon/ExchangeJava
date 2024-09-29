@@ -1,5 +1,8 @@
 package com.mjy.coin.entity.coin;
 
+import com.mjy.coin.enums.MatchStatus;
+import com.mjy.coin.enums.OrderStatus;
+import com.mjy.coin.enums.OrderType;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -59,23 +62,4 @@ public class CoinOrder {
 
     @Column
     private LocalDateTime matchedAt; // 체결일자
-
-    // 주문 타입 (매수/매도)
-    public enum OrderType {
-        BUY, // 매수
-        SELL // 매도
-    }
-
-    // 거래 상태 (체결/미체결/취소)
-    public enum OrderStatus {
-        PENDING, // 미체결
-        COMPLETED, // 체결
-        CANCELED // 취소
-    }
-
-    // 체결 상태 (완전체결/부분체결)
-    public enum MatchStatus {
-        FULL, // 완전체결
-        PARTIAL // 부분체결
-    }
 }

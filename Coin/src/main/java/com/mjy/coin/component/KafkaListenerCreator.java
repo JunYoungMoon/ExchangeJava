@@ -1,8 +1,9 @@
 package com.mjy.coin.component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mjy.coin.dto.CoinInfo;
-import com.mjy.coin.entity.coin.CoinOrder;
+import com.mjy.coin.dto.CoinInfoDTO;
+import com.mjy.coin.dto.CoinOrderDTO;
+import com.mjy.coin.repository.coin.master.MasterCoinOrderRepository;
 import com.mjy.coin.service.RedisService;
 import jakarta.annotation.PostConstruct;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -34,6 +35,11 @@ public class KafkaListenerCreator {
     @Autowired
     private PriorityQueueManager priorityQueueManager; // PriorityQueueManager 주입
 
+    private final MasterCoinOrderRepository masterCoinOrderRepository;
+
+    public KafkaListenerCreator(MasterCoinOrderRepository masterCoinOrderRepository) {
+        this.masterCoinOrderRepository = masterCoinOrderRepository;
+    }
 
     @PostConstruct
     public void init() {
@@ -46,10 +52,10 @@ public class KafkaListenerCreator {
         try {
             // Redis에서 해당 COIN_TYPE에 맞는 CoinInfo 리스트를 가져옴
             String jsonData = redisService.getValues(coinTypeEnv);
-            CoinInfo[] coinInfoList = new ObjectMapper().readValue(jsonData, CoinInfo[].class);
+            CoinInfoDTO[] coinInfoList = new ObjectMapper().readValue(jsonData, CoinInfoDTO[].class);
 
             // 각 CoinInfo에 따라 토픽을 동적으로 등록
-            for (CoinInfo coinInfo : coinInfoList) {
+            for (CoinInfoDTO coinInfo : coinInfoList) {
                 String topicName = coinInfo.getCoinName() + "-" + coinInfo.getMarketName();
 
                 // 리스너 등록
@@ -61,15 +67,15 @@ public class KafkaListenerCreator {
         }
     }
 
-    private MethodKafkaListenerEndpoint<String, CoinOrder> createKafkaListenerEndpoint(String topic) {
-        MethodKafkaListenerEndpoint<String, CoinOrder> kafkaListenerEndpoint = new MethodKafkaListenerEndpoint<>();
+    private MethodKafkaListenerEndpoint<String, CoinOrderDTO> createKafkaListenerEndpoint(String topic) {
+        MethodKafkaListenerEndpoint<String, CoinOrderDTO> kafkaListenerEndpoint = new MethodKafkaListenerEndpoint<>();
         kafkaListenerEndpoint.setId(generateListenerId());
         kafkaListenerEndpoint.setGroupId(KAFKA_GROUP_ID);
         kafkaListenerEndpoint.setAutoStartup(true);
         kafkaListenerEndpoint.setTopics(topic);
         kafkaListenerEndpoint.setMessageHandlerMethodFactory(new DefaultMessageHandlerMethodFactory());
 
-        KafkaTemplateListener listener = new KafkaTemplateListener(priorityQueueManager);
+        KafkaTemplateListener listener = new KafkaTemplateListener(priorityQueueManager, masterCoinOrderRepository);
         kafkaListenerEndpoint.setBean(listener);
 
         try {
@@ -86,7 +92,7 @@ public class KafkaListenerCreator {
     }
 
     public void createAndRegisterListener(String topic) {
-        MethodKafkaListenerEndpoint<String, CoinOrder> listener = createKafkaListenerEndpoint(topic);
+        MethodKafkaListenerEndpoint<String, CoinOrderDTO> listener = createKafkaListenerEndpoint(topic);
         kafkaListenerEndpointRegistry.registerListenerContainer(listener, kafkaListenerContainerFactory, true);
     }
 }

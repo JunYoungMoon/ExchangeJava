@@ -1,6 +1,8 @@
 package com.mjy.coin.service;
 
 import com.mjy.coin.entity.coin.CoinOrder;
+import com.mjy.coin.enums.OrderStatus;
+import com.mjy.coin.enums.OrderType;
 import com.mjy.coin.repository.coin.master.MasterCoinOrderRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -29,10 +31,10 @@ public class CoinOrderService {
             coinOrder.setMemberId((long) random.nextInt(10000)); // 1만 명의 사용자 중 무작위 선택
             coinOrder.setMarketName("KRW");
             coinOrder.setCoinName(random.nextBoolean() ? "BTC" : "ETH"); // BTC 또는 ETH 선택
-            coinOrder.setOrderType(random.nextBoolean() ? CoinOrder.OrderType.BUY : CoinOrder.OrderType.SELL); // 매수 또는 매도
+            coinOrder.setOrderType(random.nextBoolean() ? OrderType.BUY : OrderType.SELL); // 매수 또는 매도
             coinOrder.setCoinAmount(BigDecimal.valueOf(0.1 + (random.nextDouble() * 10))); // 0.1 ~ 10.0 코인
             coinOrder.setOrderPrice(BigDecimal.valueOf(1000 + (random.nextInt(9000)))); // 1000 ~ 10000 금액
-            coinOrder.setOrderStatus(CoinOrder.OrderStatus.PENDING); // 미체결로 기본 설정
+            coinOrder.setOrderStatus(OrderStatus.PENDING); // 미체결로 기본 설정
             coinOrder.setFee(BigDecimal.valueOf(0.01)); // 수수료 1%
             coinOrder.setCreatedAt(LocalDateTime.now());
 

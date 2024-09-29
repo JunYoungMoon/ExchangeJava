@@ -133,6 +133,11 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring:
+          json:
+            trusted.packages: "*"
+            type.mapping: "coinOrder:com.mjy.exchange.dto.CoinOrder"
 
 jwt:
   secret: yVKaYUnumwN8sALxPE7Hkae9F/OOJqRZqlaBBcW9vvw= # 32바이트 Base64 인코딩 비밀 키

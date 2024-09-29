@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 
 @Getter
 @NoArgsConstructor
-public class CoinInfo {
+public class CoinInfoDTO {
     private Long idx;
     private String marketName;
     private String coinName;
