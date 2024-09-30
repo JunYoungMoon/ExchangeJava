@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mjy.exchange.entity.CoinInfo;
 import com.mjy.exchange.repository.slave.SlaveCoinInfoRepository;
 import com.mjy.exchange.service.RedisService;
-import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-public class CoinInfoInitializer {
+public class CoinInfoInitializer implements SmartInitializingSingleton {
 
     private final SlaveCoinInfoRepository slaveCoinInfoRepository;
     private final RedisService redisService;
@@ -24,8 +24,10 @@ public class CoinInfoInitializer {
         this.redisService = redisService;
     }
 
-    @PostConstruct
-    public void init() throws JsonProcessingException {
+    //모든 빈이 초기화된 후 실행 CoinInfoInitializer 실행
+    //MasterDataSourceConfig에서 초기 데이터를 넣고 난뒤에 실행되어야 함
+    @Override
+    public void afterSingletonsInstantiated() {
         //코인 정보 redis 저장
         List<CoinInfo> coinInfoList = slaveCoinInfoRepository.findAll();
 
@@ -42,7 +44,12 @@ public class CoinInfoInitializer {
         // Redis에 저장
         for (Map.Entry<String, List<CoinInfo>> entry : groupedCoinInfo.entrySet()) {
             String key = entry.getKey(); // MAJOR 또는 MINOR
-            String jsonValue = new ObjectMapper().writeValueAsString(entry.getValue()); // JSON 문자열로 변환
+            String jsonValue = null; // JSON 문자열로 변환
+            try {
+                jsonValue = new ObjectMapper().writeValueAsString(entry.getValue());
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
             redisService.setValues(key, jsonValue); // Redis에 저장
             System.out.println(key + " list saved to Redis: " + jsonValue);
         }
