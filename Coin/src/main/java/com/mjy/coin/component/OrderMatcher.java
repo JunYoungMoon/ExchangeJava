@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.PriorityQueue;
 
 @Component
-public class PriorityQueueManager {
+public class OrderMatcher {
 
     private Map<String, PriorityQueue<CoinOrderDTO>> buyOrderQueues = new HashMap<>();
     private Map<String, PriorityQueue<CoinOrderDTO>> sellOrderQueues = new HashMap<>();
@@ -67,18 +67,26 @@ public class PriorityQueueManager {
                     BigDecimal sellQuantity = sellOrder.getCoinAmount();
                     BigDecimal remainingQuantity = buyQuantity.subtract(sellQuantity).setScale(8, RoundingMode.DOWN);
 
-                    // 완전체결
                     if (remainingQuantity.compareTo(BigDecimal.ZERO) == 0) {
+                        // 완전체결
+                        //update 필요
+
                         // 두 주문 모두 체결된 경우
                         System.out.println("Matched completely: " + buyOrder + " with " + sellOrder);
                         buyOrders.poll(); // 매수 주문 제거
                         sellOrders.poll(); // 매도 주문 제거
                     } else if (remainingQuantity.compareTo(BigDecimal.ZERO) > 0) {
+                        // 매수 부분체결
+                        // 부분체결 insert
+                        //나머지 가격 update
                         // 매수 주문이 더 많은 경우
                         System.out.println("Partially matched: " + buyOrder + " with " + sellOrder);
                         buyOrder.setCoinAmount(remainingQuantity); // 매수 주문 수정
                         sellOrders.poll(); // 매도 주문 제거
                     } else {
+                        // 매도 부분체결
+                        // 부분체결 insert
+                        //나머지 가격 update 
                         // 매도 주문이 더 많은 경우
                         System.out.println("Partially matched: " + buyOrder + " with " + sellOrder);
                         sellOrder.setCoinAmount(remainingQuantity.negate()); // 매도 주문 수정

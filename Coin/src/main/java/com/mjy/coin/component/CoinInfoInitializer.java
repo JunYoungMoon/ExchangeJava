@@ -15,9 +15,9 @@ import java.util.stream.Collectors;
 public class CoinInfoInitializer {
 
     private final SlaveCoinOrderRepository slaveCoinOrderRepository;
-    private final PriorityQueueManager priorityQueueManager;
+    private final OrderMatcher priorityQueueManager;
 
-    public CoinInfoInitializer(SlaveCoinOrderRepository slaveCoinOrderRepository, PriorityQueueManager priorityQueueManager) {
+    public CoinInfoInitializer(SlaveCoinOrderRepository slaveCoinOrderRepository, OrderMatcher priorityQueueManager) {
         this.slaveCoinOrderRepository = slaveCoinOrderRepository;
         this.priorityQueueManager = priorityQueueManager;
     }

@@ -14,11 +14,11 @@ import com.mjy.coin.dto.CoinOrderMapper;
 @Component
 public class KafkaTemplateListener implements MessageListener<String, CoinOrderDTO> {
 
-    private final PriorityQueueManager priorityQueueManager;
+    private final OrderMatcher priorityQueueManager;
     private final MasterCoinOrderRepository masterCoinOrderRepository;
 
     @Autowired
-    public KafkaTemplateListener(PriorityQueueManager priorityQueueManager, MasterCoinOrderRepository masterCoinOrderRepository) {
+    public KafkaTemplateListener(OrderMatcher priorityQueueManager, MasterCoinOrderRepository masterCoinOrderRepository) {
         this.priorityQueueManager = priorityQueueManager;
         this.masterCoinOrderRepository = masterCoinOrderRepository;
     }
@@ -32,8 +32,11 @@ public class KafkaTemplateListener implements MessageListener<String, CoinOrderD
         CoinOrder orderEntity = CoinOrderMapper.toEntity(order);
 
         try {
-            // DB에 저장
-            masterCoinOrderRepository.save(orderEntity);
+            // DB에 저장 (저장된 엔티티 반환)
+            CoinOrder savedOrderEntity = masterCoinOrderRepository.save(orderEntity);
+
+            // 저장된 엔티티에서 idx 가져와서 DTO에 설정
+            order.setIdx(savedOrderEntity.getIdx());
 
             // 저장이 성공했으므로 매수/매도 큐에 추가
             if (order.getOrderType() == OrderType.BUY) {

@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 public class CoinOrderDTO {
+    private Long idx; // 주문 ID
     private Long memberId; // 주문 등록인, member_id
     private String marketName; // 예: KRW
     private String coinName; // 예: BTC
@@ -26,6 +27,7 @@ public class CoinOrderDTO {
 
     @JsonCreator // JSON 역직렬화를 위한 생성자
     public CoinOrderDTO(
+            @JsonProperty("idx") Long idx,
             @JsonProperty("memberId") Long memberId,
             @JsonProperty("marketName") String marketName,
             @JsonProperty("coinName") String coinName,
@@ -35,6 +37,7 @@ public class CoinOrderDTO {
             @JsonProperty("orderStatus") OrderStatus orderStatus,
             @JsonProperty("fee") BigDecimal fee,
             @JsonProperty("createdAt") LocalDateTime createdAt) {
+        this.idx = idx;
         this.memberId = memberId;
         this.marketName = marketName;
         this.coinName = coinName;
@@ -49,6 +52,7 @@ public class CoinOrderDTO {
     // 엔티티에서 VO로 변환하는 정적 팩토리 메서드
     public static CoinOrderDTO fromEntity(CoinOrder entity) {
         return new CoinOrderDTO(
+                entity.getIdx(),
                 entity.getMemberId(),
                 entity.getMarketName(),
                 entity.getCoinName(),

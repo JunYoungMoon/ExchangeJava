@@ -33,7 +33,7 @@ public class KafkaListenerCreator {
     private RedisService redisService; // RedisService를 추가
 
     @Autowired
-    private PriorityQueueManager priorityQueueManager; // PriorityQueueManager 주입
+    private OrderMatcher priorityQueueManager; // PriorityQueueManager 주입
 
     private final MasterCoinOrderRepository masterCoinOrderRepository;
 
