@@ -1,6 +1,11 @@
 package com.mjy.coin.component;
 
 import com.mjy.coin.dto.CoinOrderDTO;
+import com.mjy.coin.dto.CoinOrderMapper;
+import com.mjy.coin.entity.coin.CoinOrder;
+import com.mjy.coin.enums.OrderStatus;
+import com.mjy.coin.repository.coin.master.MasterCoinOrderRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -12,6 +17,13 @@ import java.util.PriorityQueue;
 
 @Component
 public class OrderMatcher {
+
+    private final MasterCoinOrderRepository masterCoinOrderRepository;
+
+    @Autowired
+    public OrderMatcher(MasterCoinOrderRepository masterCoinOrderRepository) {
+        this.masterCoinOrderRepository = masterCoinOrderRepository;
+    }
 
     private Map<String, PriorityQueue<CoinOrderDTO>> buyOrderQueues = new HashMap<>();
     private Map<String, PriorityQueue<CoinOrderDTO>> sellOrderQueues = new HashMap<>();
@@ -68,8 +80,17 @@ public class OrderMatcher {
                     BigDecimal remainingQuantity = buyQuantity.subtract(sellQuantity).setScale(8, RoundingMode.DOWN);
 
                     if (remainingQuantity.compareTo(BigDecimal.ZERO) == 0) {
-                        // 완전체결
-                        //update 필요
+                        // 매수/매도 양쪽 주문 체결 상태 업데이트
+                        buyOrder.setOrderStatus(OrderStatus.COMPLETED);
+                        sellOrder.setOrderStatus(OrderStatus.COMPLETED);
+
+                        // 체결된 상대방의 회원 정보 저장
+                        buyOrder.setMatchedMemberId(sellOrder.getMemberId());
+                        sellOrder.setMatchedMemberId(buyOrder.getMemberId());
+
+                        // DB 업데이트 (매수/매도 양쪽)
+                        updateOrderStatus(buyOrder);
+                        updateOrderStatus(sellOrder);
 
                         // 두 주문 모두 체결된 경우
                         System.out.println("Matched completely: " + buyOrder + " with " + sellOrder);
@@ -78,7 +99,7 @@ public class OrderMatcher {
                     } else if (remainingQuantity.compareTo(BigDecimal.ZERO) > 0) {
                         // 매수 부분체결
                         // 부분체결 insert
-                        //나머지 가격 update
+                        // 나머지 가격 update
                         // 매수 주문이 더 많은 경우
                         System.out.println("Partially matched: " + buyOrder + " with " + sellOrder);
                         buyOrder.setCoinAmount(remainingQuantity); // 매수 주문 수정
@@ -86,7 +107,7 @@ public class OrderMatcher {
                     } else {
                         // 매도 부분체결
                         // 부분체결 insert
-                        //나머지 가격 update 
+                        // 나머지 가격 update
                         // 매도 주문이 더 많은 경우
                         System.out.println("Partially matched: " + buyOrder + " with " + sellOrder);
                         sellOrder.setCoinAmount(remainingQuantity.negate()); // 매도 주문 수정
@@ -97,5 +118,11 @@ public class OrderMatcher {
                 }
             }
         }
+    }
+
+    // 주문 상태와 체결 상대 정보를 업데이트하는 메소드
+    private void updateOrderStatus(CoinOrderDTO order) {
+        CoinOrder orderEntity = CoinOrderMapper.toEntity(order);
+        masterCoinOrderRepository.save(orderEntity);
     }
 }

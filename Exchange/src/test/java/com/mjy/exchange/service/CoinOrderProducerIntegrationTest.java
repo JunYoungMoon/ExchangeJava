@@ -21,12 +21,12 @@ public class CoinOrderProducerIntegrationTest {
     @Test
     public void testSendCoinOrder() throws InterruptedException {
         CoinOrder coinOrder = new CoinOrder();
-        coinOrder.setMemberId(1L);
+        coinOrder.setMemberId(2L);
         coinOrder.setMarketName("KRW");
         coinOrder.setCoinName("BTC");
         coinOrder.setCoinAmount(new BigDecimal("0.001")); // 랜덤 금액 추가
         coinOrder.setOrderPrice(new BigDecimal("50000")); // 랜덤 가격 추가
-        coinOrder.setOrderType(SELL);
+        coinOrder.setOrderType(BUY);
         coinOrder.setOrderStatus(PENDING);
         coinOrder.setFee(new BigDecimal("0.01"));
         coinOrder.setCreatedAt(LocalDateTime.now());

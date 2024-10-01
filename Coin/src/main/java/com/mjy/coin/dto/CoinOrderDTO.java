@@ -23,6 +23,7 @@ public class CoinOrderDTO {
     private OrderType orderType; // 매수/매도 타입(enum)
     private OrderStatus orderStatus; // 거래 상태 (체결/미체결/취소)
     private BigDecimal fee; //수수료
+    private Long matchedMemberId; // 거래 성사인, member_id
     private LocalDateTime createdAt; // 등록일자
 
     @JsonCreator // JSON 역직렬화를 위한 생성자
