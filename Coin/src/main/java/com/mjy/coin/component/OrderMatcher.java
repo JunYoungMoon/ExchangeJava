@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
@@ -80,49 +81,101 @@ public class OrderMatcher {
                     BigDecimal remainingQuantity = buyQuantity.subtract(sellQuantity).setScale(8, RoundingMode.DOWN);
 
                     if (remainingQuantity.compareTo(BigDecimal.ZERO) == 0) {
-                        // 매수/매도 양쪽 주문 체결 상태 업데이트
-                        buyOrder.setOrderStatus(OrderStatus.COMPLETED);
-                        sellOrder.setOrderStatus(OrderStatus.COMPLETED);
-
-                        // 체결된 상대방의 회원 정보 저장
-                        buyOrder.setMatchedMemberId(sellOrder.getMemberId());
-                        sellOrder.setMatchedMemberId(buyOrder.getMemberId());
-
-                        // DB 업데이트 (매수/매도 양쪽)
-                        updateOrderStatus(buyOrder);
-                        updateOrderStatus(sellOrder);
-
-                        // 두 주문 모두 체결된 경우
+                        // 완전체결
+                        // 매수와 매도 모두 체결
                         System.out.println("Matched completely: " + buyOrder + " with " + sellOrder);
-                        buyOrders.poll(); // 매수 주문 제거
-                        sellOrders.poll(); // 매도 주문 제거
+
+                        // 주문 삽입 (완전체결인 경우)
+                        // 매수와 매도 모두 체결로 처리
+                        buyOrder.setOrderStatus(OrderStatus.COMPLETED);
+                        buyOrder.setMatchedAt(LocalDateTime.now());
+                        sellOrder.setOrderStatus(OrderStatus.COMPLETED);
+                        sellOrder.setMatchedAt(LocalDateTime.now());
+
+                        // 매수와 매도 체결된 상태를 DB에 기록
+                        masterCoinOrderRepository.save(CoinOrderMapper.toEntity(buyOrder));
+                        masterCoinOrderRepository.save(CoinOrderMapper.toEntity(sellOrder));
+
+                        // 큐에서 양쪽 주문 제거
+                        buyOrders.poll();
+                        sellOrders.poll();
                     } else if (remainingQuantity.compareTo(BigDecimal.ZERO) > 0) {
                         // 매수 부분체결
-                        // 부분체결 insert
-                        // 나머지 가격 update
-                        // 매수 주문이 더 많은 경우
                         System.out.println("Partially matched: " + buyOrder + " with " + sellOrder);
-                        buyOrder.setCoinAmount(remainingQuantity); // 매수 주문 수정
-                        sellOrders.poll(); // 매도 주문 제거
+
+                        // 매도는 모두 체결되고 매수는 일부 남음
+                        // 매도 모두 체결 처리
+                        sellOrder.setOrderStatus(OrderStatus.COMPLETED);
+                        sellOrder.setMatchedAt(LocalDateTime.now());
+                        masterCoinOrderRepository.save(CoinOrderMapper.toEntity(sellOrder));
+
+                        // 매도 주문 제거
+                        sellOrders.poll();
+
+                        //이전 idx 저장
+                        Long previousIdx = buyOrder.getIdx();
+
+                        // 매도가 체결 되는 만큼 매수도 체결
+                        // idx가 빈값으로 들어가 insert 필요
+                        buyOrder.setIdx(null);
+                        buyOrder.setOrderStatus(OrderStatus.COMPLETED);
+                        buyOrder.setCoinAmount(sellOrder.getCoinAmount());
+                        buyOrder.setMatchedAt(LocalDateTime.now());
+                        masterCoinOrderRepository.save(CoinOrderMapper.toEntity(buyOrder));
+
+                        // 매수 주문 수량 업데이트 (남은 수량)
+                        // 기존의 idx를 가져와 update 필요
+                        buyOrder.setIdx(previousIdx);
+                        buyOrder.setCoinAmount(remainingQuantity);
+                        buyOrder.setOrderStatus(OrderStatus.PENDING);
+
+                        // 미체결 수량 업데이트
+                        masterCoinOrderRepository.save(CoinOrderMapper.toEntity(buyOrder)); // 상태 업데이트
+
+                        // 우선순위 큐에서 매수 주문 수량도 업데이트
+                        buyOrders.poll(); // 기존 주문 제거
+                        buyOrders.offer(buyOrder); // 수정된 주문 다시 추가
                     } else {
                         // 매도 부분체결
-                        // 부분체결 insert
-                        // 나머지 가격 update
-                        // 매도 주문이 더 많은 경우
                         System.out.println("Partially matched: " + buyOrder + " with " + sellOrder);
-                        sellOrder.setCoinAmount(remainingQuantity.negate()); // 매도 주문 수정
-                        buyOrders.poll(); // 매수 주문 제거
+
+                        // 매수는 모두 체결되고 매도는 일부 남음
+                        // 매수 모두 체결 처리
+                        buyOrder.setOrderStatus(OrderStatus.COMPLETED);
+                        buyOrder.setMatchedAt(LocalDateTime.now());
+                        masterCoinOrderRepository.save(CoinOrderMapper.toEntity(buyOrder));
+
+                        // 매수 주문 제거
+                        buyOrders.poll();
+
+                        //이전 idx 저장
+                        Long previousIdx = sellOrder.getIdx();
+
+                        // 매도가 체결 되는 만큼 매수도 체결
+                        // idx가 빈값으로 들어가 insert 필요
+                        sellOrder.setIdx(null);
+                        sellOrder.setOrderStatus(OrderStatus.COMPLETED);
+                        sellOrder.setCoinAmount(buyOrder.getCoinAmount());
+                        sellOrder.setMatchedAt(LocalDateTime.now());
+                        masterCoinOrderRepository.save(CoinOrderMapper.toEntity(sellOrder));
+
+                        // 매수 주문 수량 업데이트 (남은 수량)
+                        // 기존의 idx를 가져와 update 필요
+                        sellOrder.setIdx(previousIdx);
+                        sellOrder.setCoinAmount(remainingQuantity.negate());
+                        sellOrder.setOrderStatus(OrderStatus.PENDING);
+
+                        // 미체결 수량 업데이트
+                        masterCoinOrderRepository.save(CoinOrderMapper.toEntity(sellOrder)); // 상태 업데이트
+
+                        // 우선순위 큐에서 매수 주문 수량도 업데이트
+                        sellOrders.poll(); // 기존 주문 제거
+                        sellOrders.offer(sellOrder); // 수정된 주문 다시 추가
                     }
                 } else {
                     break; // 더 이상 체결할 수 없으면 중단
                 }
             }
         }
-    }
-
-    // 주문 상태와 체결 상대 정보를 업데이트하는 메소드
-    private void updateOrderStatus(CoinOrderDTO order) {
-        CoinOrder orderEntity = CoinOrderMapper.toEntity(order);
-        masterCoinOrderRepository.save(orderEntity);
     }
 }

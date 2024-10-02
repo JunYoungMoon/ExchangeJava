@@ -1,12 +1,9 @@
 package com.mjy.coin.entity.coin;
 
-import com.mjy.coin.enums.MatchStatus;
 import com.mjy.coin.enums.OrderStatus;
 import com.mjy.coin.enums.OrderType;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
@@ -48,14 +45,8 @@ public class CoinOrder {
     @Column(nullable = false)
     private OrderStatus orderStatus; // 거래 상태 (enum: 체결/미체결/취소)
 
-    @Enumerated(EnumType.STRING)
-    private MatchStatus matchStatus; // 체결 상태 (enum: 완전체결/부분체결)
-
     @Column(nullable = false, precision = 18, scale = 8)
     private BigDecimal fee; // 수수료
-
-    @Column
-    private Long matchedMemberId; // 거래 성사인, member_id
 
     @Column(nullable = false)
     private LocalDateTime createdAt; // 등록일자
