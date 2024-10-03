@@ -33,11 +33,11 @@ spring:
           username: root
           password: 1234
 
-  jpa:
-    properties:
-      hibernate:
-        format_sql: true
-        show_sql: true
+#  jpa:
+#    properties:
+#      hibernate:
+#        format_sql: true
+#        show_sql: true
 
   data:
     redis:

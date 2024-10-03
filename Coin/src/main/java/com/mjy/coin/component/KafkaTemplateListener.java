@@ -38,10 +38,15 @@ public class KafkaTemplateListener implements MessageListener<String, CoinOrderD
             // 저장된 엔티티에서 idx 가져와서 DTO에 설정
             order.setIdx(savedOrderEntity.getIdx());
 
+            // 로그: 주문이 DB에 저장된 후
+            System.out.println("Order saved: " + savedOrderEntity);
+
             // 저장이 성공했으므로 매수/매도 큐에 추가
             if (order.getOrderType() == OrderType.BUY) {
+                System.out.println("Adding buy order to queue: " + order);
                 priorityQueueManager.addBuyOrder(key, order);
             } else if (order.getOrderType() == OrderType.SELL) {
+                System.out.println("Adding sell order to queue: " + order);
                 priorityQueueManager.addSellOrder(key, order);
             }
 

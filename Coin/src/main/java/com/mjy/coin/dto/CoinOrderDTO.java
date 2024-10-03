@@ -25,6 +25,7 @@ public class CoinOrderDTO {
     private BigDecimal fee; //수수료
     private LocalDateTime createdAt; // 등록일자
     private LocalDateTime matchedAt; // 체결일자
+    private Long matchedOrderIdx; // 거래 성사 주문번호
 
     @JsonCreator // JSON 역직렬화를 위한 생성자
     public CoinOrderDTO(
@@ -37,7 +38,9 @@ public class CoinOrderDTO {
             @JsonProperty("orderType") OrderType orderType,
             @JsonProperty("orderStatus") OrderStatus orderStatus,
             @JsonProperty("fee") BigDecimal fee,
-            @JsonProperty("createdAt") LocalDateTime createdAt) {
+            @JsonProperty("createdAt") LocalDateTime createdAt,
+            @JsonProperty("matchedOrderIdx") Long matchedOrderIdx
+    ) {
         this.idx = idx;
         this.memberId = memberId;
         this.marketName = marketName;
@@ -48,6 +51,7 @@ public class CoinOrderDTO {
         this.orderStatus = orderStatus;
         this.fee = fee;
         this.createdAt = createdAt;
+        this.matchedOrderIdx = matchedOrderIdx;
     }
 
     // 엔티티에서 VO로 변환하는 정적 팩토리 메서드
@@ -62,7 +66,26 @@ public class CoinOrderDTO {
                 entity.getOrderType(),
                 entity.getOrderStatus(),
                 entity.getFee(),
-                entity.getCreatedAt()
+                entity.getCreatedAt(),
+                entity.getMatchedOrderIdx()
         );
+    }
+
+    @Override
+    public String toString() {
+        return "CoinOrderDTO{" +
+                "idx=" + idx +
+                ", memberId=" + memberId +
+                ", marketName='" + marketName + '\'' +
+                ", coinName='" + coinName + '\'' +
+                ", coinAmount=" + coinAmount +
+                ", orderPrice=" + orderPrice +
+                ", orderType=" + orderType +
+                ", orderStatus=" + orderStatus +
+                ", fee=" + fee +
+                ", createdAt=" + createdAt +
+                ", matchedAt=" + matchedAt +
+                ", matchedOrderIdx=" + matchedOrderIdx +
+                '}';
     }
 }

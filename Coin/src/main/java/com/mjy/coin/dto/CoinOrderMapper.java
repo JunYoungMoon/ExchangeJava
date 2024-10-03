@@ -20,6 +20,8 @@ public class CoinOrderMapper {
         entity.setOrderStatus(dto.getOrderStatus());
         entity.setFee(dto.getFee());
         entity.setCreatedAt(dto.getCreatedAt());
+        entity.setMatchedAt(dto.getMatchedAt());
+        entity.setMatchedOrderIdx(dto.getMatchedOrderIdx());
         return entity;
     }
 }

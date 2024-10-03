@@ -48,9 +48,30 @@ public class CoinOrder {
     @Column(nullable = false, precision = 18, scale = 8)
     private BigDecimal fee; // 수수료
 
+    @Column
+    private Long matchedOrderIdx; // 거래 성사 주문번호
+
     @Column(nullable = false)
     private LocalDateTime createdAt; // 등록일자
 
     @Column
     private LocalDateTime matchedAt; // 체결일자
+
+    @Override
+    public String toString() {
+        return "CoinOrder{" +
+                "idx=" + idx +
+                ", memberId=" + memberId +
+                ", marketName='" + marketName + '\'' +
+                ", coinName='" + coinName + '\'' +
+                ", orderType=" + orderType +
+                ", coinAmount=" + coinAmount +
+                ", orderPrice=" + orderPrice +
+                ", orderStatus=" + orderStatus +
+                ", fee=" + fee +
+                ", matchedOrderIdx=" + matchedOrderIdx +
+                ", createdAt=" + createdAt +
+                ", matchedAt=" + matchedAt +
+                '}';
+    }
 }
