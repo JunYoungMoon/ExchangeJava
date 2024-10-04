@@ -32,13 +32,10 @@ public class KafkaListenerCreator {
     @Autowired
     private RedisService redisService; // RedisService를 추가
 
-    @Autowired
-    private OrderMatcher priorityQueueManager; // PriorityQueueManager 주입
+    private final OrderProcessor orderProcessor;
 
-    private final MasterCoinOrderRepository masterCoinOrderRepository;
-
-    public KafkaListenerCreator(MasterCoinOrderRepository masterCoinOrderRepository) {
-        this.masterCoinOrderRepository = masterCoinOrderRepository;
+    public KafkaListenerCreator(OrderProcessor orderProcessor) {
+        this.orderProcessor = orderProcessor;
     }
 
     @PostConstruct
@@ -75,7 +72,7 @@ public class KafkaListenerCreator {
         kafkaListenerEndpoint.setTopics(topic);
         kafkaListenerEndpoint.setMessageHandlerMethodFactory(new DefaultMessageHandlerMethodFactory());
 
-        KafkaTemplateListener listener = new KafkaTemplateListener(priorityQueueManager, masterCoinOrderRepository);
+        KafkaTemplateListener listener = new KafkaTemplateListener(orderProcessor);
         kafkaListenerEndpoint.setBean(listener);
 
         try {

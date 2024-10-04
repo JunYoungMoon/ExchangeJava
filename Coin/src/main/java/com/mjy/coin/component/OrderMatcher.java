@@ -20,10 +20,12 @@ import java.util.PriorityQueue;
 public class OrderMatcher {
 
     private final MasterCoinOrderRepository masterCoinOrderRepository;
+    private final OrderBookManager orderBookManager;
 
     @Autowired
-    public OrderMatcher(MasterCoinOrderRepository masterCoinOrderRepository) {
+    public OrderMatcher(MasterCoinOrderRepository masterCoinOrderRepository, OrderBookManager orderBookManager) {
         this.masterCoinOrderRepository = masterCoinOrderRepository;
+        this.orderBookManager = orderBookManager;
     }
 
     private Map<String, PriorityQueue<CoinOrderDTO>> buyOrderQueues = new HashMap<>();
@@ -101,6 +103,10 @@ public class OrderMatcher {
                         // 큐에서 양쪽 주문 제거
                         buyOrders.poll();
                         sellOrders.poll();
+
+                        // 체결 되었으니 호가 리스트 제거
+                        orderBookManager.updateOrderBook(key, buyOrder, true, false);
+                        orderBookManager.updateOrderBook(key, sellOrder, false, false);
                     } else if (remainingQuantity.compareTo(BigDecimal.ZERO) > 0) {
                         // 매도량 보다 매수량이 높은경우
                         // 매도는 모두 체결되고 매수는 일부 남음
@@ -114,6 +120,9 @@ public class OrderMatcher {
 
                         // 매도 주문 제거
                         sellOrders.poll();
+
+                        // 체결 되었으니 호가 리스트 제거
+                        orderBookManager.updateOrderBook(key, sellOrder, false, false);
 
                         // 매수 이전 idx 저장
                         Long previousIdx = buyOrder.getIdx();
@@ -153,6 +162,9 @@ public class OrderMatcher {
 
                         // 매수 주문 제거
                         buyOrders.poll();
+
+                        // 체결 되었으니 호가 리스트 제거
+                        orderBookManager.updateOrderBook(key, buyOrder, true, false);
 
                         //이전 idx 저장
                         Long previousIdx = sellOrder.getIdx();
