@@ -23,7 +23,9 @@ public class OrderBookManager {
             PriorityQueue<CoinOrderDTO> buyOrders = entry.getValue();
             buyOrderBooks.putIfAbsent(key, new TreeMap<>(Comparator.reverseOrder()));
             for (CoinOrderDTO buyOrder : buyOrders) {
-                addOrderToBook(buyOrderBooks.get(key), buyOrder.getOrderPrice(), buyOrder.getCoinAmount());
+                BigDecimal price = processBigDecimal(buyOrder.getOrderPrice());
+                BigDecimal amount = processBigDecimal(buyOrder.getCoinAmount());
+                addOrderToBook(buyOrderBooks.get(key), price, amount);
             }
         }
 
@@ -33,7 +35,9 @@ public class OrderBookManager {
             PriorityQueue<CoinOrderDTO> sellOrders = entry.getValue();
             sellOrderBooks.putIfAbsent(key, new TreeMap<>());
             for (CoinOrderDTO sellOrder : sellOrders) {
-                addOrderToBook(sellOrderBooks.get(key), sellOrder.getOrderPrice(), sellOrder.getCoinAmount());
+                BigDecimal price = processBigDecimal(sellOrder.getOrderPrice());
+                BigDecimal amount = processBigDecimal(sellOrder.getCoinAmount());
+                addOrderToBook(sellOrderBooks.get(key), price, amount);
             }
         }
     }
@@ -81,6 +85,17 @@ public class OrderBookManager {
         return sellOrderBooks.getOrDefault(key, new TreeMap<>()).entrySet().stream()
                 .limit(n)
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    }
+
+    // BigDecimal 처리 메서드
+    private BigDecimal processBigDecimal(BigDecimal value) {
+        if (value.scale() > 0) {
+            // 소수점 아래가 있는 경우
+            return new BigDecimal(value.stripTrailingZeros().toPlainString());
+        } else {
+            // 소수점 아래가 없는 경우 정수로 처리
+            return new BigDecimal(value.toBigInteger().toString());
+        }
     }
 
     public void printOrderBook(String key) {

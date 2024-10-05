@@ -89,7 +89,11 @@ public class KafkaListenerCreator {
     }
 
     public void createAndRegisterListener(String topic) {
-        MethodKafkaListenerEndpoint<String, CoinOrderDTO> listener = createKafkaListenerEndpoint(topic);
-        kafkaListenerEndpointRegistry.registerListenerContainer(listener, kafkaListenerContainerFactory, true);
+        if (kafkaListenerEndpointRegistry.getListenerContainers().stream().noneMatch(container -> container.getListenerId().equals(topic))) {
+            MethodKafkaListenerEndpoint<String, CoinOrderDTO> listener = createKafkaListenerEndpoint(topic);
+            kafkaListenerEndpointRegistry.registerListenerContainer(listener, kafkaListenerContainerFactory, true);
+        } else {
+            System.out.println("Listener for topic " + topic + " already exists.");
+        }
     }
 }

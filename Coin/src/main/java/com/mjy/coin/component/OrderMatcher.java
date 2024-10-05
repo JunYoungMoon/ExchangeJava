@@ -80,7 +80,7 @@ public class OrderMatcher {
                     // 체결 가능 시 처리
                     BigDecimal buyQuantity = buyOrder.getCoinAmount();
                     BigDecimal sellQuantity = sellOrder.getCoinAmount();
-                    BigDecimal remainingQuantity = buyQuantity.subtract(sellQuantity).setScale(8, RoundingMode.DOWN);
+                    BigDecimal remainingQuantity = buyQuantity.subtract(sellQuantity).setScale(8, RoundingMode.DOWN).stripTrailingZeros();
 
                     if (remainingQuantity.compareTo(BigDecimal.ZERO) == 0) {
                         // 완전체결
@@ -121,7 +121,7 @@ public class OrderMatcher {
                         // 매도 주문 제거
                         sellOrders.poll();
 
-                        // 체결 되었으니 호가 리스트 제거
+                        // 이미 미체결을 넣어줬기 때문에 체결 되었으니 호가 리스트 제거(가격만 구분하고 수량 차감은 같이 한다.)
                         orderBookManager.updateOrderBook(key, sellOrder, false, false);
 
                         // 매수 이전 idx 저장
@@ -135,6 +135,9 @@ public class OrderMatcher {
                         buyOrder.setMatchedAt(LocalDateTime.now());
                         buyOrder.setMatchedOrderIdx(sellOrder.getIdx());
                         masterCoinOrderRepository.save(CoinOrderMapper.toEntity(buyOrder));
+
+                        // 이미 미체결을 넣어줬기 때문에 체결 되었으니 호가 리스트 제거(가격만 구분하고 수량 차감은 같이 한다.)
+                        orderBookManager.updateOrderBook(key, buyOrder, true, false);
 
                         // 매수 주문 수량 업데이트 (남은 수량)
                         // 기존의 idx를 가져와 기존 매수 update
@@ -163,7 +166,7 @@ public class OrderMatcher {
                         // 매수 주문 제거
                         buyOrders.poll();
 
-                        // 체결 되었으니 호가 리스트 제거
+                        // 이미 미체결을 넣어줬기 때문에 체결 되었으니 호가 리스트 제거(가격만 구분하고 수량 차감은 같이 한다.)
                         orderBookManager.updateOrderBook(key, buyOrder, true, false);
 
                         //이전 idx 저장
@@ -177,6 +180,9 @@ public class OrderMatcher {
                         sellOrder.setMatchedAt(LocalDateTime.now());
                         sellOrder.setMatchedOrderIdx(buyOrder.getIdx());
                         masterCoinOrderRepository.save(CoinOrderMapper.toEntity(sellOrder));
+
+                        // 이미 미체결을 넣어줬기 때문에 체결 되었으니 호가 리스트 제거(가격만 구분하고 수량 차감은 같이 한다.)
+                        orderBookManager.updateOrderBook(key, sellOrder, false, false);
 
                         // 매수 주문 수량 업데이트 (남은 수량)
                         // 기존의 idx를 가져와 update 필요

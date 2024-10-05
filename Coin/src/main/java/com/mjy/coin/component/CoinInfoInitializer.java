@@ -22,7 +22,6 @@ public class CoinInfoInitializer {
     private final OrderMatcher priorityQueueManager;
     private final OrderBookManager orderBookManager;
     private final RedisService redisService;
-    private String coinTypeEnv;
 
     public CoinInfoInitializer(SlaveCoinOrderRepository slaveCoinOrderRepository, RedisService redisService, OrderMatcher priorityQueueManager, OrderBookManager orderBookManager) {
         this.slaveCoinOrderRepository = slaveCoinOrderRepository;
@@ -34,7 +33,7 @@ public class CoinInfoInitializer {
     @PostConstruct
     public void init() throws JsonProcessingException {
         // COIN_TYPE 환경 변수 가져오기
-        this.coinTypeEnv = System.getenv("COIN_TYPE");
+        String coinTypeEnv = System.getenv("COIN_TYPE");
         if (coinTypeEnv == null) {
             coinTypeEnv = "MAJOR"; // 기본값 설정
         }

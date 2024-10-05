@@ -41,11 +41,11 @@ public class OrderProcessor {
             if (order.getOrderType() == OrderType.BUY) {
                 System.out.println("Adding buy order to queue: " + order);
                 priorityQueueManager.addBuyOrder(key, order);
-                orderBookManager.updateOrderBook(key,order,true,true);
+                orderBookManager.updateOrderBook(key, order, true, true);
             } else if (order.getOrderType() == OrderType.SELL) {
                 System.out.println("Adding sell order to queue: " + order);
                 priorityQueueManager.addSellOrder(key, order);
-                orderBookManager.updateOrderBook(key,order,false,true);
+                orderBookManager.updateOrderBook(key, order, false, true);
             }
 
             // 주문 체결 시도
