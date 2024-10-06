@@ -39,7 +39,9 @@ public class CoinOrder {
     private BigDecimal coinAmount; // 매수/매도 코인 개수
 
     @Column(nullable = false, precision = 18, scale = 8)
-    private BigDecimal orderPrice; // 매수/매도 금액
+    private BigDecimal orderPrice; // 주문가 (사용자가 입력한 가격)
+
+    private BigDecimal executionPrice; // 체결가 (실제로 거래된 가격)
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -48,11 +50,11 @@ public class CoinOrder {
     @Column(nullable = false, precision = 18, scale = 8)
     private BigDecimal fee; // 수수료
 
-    @Column
-    private Long matchedOrderIdx; // 거래 성사 주문번호
-
     @Column(nullable = false)
     private LocalDateTime createdAt; // 등록일자
+
+    @Column
+    private String matchIdx; // 매수 idx와 매도 idx를 결합한 매치 ID
 
     @Column
     private LocalDateTime matchedAt; // 체결일자
@@ -69,7 +71,7 @@ public class CoinOrder {
                 ", orderPrice=" + orderPrice +
                 ", orderStatus=" + orderStatus +
                 ", fee=" + fee +
-                ", matchedOrderIdx=" + matchedOrderIdx +
+                ", matchedOrderIdx=" + matchIdx +
                 ", createdAt=" + createdAt +
                 ", matchedAt=" + matchedAt +
                 '}';

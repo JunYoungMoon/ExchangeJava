@@ -19,13 +19,14 @@ public class CoinOrderDTO {
     private String marketName; // 예: KRW
     private String coinName; // 예: BTC
     private BigDecimal coinAmount; // 매수/매도 코인 개수
-    private BigDecimal orderPrice; // 매수/매도 금액
+    private BigDecimal orderPrice; // 주문가 (사용자가 입력한 가격)
+    private BigDecimal executionPrice; // 체결가 (실제로 거래된 가격)
     private OrderType orderType; // 매수/매도 타입(enum)
     private OrderStatus orderStatus; // 거래 상태 (체결/미체결/취소)
     private BigDecimal fee; //수수료
     private LocalDateTime createdAt; // 등록일자
     private LocalDateTime matchedAt; // 체결일자
-    private Long matchedOrderIdx; // 거래 성사 주문번호
+    private String matchIdx; // 매수 idx와 매도 idx를 결합한 매치 ID
 
     @JsonCreator // JSON 역직렬화를 위한 생성자
     public CoinOrderDTO(
@@ -39,7 +40,8 @@ public class CoinOrderDTO {
             @JsonProperty("orderStatus") OrderStatus orderStatus,
             @JsonProperty("fee") BigDecimal fee,
             @JsonProperty("createdAt") LocalDateTime createdAt,
-            @JsonProperty("matchedOrderIdx") Long matchedOrderIdx
+            @JsonProperty("matchIdx") String matchIdx,
+            @JsonProperty("executionPrice") BigDecimal executionPrice
     ) {
         this.idx = idx;
         this.memberId = memberId;
@@ -51,7 +53,8 @@ public class CoinOrderDTO {
         this.orderStatus = orderStatus;
         this.fee = fee;
         this.createdAt = createdAt;
-        this.matchedOrderIdx = matchedOrderIdx;
+        this.matchIdx = matchIdx;
+        this.executionPrice = executionPrice;
     }
 
     // 엔티티에서 VO로 변환하는 정적 팩토리 메서드
@@ -67,7 +70,8 @@ public class CoinOrderDTO {
                 entity.getOrderStatus(),
                 entity.getFee(),
                 entity.getCreatedAt(),
-                entity.getMatchedOrderIdx()
+                entity.getMatchIdx(),
+                entity.getExecutionPrice()
         );
     }
 
@@ -85,7 +89,8 @@ public class CoinOrderDTO {
                 ", fee=" + fee +
                 ", createdAt=" + createdAt +
                 ", matchedAt=" + matchedAt +
-                ", matchedOrderIdx=" + matchedOrderIdx +
+                ", matchedOrderIdx=" + matchIdx +
+                ", executionPrice=" + executionPrice +
                 '}';
     }
 }

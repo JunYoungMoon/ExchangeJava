@@ -76,6 +76,7 @@ public class OrderMatcher {
                 CoinOrderDTO sellOrder = sellOrders.peek();
 
                 // 체결 가능 조건 확인
+                // 체결 조건에서 최종적으로 결정되는 기준은 매수자의 가격
                 if (buyOrder.getOrderPrice().compareTo(sellOrder.getOrderPrice()) >= 0) {
                     // 체결 가능 시 처리
                     BigDecimal buyQuantity = buyOrder.getCoinAmount();
@@ -91,10 +92,12 @@ public class OrderMatcher {
                         // 매수와 매도 모두 체결로 처리
                         buyOrder.setOrderStatus(OrderStatus.COMPLETED);
                         buyOrder.setMatchedAt(LocalDateTime.now());
-                        buyOrder.setMatchedOrderIdx(sellOrder.getIdx());
+                        buyOrder.setMatchIdx(buyOrder.getIdx() + "-" + sellOrder.getIdx());
+                        buyOrder.setExecutionPrice(buyOrder.getOrderPrice());   //실제 체결 되는 가격은 매수자의 가격으로 체결
                         sellOrder.setOrderStatus(OrderStatus.COMPLETED);
                         sellOrder.setMatchedAt(LocalDateTime.now());
-                        sellOrder.setMatchedOrderIdx(buyOrder.getIdx());
+                        sellOrder.setMatchIdx(buyOrder.getIdx() + "-" + sellOrder.getIdx());
+                        sellOrder.setExecutionPrice(buyOrder.getOrderPrice());   //실제 체결 되는 가격은 매수자의 가격으로 체결
 
                         // 매수와 매도 체결된 상태를 DB에 기록
                         masterCoinOrderRepository.save(CoinOrderMapper.toEntity(buyOrder));
@@ -115,7 +118,9 @@ public class OrderMatcher {
                         // 매도 모두 체결 처리
                         sellOrder.setOrderStatus(OrderStatus.COMPLETED);
                         sellOrder.setMatchedAt(LocalDateTime.now());
-                        sellOrder.setMatchedOrderIdx(buyOrder.getIdx());
+                        sellOrder.setMatchIdx(buyOrder.getIdx() + "-" + sellOrder.getIdx());
+                        sellOrder.setExecutionPrice(buyOrder.getOrderPrice());   //실제 체결 되는 가격은 매수자의 가격으로 체결
+
                         masterCoinOrderRepository.save(CoinOrderMapper.toEntity(sellOrder));
 
                         // 매도 주문 제거
@@ -133,7 +138,9 @@ public class OrderMatcher {
                         buyOrder.setOrderStatus(OrderStatus.COMPLETED);
                         buyOrder.setCoinAmount(sellOrder.getCoinAmount());
                         buyOrder.setMatchedAt(LocalDateTime.now());
-                        buyOrder.setMatchedOrderIdx(sellOrder.getIdx());
+                        buyOrder.setMatchIdx(previousIdx + "-" + sellOrder.getIdx());
+                        buyOrder.setExecutionPrice(buyOrder.getOrderPrice());   //실제 체결 되는 가격은 매수자의 가격으로 체결
+
                         masterCoinOrderRepository.save(CoinOrderMapper.toEntity(buyOrder));
 
                         // 이미 미체결을 넣어줬기 때문에 체결 되었으니 호가 리스트 제거(가격만 구분하고 수량 차감은 같이 한다.)
@@ -160,7 +167,9 @@ public class OrderMatcher {
                         // 매수 모두 체결 처리
                         buyOrder.setOrderStatus(OrderStatus.COMPLETED);
                         buyOrder.setMatchedAt(LocalDateTime.now());
-                        buyOrder.setMatchedOrderIdx(sellOrder.getIdx());
+                        buyOrder.setMatchIdx(buyOrder.getIdx() + "-" + sellOrder.getIdx());
+                        buyOrder.setExecutionPrice(buyOrder.getOrderPrice());   //실제 체결 되는 가격은 매수자의 가격으로 체결
+
                         masterCoinOrderRepository.save(CoinOrderMapper.toEntity(buyOrder));
 
                         // 매수 주문 제거
@@ -178,7 +187,9 @@ public class OrderMatcher {
                         sellOrder.setOrderStatus(OrderStatus.COMPLETED);
                         sellOrder.setCoinAmount(buyOrder.getCoinAmount());
                         sellOrder.setMatchedAt(LocalDateTime.now());
-                        sellOrder.setMatchedOrderIdx(buyOrder.getIdx());
+                        sellOrder.setMatchIdx(buyOrder.getIdx() + "-" + previousIdx);
+                        sellOrder.setExecutionPrice(buyOrder.getOrderPrice());   //실제 체결 되는 가격은 매수자의 가격으로 체결
+
                         masterCoinOrderRepository.save(CoinOrderMapper.toEntity(sellOrder));
 
                         // 이미 미체결을 넣어줬기 때문에 체결 되었으니 호가 리스트 제거(가격만 구분하고 수량 차감은 같이 한다.)

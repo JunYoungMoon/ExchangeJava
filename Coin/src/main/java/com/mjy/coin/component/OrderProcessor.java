@@ -5,8 +5,11 @@ import com.mjy.coin.dto.CoinOrderMapper;
 import com.mjy.coin.entity.coin.CoinOrder;
 import com.mjy.coin.enums.OrderType;
 import com.mjy.coin.repository.coin.master.MasterCoinOrderRepository;
+import com.mjy.coin.repository.coin.slave.SlaveCoinOrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.Optional;
 
 @Component
 public class OrderProcessor {
@@ -14,12 +17,14 @@ public class OrderProcessor {
     private final OrderMatcher priorityQueueManager;
     private final OrderBookManager orderBookManager;
     private final MasterCoinOrderRepository masterCoinOrderRepository;
+    private final SlaveCoinOrderRepository slaveCoinOrderRepository;
 
     @Autowired
-    public OrderProcessor(OrderMatcher priorityQueueManager, MasterCoinOrderRepository masterCoinOrderRepository, OrderBookManager orderBookManager) {
+    public OrderProcessor(OrderMatcher priorityQueueManager, MasterCoinOrderRepository masterCoinOrderRepository, SlaveCoinOrderRepository slaveCoinOrderRepository, OrderBookManager orderBookManager) {
         this.priorityQueueManager = priorityQueueManager;
         this.masterCoinOrderRepository = masterCoinOrderRepository;
         this.orderBookManager = orderBookManager;
+        this.slaveCoinOrderRepository = slaveCoinOrderRepository;
     }
 
     public void processOrder(CoinOrderDTO order) {
@@ -27,6 +32,18 @@ public class OrderProcessor {
         CoinOrder orderEntity = CoinOrderMapper.toEntity(order);
 
         try {
+            // DB에 이미 존재하는 주문인지 확인
+            Optional<CoinOrder> existingOrder = slaveCoinOrderRepository.findByMarketNameAndCoinNameAndCreatedAt(
+                    orderEntity.getMarketName(),
+                    orderEntity.getCoinName(),
+                    orderEntity.getCreatedAt()
+            );
+
+            if (existingOrder.isPresent()) {
+                System.out.println("Order already exists: " + existingOrder.get());
+                return; // 이미 존재하는 경우, 메서드 종료
+            }
+
             // DB에 저장 (저장된 엔티티 반환)
             CoinOrder savedOrderEntity = masterCoinOrderRepository.save(orderEntity);
 

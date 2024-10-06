@@ -21,7 +21,8 @@ public class CoinOrderMapper {
         entity.setFee(dto.getFee());
         entity.setCreatedAt(dto.getCreatedAt());
         entity.setMatchedAt(dto.getMatchedAt());
-        entity.setMatchedOrderIdx(dto.getMatchedOrderIdx());
+        entity.setMatchIdx(dto.getMatchIdx());
+        entity.setExecutionPrice(dto.getExecutionPrice());
         return entity;
     }
 }
