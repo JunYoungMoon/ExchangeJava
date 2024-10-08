@@ -18,13 +18,11 @@ public class ChartController {
 
     @GetMapping("/chart")
     public ApiResponse getChartData(ChartDataRequest chartDataRequest) {
-        // 받은 파라미터를 사용하여 차트 데이터를 가져옴
-
-        chartService.getChartData(chartDataRequest);
 
         return ApiResponse.builder()
                 .status("success")
                 .msg("msg")
+//                .data(chartService.getChartData(chartDataRequest))
                 .data("data")
                 .build();
     }

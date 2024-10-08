@@ -1,5 +1,6 @@
 package com.mjy.coin.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.HashOperations;
@@ -17,6 +18,7 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class RedisService {
     private final RedisTemplate<String, Object> redisTemplate;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public void setValues(String key, String data) {
         ValueOperations<String, Object> values = redisTemplate.opsForValue();
@@ -64,5 +66,23 @@ public class RedisService {
 
     public boolean checkExistsValue(String value) {
         return !value.equals("false");
+    }
+
+    public Map<String, String> convertStringToMap(String orderData) {
+        try {
+            // String을 Map<String, String>으로 변환
+            return objectMapper.readValue(orderData, Map.class);
+        } catch (Exception e) {
+            System.err.println("Failed to convert string to map: " + e.getMessage());
+            return null;
+        }
+    }
+
+    public String convertMapToString(Map<String, String> map) {
+        try {
+            return objectMapper.writeValueAsString(map);
+        } catch (Exception e) {
+            throw new RuntimeException("Error converting Map to String", e);
+        }
     }
 }

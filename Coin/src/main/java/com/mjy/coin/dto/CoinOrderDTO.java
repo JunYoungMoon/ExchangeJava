@@ -27,6 +27,7 @@ public class CoinOrderDTO {
     private LocalDateTime createdAt; // 등록일자
     private LocalDateTime matchedAt; // 체결일자
     private String matchIdx; // 매수 idx와 매도 idx를 결합한 매치 ID
+    private String uuid; //redis 전용 uuid
 
     @JsonCreator // JSON 역직렬화를 위한 생성자
     public CoinOrderDTO(
@@ -41,7 +42,8 @@ public class CoinOrderDTO {
             @JsonProperty("fee") BigDecimal fee,
             @JsonProperty("createdAt") LocalDateTime createdAt,
             @JsonProperty("matchIdx") String matchIdx,
-            @JsonProperty("executionPrice") BigDecimal executionPrice
+            @JsonProperty("executionPrice") BigDecimal executionPrice,
+            @JsonProperty("uuid") String uuid
     ) {
         this.idx = idx;
         this.memberId = memberId;
@@ -55,6 +57,7 @@ public class CoinOrderDTO {
         this.createdAt = createdAt;
         this.matchIdx = matchIdx;
         this.executionPrice = executionPrice;
+        this.uuid = uuid;
     }
 
     // 엔티티에서 VO로 변환하는 정적 팩토리 메서드
@@ -71,7 +74,8 @@ public class CoinOrderDTO {
                 entity.getFee(),
                 entity.getCreatedAt(),
                 entity.getMatchIdx(),
-                entity.getExecutionPrice()
+                entity.getExecutionPrice(),
+                entity.getUuid()
         );
     }
 
@@ -91,6 +95,7 @@ public class CoinOrderDTO {
                 ", matchedAt=" + matchedAt +
                 ", matchedOrderIdx=" + matchIdx +
                 ", executionPrice=" + executionPrice +
+                ", uuid=" + uuid +
                 '}';
     }
 }

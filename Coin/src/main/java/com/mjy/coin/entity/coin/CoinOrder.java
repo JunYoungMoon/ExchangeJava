@@ -53,6 +53,9 @@ public class CoinOrder {
     @Column(nullable = false)
     private LocalDateTime createdAt; // 등록일자
 
+    @Column(nullable = false)
+    private String uuid; // redis uuid
+
     @Column
     private String matchIdx; // 매수 idx와 매도 idx를 결합한 매치 ID
 
