@@ -1,6 +1,8 @@
 package com.mjy.coin.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mjy.coin.dto.CoinOrderDTO;
+import com.mjy.coin.enums.OrderStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.HashOperations;
@@ -10,7 +12,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -83,6 +88,62 @@ public class RedisService {
             return objectMapper.writeValueAsString(map);
         } catch (Exception e) {
             throw new RuntimeException("Error converting Map to String", e);
+        }
+    }
+
+    public void updateOrderInRedis(CoinOrderDTO order) {
+        try {
+            // 1. Redis에서 기존 데이터 가져오기
+            String orderData = getHashOps(order.getCoinName() + "-" + order.getMarketName(), order.getUuid());
+
+            // 2. String 데이터를 Map으로 변환
+            Map<String, String> orderDataMap = convertStringToMap(orderData);
+
+            // 3. 필요한 데이터 업데이트
+            orderDataMap.put("orderStatus", String.valueOf(order.getOrderStatus()));
+            orderDataMap.put("matchedAt", String.valueOf(order.getMatchedAt()));
+            orderDataMap.put("coinAmount", String.valueOf(order.getCoinAmount()));
+            orderDataMap.put("matchIdx", String.valueOf(order.getMatchIdx()));
+            orderDataMap.put("executionPrice", String.valueOf(order.getExecutionPrice()));
+
+            // 4. Map 데이터를 다시 String으로 직렬화
+            String updatedOrderData = convertMapToString(orderDataMap);
+
+            // 5. 수정된 데이터를 Redis에 다시 저장 (Hash 구조 사용)
+            setHashOps(order.getCoinName() + "-" + order.getMarketName(), Map.of(order.getUuid(), updatedOrderData));
+
+        } catch (Exception e) {
+            System.err.println("Failed to update order in Redis: " + e.getMessage());
+        }
+    }
+
+    public void insertOrderInRedis(CoinOrderDTO order) {
+        try {
+            // Redis에 저장할 주문 데이터를 HashMap으로 저장
+            Map<String, String> orderDataMap = new HashMap<>();
+
+            // 기본 데이터 추가
+            orderDataMap.put("uuid", String.valueOf(order.getUuid()));
+            orderDataMap.put("coinName", String.valueOf(order.getCoinName()));
+            orderDataMap.put("marketName", String.valueOf(order.getMarketName()));
+            orderDataMap.put("coinAmount", String.valueOf(order.getCoinAmount()));
+            orderDataMap.put("orderPrice", String.valueOf(order.getOrderPrice()));
+            orderDataMap.put("orderType", String.valueOf(order.getOrderType()));
+            orderDataMap.put("createdAt", String.valueOf(LocalDateTime.now()));
+            orderDataMap.put("matchedAt", String.valueOf(order.getMatchedAt()));
+            orderDataMap.put("memberId", String.valueOf(order.getMemberId()));
+            orderDataMap.put("orderStatus", String.valueOf(order.getOrderStatus()));
+            orderDataMap.put("matchIdx", String.valueOf(order.getMatchIdx()));
+            orderDataMap.put("executionPrice", String.valueOf(order.getExecutionPrice()));
+
+            // 주문 데이터를 JSON 문자열로 변환
+            String jsonOrderData = convertMapToString(orderDataMap);
+
+            // Redis에 주문 데이터 저장 (Hash 구조 사용)
+            setHashOps(order.getCoinName() + "-" + order.getMarketName(), Map.of(order.getUuid(), jsonOrderData));
+
+        } catch (Exception e) {
+            System.err.println("Failed to insert order in Redis: " + e.getMessage());
         }
     }
 }

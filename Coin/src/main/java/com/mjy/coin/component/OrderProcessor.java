@@ -43,7 +43,6 @@ public class OrderProcessor {
         CoinOrder orderEntity = CoinOrderMapper.toEntity(order);
 
         try {
-
             // Order ID 생성: UUID를 사용하여 고유한 주문 ID 생성
             String uuid = UUID.randomUUID().toString();
 
@@ -52,29 +51,11 @@ public class OrderProcessor {
 
             // 주문이 존재하지 않을 경우에만 저장
             if (existingOrder.isEmpty()) {
-                // Redis에 저장할 주문 데이터를 HashMap으로 저장
-                Map<String, String> orderData = new HashMap<>();
-
-                // 기본 데이터 추가
-                orderData.put("uuid", uuid);
-                orderData.put("coinName", order.getCoinName());
-                orderData.put("marketName", String.valueOf(order.getMarketName()));
-                orderData.put("coinAmount", String.valueOf(order.getCoinAmount()));
-                orderData.put("orderPrice", String.valueOf(order.getOrderPrice()));
-                orderData.put("orderType", String.valueOf(order.getOrderType()));
-                orderData.put("createdAt", String.valueOf(LocalDateTime.now()));
-                orderData.put("matchedAt", ""); // 매칭 시간은 나중에 업데이트
-                orderData.put("memberId", String.valueOf(order.getMemberId()));
-                orderData.put("orderStatus", String.valueOf(order.getOrderStatus()));
-                orderData.put("matchIdx", String.valueOf(order.getMatchIdx()));
-                orderData.put("executionPrice", String.valueOf(order.getExecutionPrice()));
-
-                // 주문 데이터를 JSON 문자열로 변환
-                String jsonOrderData = redisService.convertMapToString(orderData);
-
-                // Redis에 주문 데이터 저장 (Hash 구조 사용)
-                redisService.setHashOps(key, Map.of(uuid, jsonOrderData));
-
+                //redis 미체결 주문 저장
+                order.setUuid(uuid);
+                order.setMatchedAt(null);
+                redisService.insertOrderInRedis(order);
+      
                 order.setUuid(uuid);
 
                 if (order.getOrderType() == OrderType.BUY) {
