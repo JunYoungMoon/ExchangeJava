@@ -2,9 +2,11 @@ package com.mjy.coin.dto;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.mjy.coin.entity.coin.CoinOrder;
 import com.mjy.coin.enums.OrderStatus;
 import com.mjy.coin.enums.OrderType;
+import com.mjy.coin.util.LocalDateTimeDeserializer;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -25,6 +27,7 @@ public class CoinOrderDTO {
     private OrderStatus orderStatus; // 거래 상태 (체결/미체결/취소)
     private BigDecimal fee; //수수료
     private LocalDateTime createdAt; // 등록일자
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     private LocalDateTime matchedAt; // 체결일자
     private String matchIdx; // 매수 idx와 매도 idx를 결합한 매치 ID
     private String uuid; //redis 전용 uuid
@@ -42,6 +45,7 @@ public class CoinOrderDTO {
             @JsonProperty("fee") BigDecimal fee,
             @JsonProperty("createdAt") LocalDateTime createdAt,
             @JsonProperty("matchIdx") String matchIdx,
+            @JsonProperty("matchedAt") LocalDateTime matchedAt,
             @JsonProperty("executionPrice") BigDecimal executionPrice,
             @JsonProperty("uuid") String uuid
     ) {
@@ -56,6 +60,7 @@ public class CoinOrderDTO {
         this.fee = fee;
         this.createdAt = createdAt;
         this.matchIdx = matchIdx;
+        this.matchedAt = matchedAt;
         this.executionPrice = executionPrice;
         this.uuid = uuid;
     }
@@ -74,6 +79,7 @@ public class CoinOrderDTO {
                 entity.getFee(),
                 entity.getCreatedAt(),
                 entity.getMatchIdx(),
+                entity.getMatchedAt(),
                 entity.getExecutionPrice(),
                 entity.getUuid()
         );

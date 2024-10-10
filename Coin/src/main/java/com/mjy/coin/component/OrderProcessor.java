@@ -11,12 +11,7 @@ import com.mjy.coin.service.RedisService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
-
-import java.util.Optional;
 
 @Component
 public class OrderProcessor {
@@ -26,7 +21,6 @@ public class OrderProcessor {
     private final MasterCoinOrderRepository masterCoinOrderRepository;
     private final SlaveCoinOrderRepository slaveCoinOrderRepository;
     private final RedisService redisService;
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Autowired
     public OrderProcessor(OrderMatcher priorityQueueManager, MasterCoinOrderRepository masterCoinOrderRepository, SlaveCoinOrderRepository slaveCoinOrderRepository, OrderBookManager orderBookManager,RedisService redisService) {

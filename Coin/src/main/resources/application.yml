@@ -2,6 +2,12 @@ server:
   port: 8081
 
 spring:
+#  main:
+#    allow-bean-definition-overriding: true
+  batch:
+    jdbc:
+      initialize-schema: always
+
   profiles:
     active: dev
 

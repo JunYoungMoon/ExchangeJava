@@ -1,13 +1,14 @@
 package com.mjy.coin.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.mjy.coin.dto.CoinOrderDTO;
 import com.mjy.coin.enums.OrderStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.HashOperations;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.data.redis.core.*;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,10 +21,16 @@ import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class RedisService {
     private final RedisTemplate<String, Object> redisTemplate;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
+
+    public RedisService(RedisTemplate<String, Object> redisTemplate) {
+        this.redisTemplate = redisTemplate;
+        objectMapper = new ObjectMapper();
+        // Java 8 날짜/시간 모듈 등록
+        objectMapper.registerModule(new JavaTimeModule());
+    }
 
     public void setValues(String key, String data) {
         ValueOperations<String, Object> values = redisTemplate.opsForValue();
@@ -73,13 +80,26 @@ public class RedisService {
         return !value.equals("false");
     }
 
-    public Map<String, String> convertStringToMap(String orderData) {
+    public Cursor<Map.Entry<String, String>> scanCursor(String key) {
+        HashOperations<String, String, String> hashOps = redisTemplate.opsForHash();
+        // Redis의 스캔 기능 사용 (Cursor 생성)
+        return hashOps.scan(key, ScanOptions.NONE);
+    }
+
+    public Map<String, String> convertStringToMap(String json) {
         try {
-            // String을 Map<String, String>으로 변환
-            return objectMapper.readValue(orderData, Map.class);
+            return objectMapper.readValue(json, new TypeReference<>() {});
         } catch (Exception e) {
             System.err.println("Failed to convert string to map: " + e.getMessage());
             return null;
+        }
+    }
+
+    public <T> T convertStringToObject(String json, Class<T> type) {
+        try {
+            return objectMapper.readValue(json, type);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to convert JSON to " + type.getSimpleName(), e);
         }
     }
 
@@ -129,6 +149,7 @@ public class RedisService {
             orderDataMap.put("coinAmount", String.valueOf(order.getCoinAmount()));
             orderDataMap.put("orderPrice", String.valueOf(order.getOrderPrice()));
             orderDataMap.put("orderType", String.valueOf(order.getOrderType()));
+            orderDataMap.put("fee", String.valueOf(order.getFee()));
             orderDataMap.put("createdAt", String.valueOf(LocalDateTime.now()));
             orderDataMap.put("matchedAt", String.valueOf(order.getMatchedAt()));
             orderDataMap.put("memberId", String.valueOf(order.getMemberId()));

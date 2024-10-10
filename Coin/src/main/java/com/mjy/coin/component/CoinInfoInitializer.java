@@ -1,19 +1,15 @@
 package com.mjy.coin.component;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mjy.coin.entity.coin.CoinOrder;
-import com.mjy.coin.entity.exchange.CoinInfo;
 import com.mjy.coin.enums.OrderType;
 import com.mjy.coin.repository.coin.slave.SlaveCoinOrderRepository;
 import com.mjy.coin.dto.CoinOrderDTO;
-import com.mjy.coin.service.RedisService;
+import com.mjy.coin.service.CoinInfoService;
 import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
-import java.util.stream.Collectors;
-
 
 @Component
 public class CoinInfoInitializer {
@@ -21,39 +17,24 @@ public class CoinInfoInitializer {
     private final SlaveCoinOrderRepository slaveCoinOrderRepository;
     private final OrderMatcher priorityQueueManager;
     private final OrderBookManager orderBookManager;
-    private final RedisService redisService;
+    private final CoinInfoService coinInfoService;
 
-    public CoinInfoInitializer(SlaveCoinOrderRepository slaveCoinOrderRepository, RedisService redisService, OrderMatcher priorityQueueManager, OrderBookManager orderBookManager) {
+    public CoinInfoInitializer(SlaveCoinOrderRepository slaveCoinOrderRepository, OrderMatcher priorityQueueManager, OrderBookManager orderBookManager, CoinInfoService coinInfoService) {
         this.slaveCoinOrderRepository = slaveCoinOrderRepository;
         this.priorityQueueManager = priorityQueueManager;
         this.orderBookManager = orderBookManager;
-        this.redisService = redisService;
+        this.coinInfoService = coinInfoService;
     }
 
     @PostConstruct
     public void init() throws JsonProcessingException {
-        // COIN_TYPE 환경 변수 가져오기
-        String coinTypeEnv = System.getenv("COIN_TYPE");
-        if (coinTypeEnv == null) {
-            coinTypeEnv = "MAJOR"; // 기본값 설정
-        }
-
-        // Redis에서 코인-마켓 JSON 데이터 가져오기 (예: BTC-KRW, ETH-KRW 등)
-        String jsonData = redisService.getValues(coinTypeEnv);
-
-        // JSON 문자열을 List<CoinInfo>로 변환
-        CoinInfo[] coinInfoList = new ObjectMapper().readValue(jsonData, CoinInfo[].class);
+        List<String> keys = coinInfoService.getCoinMarketKeys();
 
         // 매수/매도 주문을 저장할 맵
         Map<String, PriorityQueue<CoinOrderDTO>> buyOrderQueues = new HashMap<>();
         Map<String, PriorityQueue<CoinOrderDTO>> sellOrderQueues = new HashMap<>();
 
-        // Redis에서 가져온 코인-마켓 조합으로 키 생성
-        for (CoinInfo coinInfo : coinInfoList) {
-            String coinName = coinInfo.getCoinName();
-            String marketName = coinInfo.getMarketName();
-            String key = coinName + "-" + marketName;
-
+        for (String key : keys) {
             // 각 코인-마켓 조합에 대해 매수/매도 큐를 미리 초기화
             buyOrderQueues.putIfAbsent(key, new PriorityQueue<>(
                     Comparator.comparing(CoinOrderDTO::getOrderPrice).reversed()
