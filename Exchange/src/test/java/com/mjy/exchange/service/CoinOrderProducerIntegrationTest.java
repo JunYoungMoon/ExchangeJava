@@ -90,7 +90,7 @@ public class CoinOrderProducerIntegrationTest {
 //        System.out.println("Sent BTC order: " + coinOrder5);
 
         Random random = new Random();
-        int orderCount = 1000; // 생성할 주문 수
+        int orderCount = 50000; // 생성할 주문 수
 
         for (int i = 0; i < orderCount; i++) {
             // BTC 주문 생성
