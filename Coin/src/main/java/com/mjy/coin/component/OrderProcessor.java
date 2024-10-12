@@ -66,7 +66,7 @@ public class OrderProcessor {
                 priorityQueueManager.matchOrders(key);
 
                 //호가 리스트 출력
-                orderBookManager.printOrderBook(key);
+//                orderBookManager.printOrderBook(key);
 
             }
 

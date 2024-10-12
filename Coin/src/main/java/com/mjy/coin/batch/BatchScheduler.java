@@ -22,14 +22,14 @@ public class BatchScheduler {
         this.orderJob = orderJob;
     }
 
-    @Scheduled(fixedRate = 60000) // 10분 = 600000밀리초
-    public void runOrderJob() {
-        try {
-            jobLauncher.run(orderJob, new JobParametersBuilder()
-                    .addLong("run.id", System.currentTimeMillis()) // 매번 새로운 파라미터 추가하여 job 재실행 가능하게 함
-                    .toJobParameters());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+//    @Scheduled(fixedRate = 600000) // 10분 = 600000밀리초
+//    public void runOrderJob() {
+//        try {
+//            jobLauncher.run(orderJob, new JobParametersBuilder()
+//                    .addLong("run.id", System.currentTimeMillis()) // 매번 새로운 파라미터 추가하여 job 재실행 가능하게 함
+//                    .toJobParameters());
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//    }
 }

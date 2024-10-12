@@ -3,6 +3,7 @@ package com.mjy.coin.component;
 import com.mjy.coin.dto.CoinOrderDTO;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.listener.MessageListener;
 import org.springframework.stereotype.Component;
 
@@ -22,5 +23,10 @@ public class KafkaTemplateListener implements MessageListener<String, CoinOrderD
 
         // 주문 처리
         orderProcessor.processOrder(order);
+    }
+
+    @KafkaListener(topics = "Order-Completed", groupId = "coinOrderGroup", concurrency = "3")
+    public void listen(CoinOrderDTO order) {
+        System.out.println("---------------------------------------------------" + order);
     }
 }

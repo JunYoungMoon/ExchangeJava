@@ -7,6 +7,7 @@ import com.mjy.coin.enums.OrderStatus;
 import com.mjy.coin.repository.coin.master.MasterCoinOrderRepository;
 import com.mjy.coin.service.RedisService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -20,12 +21,15 @@ public class OrderMatcher {
     private final MasterCoinOrderRepository masterCoinOrderRepository;
     private final OrderBookManager orderBookManager;
     private final RedisService redisService;
+    private final KafkaTemplate<String, CoinOrderDTO> kafkaTemplate;
+
 
     @Autowired
-    public OrderMatcher(MasterCoinOrderRepository masterCoinOrderRepository, OrderBookManager orderBookManager, RedisService redisService) {
+    public OrderMatcher(MasterCoinOrderRepository masterCoinOrderRepository, OrderBookManager orderBookManager, RedisService redisService, KafkaTemplate<String, CoinOrderDTO> kafkaTemplate) {
         this.masterCoinOrderRepository = masterCoinOrderRepository;
         this.orderBookManager = orderBookManager;
         this.redisService = redisService;
+        this.kafkaTemplate = kafkaTemplate;
     }
 
     private Map<String, PriorityQueue<CoinOrderDTO>> buyOrderQueues = new HashMap<>();
@@ -113,6 +117,9 @@ public class OrderMatcher {
                         redisService.updateOrderInRedis(sellOrder);
                         //////////////////////////////////끝////////////////////////////////////
 
+                        kafkaTemplate.send("Order-Completed", buyOrder);
+                        kafkaTemplate.send("Order-Completed", sellOrder);
+
                         // 큐에서 양쪽 주문 제거
                         buyOrders.poll();
                         sellOrders.poll();
@@ -169,6 +176,9 @@ public class OrderMatcher {
                         buyOrder.setMatchIdx(previousUUID + "-" + sellOrder.getUuid());
                         redisService.insertOrderInRedis(buyOrder);
                         //////////////////////////////////끝////////////////////////////////////
+
+                        kafkaTemplate.send("Order-Completed", buyOrder);
+                        kafkaTemplate.send("Order-Completed", sellOrder);
 
                         // 이미 미체결을 넣어줬기 때문에 체결 되었으니 호가 리스트 제거(가격만 구분하고 수량 차감은 같이 한다.)
                         orderBookManager.updateOrderBook(key, buyOrder, true, false);
@@ -242,6 +252,9 @@ public class OrderMatcher {
                         sellOrder.setMatchIdx(previousUUID + "-" + sellOrder.getUuid());
                         redisService.insertOrderInRedis(sellOrder);
                         //////////////////////////////////끝////////////////////////////////////
+
+                        kafkaTemplate.send("Order-Completed", buyOrder);
+                        kafkaTemplate.send("Order-Completed", sellOrder);
 
                         // 이미 미체결을 넣어줬기 때문에 체결 되었으니 호가 리스트 제거(가격만 구분하고 수량 차감은 같이 한다.)
                         orderBookManager.updateOrderBook(key, sellOrder, false, false);

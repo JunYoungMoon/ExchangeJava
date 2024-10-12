@@ -28,7 +28,7 @@ public class CoinOrderProducerIntegrationTest {
 //        coinOrder.setMemberId(1L);
 //        coinOrder.setMarketName("KRW");
 //        coinOrder.setCoinName("BTC");
-//        coinOrder.setCoinAmount(new BigDecimal("0.03")); // 랜덤 금액 추가
+//        coinOrder.setCoinAmount(new BigDecimal("0.02")); // 랜덤 금액 추가
 //        coinOrder.setOrderPrice(new BigDecimal("5000")); // 랜덤 가격 추가
 //        coinOrder.setOrderType(SELL);
 //        coinOrder.setOrderStatus(PENDING);

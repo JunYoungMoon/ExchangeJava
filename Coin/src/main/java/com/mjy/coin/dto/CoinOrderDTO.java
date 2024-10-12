@@ -27,7 +27,7 @@ public class CoinOrderDTO {
     private OrderStatus orderStatus; // 거래 상태 (체결/미체결/취소)
     private BigDecimal fee; //수수료
     private LocalDateTime createdAt; // 등록일자
-    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+//    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     private LocalDateTime matchedAt; // 체결일자
     private String matchIdx; // 매수 idx와 매도 idx를 결합한 매치 ID
     private String uuid; //redis 전용 uuid
