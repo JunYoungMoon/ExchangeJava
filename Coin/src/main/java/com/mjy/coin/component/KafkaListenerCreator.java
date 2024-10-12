@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mjy.coin.dto.CoinInfoDTO;
 import com.mjy.coin.dto.CoinOrderDTO;
 import com.mjy.coin.repository.coin.master.MasterCoinOrderRepository;
+import com.mjy.coin.repository.coin.slave.SlaveCoinOrderRepository;
 import com.mjy.coin.service.RedisService;
 import jakarta.annotation.PostConstruct;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -72,11 +73,11 @@ public class KafkaListenerCreator {
         kafkaListenerEndpoint.setTopics(topic);
         kafkaListenerEndpoint.setMessageHandlerMethodFactory(new DefaultMessageHandlerMethodFactory());
 
-        KafkaTemplateListener listener = new KafkaTemplateListener(orderProcessor);
+        PendingOrderListener listener = new PendingOrderListener(orderProcessor);
         kafkaListenerEndpoint.setBean(listener);
 
         try {
-            kafkaListenerEndpoint.setMethod(KafkaTemplateListener.class.getMethod("onMessage", ConsumerRecord.class));
+            kafkaListenerEndpoint.setMethod(PendingOrderListener.class.getMethod("onMessage", ConsumerRecord.class));
         } catch (NoSuchMethodException e) {
             throw new RuntimeException("Attempt to call a non-existent method " + e);
         }

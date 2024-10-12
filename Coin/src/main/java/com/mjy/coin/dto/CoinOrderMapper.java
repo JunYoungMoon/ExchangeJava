@@ -2,6 +2,9 @@ package com.mjy.coin.dto;
 
 import com.mjy.coin.entity.coin.CoinOrder;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 public class CoinOrderMapper {
     public static CoinOrder toEntity(CoinOrderDTO dto) {
         CoinOrder entity = new CoinOrder();
@@ -25,5 +28,12 @@ public class CoinOrderMapper {
         entity.setExecutionPrice(dto.getExecutionPrice());
         entity.setUuid(dto.getUuid());
         return entity;
+    }
+
+    // 새로운 리스트 변환 메서드
+    public static List<CoinOrder> toEntityList(List<CoinOrderDTO> orderDTOList) {
+        return orderDTOList.stream()
+                .map(CoinOrderMapper::toEntity)  // 각각의 DTO를 변환
+                .collect(Collectors.toList());
     }
 }

@@ -17,4 +17,7 @@ public interface SlaveCoinOrderRepository extends JpaRepository<CoinOrder, Long>
 
     Optional<CoinOrder> findByMarketNameAndCoinNameAndCreatedAt(
             String marketName, String coinName, LocalDateTime createdAt);
+
+    Optional<CoinOrder> findByUuid(
+            String uuid);
 }

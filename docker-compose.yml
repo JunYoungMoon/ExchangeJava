@@ -107,6 +107,7 @@ services:
       - ./config/redis/redis.conf:/etc/redis/redis.conf
     ports:
       - "6379:6379"
+    command: [ "redis-server", "/etc/redis/redis.conf" ]
 
   zookeeper:
     image: wurstmeister/zookeeper:latest
