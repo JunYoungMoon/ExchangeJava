@@ -9,7 +9,10 @@ import com.mjy.coin.service.RedisService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+
+import java.util.concurrent.CompletableFuture;
 
 @Component
 public class CompletedOrderListener {
@@ -33,15 +36,52 @@ public class CompletedOrderListener {
         this.kafkaTemplate = kafkaTemplate;
     }
 
+//    @KafkaListener(topics = "Order-Completed", groupId = "coinOrderGroup", concurrency = "10")
+//    public void listen(CoinOrderDTO order) {
+//        if (slaveCoinOrderRepository.findByUuid(order.getUuid()).isEmpty()) {
+//            asyncOrderService.saveOrderAsync(order, masterCoinOrderRepository, redisService)
+//                    .exceptionally(e -> {
+//                        System.err.println("Error processing completed order asynchronously: " + e.getMessage());
+//                        kafkaTemplate.send("Order-Completed", order.getCoinName() + "-" + order.getMarketName(), order);
+//                        return null;
+//                    });
+//        }
+//    }
+
+//    @Async
+//    public CompletableFuture<Void> saveOrderAsync(CoinOrderDTO order, MasterCoinOrderRepository masterRepo, RedisService redisService) {
+//        try {
+//            // MySQL에 비동기로 저장
+//            masterRepo.save(CoinOrderMapper.toEntity(order));
+//
+//            // Redis에서 UUID 삭제
+//            redisService.deleteHashOps(order.getCoinName() + "-" + order.getMarketName(), order.getUuid());
+//
+//            return CompletableFuture.completedFuture(null);
+//        } catch (Exception e) {
+//            // 예외 처리 로직
+//            return CompletableFuture.failedFuture(e);
+//        }
+//    }
+
     @KafkaListener(topics = "Order-Completed", groupId = "coinOrderGroup", concurrency = "4")
     public void listen(CoinOrderDTO order) {
         if (slaveCoinOrderRepository.findByUuid(order.getUuid()).isEmpty()) {
-            asyncOrderService.saveOrderAsync(order, masterCoinOrderRepository, redisService)
-                    .exceptionally(e -> {
-                        System.err.println("Error processing completed order asynchronously: " + e.getMessage());
-                        kafkaTemplate.send("Order-Completed", order.getCoinName() + "-" + order.getMarketName(), order);
-                        return null;
-                    });
+            // 동기적으로 주문 저장
+            try {
+                saveOrderSync(order);
+            } catch (Exception e) {
+                System.err.println("Error processing completed order: " + e.getMessage());
+                kafkaTemplate.send("Order-Completed", order.getCoinName() + "-" + order.getMarketName(), order);
+            }
         }
+    }
+
+    private void saveOrderSync(CoinOrderDTO order) {
+        // MySQL에 동기로 저장
+        masterCoinOrderRepository.save(CoinOrderMapper.toEntity(order));
+
+        // Redis에서 UUID 삭제
+        redisService.deleteHashOps(order.getCoinName() + "-" + order.getMarketName(), order.getUuid());
     }
 }
