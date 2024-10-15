@@ -42,7 +42,6 @@ public class RedisService {
         values.set(key, data, duration);
     }
 
-    @Transactional(readOnly = true)
     public String getValues(String key) {
         ValueOperations<String, Object> values = redisTemplate.opsForValue();
 
@@ -65,10 +64,21 @@ public class RedisService {
         values.putAll(key, data);
     }
 
-    @Transactional(readOnly = true)
     public String getHashOps(String key, String hashKey) {
         HashOperations<String, Object, Object> values = redisTemplate.opsForHash();
         return Boolean.TRUE.equals(values.hasKey(key, hashKey)) ? (String) redisTemplate.opsForHash().get(key, hashKey) : "";
+    }
+
+    public Map<String, String> getAllHashOps(String key) {
+        HashOperations<String, Object, Object> values = redisTemplate.opsForHash();
+        Map<Object, Object> entries = values.entries(key);
+
+        Map<String, String> result = new HashMap<>();
+        for (Map.Entry<Object, Object> entry: entries.entrySet()){
+            result.put((String) entry.getKey(), (String) entry.getValue());
+        }
+
+        return result;
     }
 
     public void deleteHashOps(String key, String hashKey) {
@@ -151,11 +161,20 @@ public class RedisService {
             orderDataMap.put("orderType", String.valueOf(order.getOrderType()));
             orderDataMap.put("fee", String.valueOf(order.getFee()));
             orderDataMap.put("createdAt", String.valueOf(LocalDateTime.now()));
-            orderDataMap.put("matchedAt", String.valueOf(order.getMatchedAt()));
             orderDataMap.put("memberId", String.valueOf(order.getMemberId()));
             orderDataMap.put("orderStatus", String.valueOf(order.getOrderStatus()));
-            orderDataMap.put("matchIdx", String.valueOf(order.getMatchIdx()));
-            orderDataMap.put("executionPrice", String.valueOf(order.getExecutionPrice()));
+
+            if (order.getMatchedAt() != null) {
+                orderDataMap.put("matchedAt", String.valueOf(order.getMatchedAt()));
+            }
+
+            if (order.getMatchedAt() != null) {
+                orderDataMap.put("matchIdx", String.valueOf(order.getMatchIdx()));
+            }
+
+            if (order.getMatchedAt() != null) {
+                orderDataMap.put("executionPrice", String.valueOf(order.getExecutionPrice()));
+            }
 
             // 주문 데이터를 JSON 문자열로 변환
             String jsonOrderData = convertMapToString(orderDataMap);

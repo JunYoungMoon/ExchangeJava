@@ -96,11 +96,11 @@ public class OrderMatcher {
                         // 매수와 매도 모두 체결로 처리
                         buyOrder.setOrderStatus(OrderStatus.COMPLETED);
                         buyOrder.setMatchedAt(LocalDateTime.now());
-                        buyOrder.setMatchIdx(buyOrder.getIdx() + "-" + sellOrder.getIdx());
+                        buyOrder.setMatchIdx(buyOrder.getIdx() + "|" + sellOrder.getIdx());
                         buyOrder.setExecutionPrice(buyOrder.getOrderPrice());   //실제 체결 되는 가격은 매수자의 가격으로 체결
                         sellOrder.setOrderStatus(OrderStatus.COMPLETED);
                         sellOrder.setMatchedAt(LocalDateTime.now());
-                        sellOrder.setMatchIdx(buyOrder.getIdx() + "-" + sellOrder.getIdx());
+                        sellOrder.setMatchIdx(buyOrder.getIdx() + "|" + sellOrder.getIdx());
                         sellOrder.setExecutionPrice(buyOrder.getOrderPrice());   //실제 체결 되는 가격은 매수자의 가격으로 체결
 
                         // 매수와 매도 체결된 상태를 DB에 기록
@@ -109,11 +109,11 @@ public class OrderMatcher {
 
                         //////////////////////////////////시작////////////////////////////////////
                         // 1. BuyOrder 업데이트
-                        buyOrder.setMatchIdx(buyOrder.getUuid() + "-" + sellOrder.getUuid());
+                        buyOrder.setMatchIdx(buyOrder.getUuid() + "|" + sellOrder.getUuid());
                         redisService.updateOrderInRedis(buyOrder);
 
                         // 2. SellOrder 업데이트
-                        sellOrder.setMatchIdx(buyOrder.getUuid() + "-" + sellOrder.getUuid());
+                        sellOrder.setMatchIdx(buyOrder.getUuid() + "|" + sellOrder.getUuid());
                         redisService.updateOrderInRedis(sellOrder);
                         //////////////////////////////////끝////////////////////////////////////
 
@@ -135,14 +135,14 @@ public class OrderMatcher {
                         // 매도 모두 체결 처리
                         sellOrder.setOrderStatus(OrderStatus.COMPLETED);
                         sellOrder.setMatchedAt(LocalDateTime.now());
-                        sellOrder.setMatchIdx(buyOrder.getIdx() + "-" + sellOrder.getIdx());
+                        sellOrder.setMatchIdx(buyOrder.getIdx() + "|" + sellOrder.getIdx());
                         sellOrder.setExecutionPrice(buyOrder.getOrderPrice());   //실제 체결 되는 가격은 매수자의 가격으로 체결
 
 //                        masterCoinOrderRepository.save(CoinOrderMapper.toEntity(sellOrder));
 
                         //////////////////////////////////시작////////////////////////////////////
                         // 1. SellOrder 업데이트
-                        sellOrder.setMatchIdx(buyOrder.getUuid() + "-" + sellOrder.getUuid());
+                        sellOrder.setMatchIdx(buyOrder.getUuid() + "|" + sellOrder.getUuid());
 
                         redisService.updateOrderInRedis(sellOrder);
                         //////////////////////////////////끝////////////////////////////////////
@@ -171,9 +171,9 @@ public class OrderMatcher {
                         String previousUUID = buyOrder.getUuid();
 
                         // 2. 새로운 BuyOrder 생성
-                        String uuid = UUID.randomUUID().toString();
+                        String uuid = UUID.randomUUID() + "_" + buyOrder.getMemberId();
                         buyOrder.setUuid(uuid);
-                        buyOrder.setMatchIdx(previousUUID + "-" + sellOrder.getUuid());
+                        buyOrder.setMatchIdx(previousUUID + "|" + sellOrder.getUuid());
                         redisService.insertOrderInRedis(buyOrder);
                         //////////////////////////////////끝////////////////////////////////////
 
@@ -211,14 +211,14 @@ public class OrderMatcher {
                         // 매수 모두 체결 처리
                         buyOrder.setOrderStatus(OrderStatus.COMPLETED);
                         buyOrder.setMatchedAt(LocalDateTime.now());
-                        buyOrder.setMatchIdx(buyOrder.getIdx() + "-" + sellOrder.getIdx());
+                        buyOrder.setMatchIdx(buyOrder.getIdx() + "|" + sellOrder.getIdx());
                         buyOrder.setExecutionPrice(buyOrder.getOrderPrice());   //실제 체결 되는 가격은 매수자의 가격으로 체결
 
 //                        masterCoinOrderRepository.save(CoinOrderMapper.toEntity(buyOrder));
 
                         //////////////////////////////////시작////////////////////////////////////
                         // 1. SellOrder 업데이트
-                        buyOrder.setMatchIdx(buyOrder.getUuid() + "-" + sellOrder.getUuid());
+                        buyOrder.setMatchIdx(buyOrder.getUuid() + "|" + sellOrder.getUuid());
 
                         redisService.updateOrderInRedis(buyOrder);
                         //////////////////////////////////끝////////////////////////////////////
@@ -238,7 +238,7 @@ public class OrderMatcher {
                         sellOrder.setOrderStatus(OrderStatus.COMPLETED);
                         sellOrder.setCoinAmount(buyOrder.getCoinAmount());
                         sellOrder.setMatchedAt(LocalDateTime.now());
-                        sellOrder.setMatchIdx(buyOrder.getIdx() + "-" + previousIdx);
+                        sellOrder.setMatchIdx(buyOrder.getIdx() + "|" + previousIdx);
                         sellOrder.setExecutionPrice(buyOrder.getOrderPrice());   //실제 체결 되는 가격은 매수자의 가격으로 체결
 
 //                        masterCoinOrderRepository.save(CoinOrderMapper.toEntity(sellOrder));
@@ -247,9 +247,9 @@ public class OrderMatcher {
                         String previousUUID = sellOrder.getUuid();
 
                         // 2. 새로운 BuyOrder 생성
-                        String uuid = UUID.randomUUID().toString();
+                        String uuid = UUID.randomUUID() + "_" + sellOrder.getMemberId();
                         sellOrder.setUuid(uuid);
-                        sellOrder.setMatchIdx(previousUUID + "-" + sellOrder.getUuid());
+                        sellOrder.setMatchIdx(previousUUID + "|" + sellOrder.getUuid());
                         redisService.insertOrderInRedis(sellOrder);
                         //////////////////////////////////끝////////////////////////////////////
 

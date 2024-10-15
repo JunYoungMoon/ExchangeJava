@@ -1,14 +1,17 @@
 package com.mjy.coin.component;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mjy.coin.dto.CoinInfoDTO;
 import com.mjy.coin.dto.CoinOrderDTO;
 import com.mjy.coin.repository.coin.master.MasterCoinOrderRepository;
 import com.mjy.coin.repository.coin.slave.SlaveCoinOrderRepository;
+import com.mjy.coin.service.CoinInfoService;
 import com.mjy.coin.service.RedisService;
 import jakarta.annotation.PostConstruct;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.kafka.config.KafkaListenerContainerFactory;
 import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
 import org.springframework.kafka.config.MethodKafkaListenerEndpoint;
@@ -16,52 +19,34 @@ import org.springframework.messaging.handler.annotation.support.DefaultMessageHa
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Component
+@DependsOn("kafkaAdmin")
 public class KafkaListenerCreator {
 
     private static final String KAFKA_GROUP_ID = "coinOrderGroup";
     private static final AtomicLong endpointIdIndex = new AtomicLong(1);
 
-    @Autowired
-    private KafkaListenerEndpointRegistry kafkaListenerEndpointRegistry;
-
-    @Autowired
-    private KafkaListenerContainerFactory<?> kafkaListenerContainerFactory;
-
-    @Autowired
-    private RedisService redisService; // RedisService를 추가
-
+    private final CoinInfoService coinInfoService;
+    private final KafkaListenerEndpointRegistry kafkaListenerEndpointRegistry;
+    private final KafkaListenerContainerFactory<?> kafkaListenerContainerFactory;
     private final OrderProcessor orderProcessor;
 
-    public KafkaListenerCreator(OrderProcessor orderProcessor) {
+    public KafkaListenerCreator(OrderProcessor orderProcessor, CoinInfoService coinInfoService, KafkaListenerEndpointRegistry kafkaListenerEndpointRegistry, KafkaListenerContainerFactory<?> kafkaListenerContainerFactory) {
         this.orderProcessor = orderProcessor;
+        this.coinInfoService = coinInfoService;
+        this.kafkaListenerContainerFactory = kafkaListenerContainerFactory;
+        this.kafkaListenerEndpointRegistry = kafkaListenerEndpointRegistry;
     }
 
     @PostConstruct
-    public void init() {
-        // 환경 변수에서 COIN_TYPE을 가져옴
-        String coinTypeEnv = System.getenv("COIN_TYPE");
-        if (coinTypeEnv == null) {
-            coinTypeEnv = "MAJOR"; // 기본값 설정
-        }
+    public void init() throws JsonProcessingException {
+        List<String> keys = coinInfoService.getCoinMarketKeys();
 
-        try {
-            // Redis에서 해당 COIN_TYPE에 맞는 CoinInfo 리스트를 가져옴
-            String jsonData = redisService.getValues(coinTypeEnv);
-            CoinInfoDTO[] coinInfoList = new ObjectMapper().readValue(jsonData, CoinInfoDTO[].class);
-
-            // 각 CoinInfo에 따라 토픽을 동적으로 등록
-            for (CoinInfoDTO coinInfo : coinInfoList) {
-                String topicName = coinInfo.getCoinName() + "-" + coinInfo.getMarketName();
-
-                // 리스너 등록
-                createAndRegisterListener(topicName);
-            }
-        } catch (IOException e) {
-            // 예외 처리 로직 추가
-            System.err.println("Failed to load CoinInfo from Redis: " + e.getMessage());
+        for (String key : keys) {
+            createAndRegisterListener(key);
         }
     }
 

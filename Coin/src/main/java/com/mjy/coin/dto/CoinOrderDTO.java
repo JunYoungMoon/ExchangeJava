@@ -1,6 +1,7 @@
 package com.mjy.coin.dto;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.mjy.coin.entity.coin.CoinOrder;
@@ -12,6 +13,7 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Getter
 @Setter
@@ -28,7 +30,8 @@ public class CoinOrderDTO {
     private BigDecimal fee; //수수료
     private LocalDateTime createdAt; // 등록일자
 //    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
-    private LocalDateTime matchedAt; // 체결일자
+    private LocalDateTime matchedAt;
+//    private LocalDateTime matchedAt; // 체결일자
     private String matchIdx; // 매수 idx와 매도 idx를 결합한 매치 ID
     private String uuid; //redis 전용 uuid
 

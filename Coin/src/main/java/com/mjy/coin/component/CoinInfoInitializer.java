@@ -1,11 +1,10 @@
 package com.mjy.coin.component;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.mjy.coin.entity.coin.CoinOrder;
 import com.mjy.coin.enums.OrderType;
-import com.mjy.coin.repository.coin.slave.SlaveCoinOrderRepository;
 import com.mjy.coin.dto.CoinOrderDTO;
 import com.mjy.coin.service.CoinInfoService;
+import com.mjy.coin.service.RedisService;
 import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Component;
 
@@ -14,16 +13,16 @@ import java.util.*;
 @Component
 public class CoinInfoInitializer {
 
-    private final SlaveCoinOrderRepository slaveCoinOrderRepository;
     private final OrderMatcher priorityQueueManager;
     private final OrderBookManager orderBookManager;
     private final CoinInfoService coinInfoService;
+    private final RedisService redisService;
 
-    public CoinInfoInitializer(SlaveCoinOrderRepository slaveCoinOrderRepository, OrderMatcher priorityQueueManager, OrderBookManager orderBookManager, CoinInfoService coinInfoService) {
-        this.slaveCoinOrderRepository = slaveCoinOrderRepository;
+    public CoinInfoInitializer(OrderMatcher priorityQueueManager, OrderBookManager orderBookManager, CoinInfoService coinInfoService, RedisService redisService) {
         this.priorityQueueManager = priorityQueueManager;
         this.orderBookManager = orderBookManager;
         this.coinInfoService = coinInfoService;
+        this.redisService = redisService;
     }
 
     @PostConstruct
@@ -44,32 +43,23 @@ public class CoinInfoInitializer {
                     Comparator.comparing(CoinOrderDTO::getOrderPrice)
                             .thenComparing(CoinOrderDTO::getCreatedAt)
             ));
-        }
 
-        // DB에서 모든 미체결 주문을 조회
-        List<CoinOrder> pendingOrders = slaveCoinOrderRepository.findPendingOrders();
+            // Redis에서 해당 코인-마켓 조합의 모든 데이터를 조회
+            Map<String, String> redisOrders = redisService.getAllHashOps(key);
 
-        // 미체결 주문을 해당 코인-마켓 조합에 추가
-        for (CoinOrder order : pendingOrders) {
-            CoinOrderDTO orderDTO = CoinOrderDTO.fromEntity(order);
-            String key = orderDTO.getCoinName() + "-" + orderDTO.getMarketName();
+            // Redis에서 가져온 데이터를 CoinOrderDTO로 변환 후 처리
+            for (String orderData : redisOrders.values()) {
+                // JSON 문자열을 CoinOrderDTO 객체로 변환
+                CoinOrderDTO orderDTO = redisService.convertStringToObject(orderData, CoinOrderDTO.class);
 
-            // 매수 주문일 경우
-            if (orderDTO.getOrderType() == OrderType.BUY) {
-                buyOrderQueues.putIfAbsent(key, new PriorityQueue<>(
-                        Comparator.comparing(CoinOrderDTO::getOrderPrice).reversed()
-                                .thenComparing(CoinOrderDTO::getCreatedAt)
-                ));
-                buyOrderQueues.get(key).add(orderDTO);
-            }
-
-            // 매도 주문일 경우
-            else if (orderDTO.getOrderType() == OrderType.SELL) {
-                sellOrderQueues.putIfAbsent(key, new PriorityQueue<>(
-                        Comparator.comparing(CoinOrderDTO::getOrderPrice)
-                                .thenComparing(CoinOrderDTO::getCreatedAt)
-                ));
-                sellOrderQueues.get(key).add(orderDTO);
+                // 매수 주문일 경우
+                if (orderDTO.getOrderType() == OrderType.BUY) {
+                    buyOrderQueues.get(key).add(orderDTO);
+                }
+                // 매도 주문일 경우
+                else if (orderDTO.getOrderType() == OrderType.SELL) {
+                    sellOrderQueues.get(key).add(orderDTO);
+                }
             }
         }
 

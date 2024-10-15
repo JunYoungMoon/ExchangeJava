@@ -20,4 +20,5 @@ public class CoinOrder {
     private OrderStatus orderStatus; // 거래 상태 (체결/미체결/취소)
     private BigDecimal fee; //수수료
     private LocalDateTime createdAt; // 등록일자
+    private LocalDateTime matchedAt; // 등록일자
 }

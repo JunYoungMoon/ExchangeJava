@@ -38,7 +38,7 @@ public class OrderProcessor {
 
         try {
             // Order ID 생성: UUID를 사용하여 고유한 주문 ID 생성
-            String uuid = UUID.randomUUID().toString();
+            String uuid = UUID.randomUUID() + "_" + order.getMemberId();
 
             // Redis에서 해당 orderId가 존재하는지 확인
             String existingOrder = redisService.getHashOps(key, uuid);
@@ -47,10 +47,7 @@ public class OrderProcessor {
             if (existingOrder.isEmpty()) {
                 //redis 미체결 주문 저장
                 order.setUuid(uuid);
-                order.setMatchedAt(null);
                 redisService.insertOrderInRedis(order);
-      
-                order.setUuid(uuid);
 
                 if (order.getOrderType() == OrderType.BUY) {
                     System.out.println("Adding buy order to queue: " + order);
@@ -67,7 +64,6 @@ public class OrderProcessor {
 
                 //호가 리스트 출력
 //                orderBookManager.printOrderBook(key);
-
             }
 
 //            // DB에 이미 존재하는 주문인지 확인
