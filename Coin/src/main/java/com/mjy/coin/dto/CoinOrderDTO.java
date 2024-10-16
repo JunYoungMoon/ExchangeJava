@@ -1,19 +1,15 @@
 package com.mjy.coin.dto;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.mjy.coin.entity.coin.CoinOrder;
 import com.mjy.coin.enums.OrderStatus;
 import com.mjy.coin.enums.OrderType;
-import com.mjy.coin.util.LocalDateTimeDeserializer;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 @Getter
 @Setter

@@ -1,11 +1,8 @@
-package com.mjy.coin.component;
+package com.mjy.coin.service;
 
 import com.mjy.coin.dto.CoinOrderDTO;
-import com.mjy.coin.dto.CoinOrderMapper;
-import com.mjy.coin.entity.coin.CoinOrder;
 import com.mjy.coin.enums.OrderStatus;
 import com.mjy.coin.repository.coin.master.MasterCoinOrderRepository;
-import com.mjy.coin.service.RedisService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
@@ -16,18 +13,18 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 @Component
-public class OrderMatcher {
+public class OrderMatcherService {
 
     private final MasterCoinOrderRepository masterCoinOrderRepository;
-    private final OrderBookManager orderBookManager;
+    private final OrderBookService orderBookService;
     private final RedisService redisService;
     private final KafkaTemplate<String, CoinOrderDTO> kafkaTemplate;
 
 
     @Autowired
-    public OrderMatcher(MasterCoinOrderRepository masterCoinOrderRepository, OrderBookManager orderBookManager, RedisService redisService, KafkaTemplate<String, CoinOrderDTO> kafkaTemplate) {
+    public OrderMatcherService(MasterCoinOrderRepository masterCoinOrderRepository, OrderBookService orderBookService, RedisService redisService, KafkaTemplate<String, CoinOrderDTO> kafkaTemplate) {
         this.masterCoinOrderRepository = masterCoinOrderRepository;
-        this.orderBookManager = orderBookManager;
+        this.orderBookService = orderBookService;
         this.redisService = redisService;
         this.kafkaTemplate = kafkaTemplate;
     }
@@ -125,8 +122,8 @@ public class OrderMatcher {
                         sellOrders.poll();
 
                         // 체결 되었으니 호가 리스트 제거
-                        orderBookManager.updateOrderBook(key, buyOrder, true, false);
-                        orderBookManager.updateOrderBook(key, sellOrder, false, false);
+                        orderBookService.updateOrderBook(key, buyOrder, true, false);
+                        orderBookService.updateOrderBook(key, sellOrder, false, false);
                     } else if (remainingQuantity.compareTo(BigDecimal.ZERO) > 0) {
                         // 매도량 보다 매수량이 높은경우
                         // 매도는 모두 체결되고 매수는 일부 남음
@@ -151,7 +148,7 @@ public class OrderMatcher {
                         sellOrders.poll();
 
                         // 이미 미체결을 넣어줬기 때문에 체결 되었으니 호가 리스트 제거(가격만 구분하고 수량 차감은 같이 한다.)
-                        orderBookManager.updateOrderBook(key, sellOrder, false, false);
+                        orderBookService.updateOrderBook(key, sellOrder, false, false);
 
                         // 매수 이전 idx 저장
                         Long previousIdx = buyOrder.getIdx();
@@ -181,7 +178,7 @@ public class OrderMatcher {
                         kafkaTemplate.send("Order-Completed", sellOrder);
 
                         // 이미 미체결을 넣어줬기 때문에 체결 되었으니 호가 리스트 제거(가격만 구분하고 수량 차감은 같이 한다.)
-                        orderBookManager.updateOrderBook(key, buyOrder, true, false);
+                        orderBookService.updateOrderBook(key, buyOrder, true, false);
 
                         // 매수 주문 수량 업데이트 (남은 수량)
                         // 기존의 idx를 가져와 기존 매수 update
@@ -227,7 +224,7 @@ public class OrderMatcher {
                         buyOrders.poll();
 
                         // 이미 미체결을 넣어줬기 때문에 체결 되었으니 호가 리스트 제거(가격만 구분하고 수량 차감은 같이 한다.)
-                        orderBookManager.updateOrderBook(key, buyOrder, true, false);
+                        orderBookService.updateOrderBook(key, buyOrder, true, false);
 
                         //이전 idx 저장
                         Long previousIdx = sellOrder.getIdx();
@@ -257,7 +254,7 @@ public class OrderMatcher {
                         kafkaTemplate.send("Order-Completed", sellOrder);
 
                         // 이미 미체결을 넣어줬기 때문에 체결 되었으니 호가 리스트 제거(가격만 구분하고 수량 차감은 같이 한다.)
-                        orderBookManager.updateOrderBook(key, sellOrder, false, false);
+                        orderBookService.updateOrderBook(key, sellOrder, false, false);
 
                         // 매수 주문 수량 업데이트 (남은 수량)
                         // 기존의 idx를 가져와 update 필요

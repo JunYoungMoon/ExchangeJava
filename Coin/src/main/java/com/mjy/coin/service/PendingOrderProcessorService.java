@@ -1,32 +1,30 @@
-package com.mjy.coin.component;
+package com.mjy.coin.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mjy.coin.dto.CoinOrderDTO;
 import com.mjy.coin.dto.CoinOrderMapper;
 import com.mjy.coin.entity.coin.CoinOrder;
 import com.mjy.coin.enums.OrderType;
 import com.mjy.coin.repository.coin.master.MasterCoinOrderRepository;
 import com.mjy.coin.repository.coin.slave.SlaveCoinOrderRepository;
-import com.mjy.coin.service.RedisService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;
 
 @Component
-public class OrderProcessor {
+public class PendingOrderProcessorService {
 
-    private final OrderMatcher priorityQueueManager;
-    private final OrderBookManager orderBookManager;
+    private final OrderMatcherService priorityQueueManager;
+    private final OrderBookService orderBookService;
     private final MasterCoinOrderRepository masterCoinOrderRepository;
     private final SlaveCoinOrderRepository slaveCoinOrderRepository;
     private final RedisService redisService;
 
     @Autowired
-    public OrderProcessor(OrderMatcher priorityQueueManager, MasterCoinOrderRepository masterCoinOrderRepository, SlaveCoinOrderRepository slaveCoinOrderRepository, OrderBookManager orderBookManager,RedisService redisService) {
+    public PendingOrderProcessorService(OrderMatcherService priorityQueueManager, MasterCoinOrderRepository masterCoinOrderRepository, SlaveCoinOrderRepository slaveCoinOrderRepository, OrderBookService orderBookService, RedisService redisService) {
         this.priorityQueueManager = priorityQueueManager;
         this.masterCoinOrderRepository = masterCoinOrderRepository;
-        this.orderBookManager = orderBookManager;
+        this.orderBookService = orderBookService;
         this.slaveCoinOrderRepository = slaveCoinOrderRepository;
         this.redisService = redisService;
     }
@@ -52,11 +50,11 @@ public class OrderProcessor {
                 if (order.getOrderType() == OrderType.BUY) {
                     System.out.println("Adding buy order to queue: " + order);
                     priorityQueueManager.addBuyOrder(key, order);
-                    orderBookManager.updateOrderBook(key, order, true, true);
+                    orderBookService.updateOrderBook(key, order, true, true);
                 } else if (order.getOrderType() == OrderType.SELL) {
                     System.out.println("Adding sell order to queue: " + order);
                     priorityQueueManager.addSellOrder(key, order);
-                    orderBookManager.updateOrderBook(key, order, false, true);
+                    orderBookService.updateOrderBook(key, order, false, true);
                 }
 
                 // 주문 체결 시도

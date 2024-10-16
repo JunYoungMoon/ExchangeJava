@@ -1,6 +1,7 @@
 package com.mjy.coin.component;
 
 import com.mjy.coin.dto.CoinOrderDTO;
+import com.mjy.coin.service.PendingOrderProcessorService;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.listener.MessageListener;
@@ -10,11 +11,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class PendingOrderListener implements MessageListener<String, CoinOrderDTO> {
 
-    private final OrderProcessor orderProcessor;
+    private final PendingOrderProcessorService pendingOrderProcessorService;
 
     @Autowired
-    public PendingOrderListener(OrderProcessor orderProcessor) {
-        this.orderProcessor = orderProcessor;
+    public PendingOrderListener(PendingOrderProcessorService pendingOrderProcessorService) {
+        this.pendingOrderProcessorService = pendingOrderProcessorService;
     }
 
     @Override
@@ -22,7 +23,7 @@ public class PendingOrderListener implements MessageListener<String, CoinOrderDT
         CoinOrderDTO order = record.value();
 
         // 미체결 주문 처리
-        orderProcessor.processOrder(order);
+        pendingOrderProcessorService.processOrder(order);
         System.out.println("Pending order processed: " + order);
     }
 }

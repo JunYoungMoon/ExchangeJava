@@ -1,4 +1,4 @@
-package com.mjy.coin.component;
+package com.mjy.coin.service;
 
 import com.mjy.coin.dto.CoinOrderDTO;
 import org.springframework.stereotype.Component;
@@ -8,7 +8,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
-public class OrderBookManager {
+public class OrderBookService {
 
     // 코인-마켓별로 독립적인 매수/매도 호가 리스트를 관리하는 맵
     private final Map<String, TreeMap<BigDecimal, BigDecimal>> buyOrderBooks = new HashMap<>();  // 매수: 높은 가격 우선

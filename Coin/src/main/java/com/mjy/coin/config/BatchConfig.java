@@ -98,19 +98,6 @@ public class BatchConfig {
 //                .build();
 //    }
 //
-    @Bean
-    public Step orderStep(JobRepository jobRepository,
-                          CompletedOrderReader reader,
-                          CompletedOrderProcessor processor,
-                          CompletedOrderWriter writer,
-                          PlatformTransactionManager transactionManager) {
-        return new StepBuilder("orderStep", jobRepository)
-                .<CoinOrderDTO, CoinOrderDTO>chunk(10, transactionManager) // 한 번에 10개씩 처리
-                .reader(reader)
-                .processor(processor)
-                .writer(writer)
-                .build();
-    }
 
     @Bean
     public Job orderJob(@Qualifier("OrderJobRepository") JobRepository jobRepository, Step partitionStep) {
@@ -128,6 +115,20 @@ public class BatchConfig {
                 .partitioner("slaveStep", new RedisHashPartitioner(redisService, marketKeys))
                 .step(orderStep)
                 .taskExecutor(taskExecutor())  // taskExecutor를 연결하여 병렬 처리
+                .build();
+    }
+
+    @Bean
+    public Step orderStep(JobRepository jobRepository,
+                          CompletedOrderReader reader,
+                          CompletedOrderProcessor processor,
+                          CompletedOrderWriter writer,
+                          PlatformTransactionManager transactionManager) {
+        return new StepBuilder("orderStep", jobRepository)
+                .<CoinOrderDTO, CoinOrderDTO>chunk(10, transactionManager) // 한 번에 10개씩 처리
+                .reader(reader)
+                .processor(processor)
+                .writer(writer)
                 .build();
     }
 

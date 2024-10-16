@@ -1,7 +1,6 @@
-package com.mjy.coin.aop;
+package com.mjy.coin.component;
 
 import com.mjy.coin.annotation.RateLimit;
-import com.mjy.coin.component.APIRateLimiter;
 import jakarta.servlet.http.HttpServletRequest;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;

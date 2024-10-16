@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.mjy.coin.enums.OrderType;
 import com.mjy.coin.dto.CoinOrderDTO;
 import com.mjy.coin.service.CoinInfoService;
+import com.mjy.coin.service.OrderBookService;
+import com.mjy.coin.service.OrderMatcherService;
 import com.mjy.coin.service.RedisService;
 import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Component;
@@ -13,14 +15,14 @@ import java.util.*;
 @Component
 public class CoinInfoInitializer {
 
-    private final OrderMatcher priorityQueueManager;
-    private final OrderBookManager orderBookManager;
+    private final OrderMatcherService priorityQueueManager;
+    private final OrderBookService orderBookService;
     private final CoinInfoService coinInfoService;
     private final RedisService redisService;
 
-    public CoinInfoInitializer(OrderMatcher priorityQueueManager, OrderBookManager orderBookManager, CoinInfoService coinInfoService, RedisService redisService) {
+    public CoinInfoInitializer(OrderMatcherService priorityQueueManager, OrderBookService orderBookService, CoinInfoService coinInfoService, RedisService redisService) {
         this.priorityQueueManager = priorityQueueManager;
-        this.orderBookManager = orderBookManager;
+        this.orderBookService = orderBookService;
         this.coinInfoService = coinInfoService;
         this.redisService = redisService;
     }
@@ -67,7 +69,7 @@ public class CoinInfoInitializer {
         priorityQueueManager.initializeQueues(buyOrderQueues, sellOrderQueues);
 
         // 초기화된 큐를 OrderBookManager에 전달하여 호가 리스트 초기화
-        orderBookManager.initializeOrderBook(buyOrderQueues, sellOrderQueues);
+        orderBookService.initializeOrderBook(buyOrderQueues, sellOrderQueues);
 
         System.out.println("Buy/Sell queues initialized with Redis keys and DB pending orders.");
     }
