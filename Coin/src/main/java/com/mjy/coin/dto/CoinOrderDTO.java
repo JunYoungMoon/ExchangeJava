@@ -31,6 +31,9 @@ public class CoinOrderDTO {
     private String matchIdx; // 매수 idx와 매도 idx를 결합한 매치 ID
     private String uuid; //redis 전용 uuid
 
+    public CoinOrderDTO() {
+    }
+
     @JsonCreator // JSON 역직렬화를 위한 생성자
     public CoinOrderDTO(
             @JsonProperty("idx") Long idx,

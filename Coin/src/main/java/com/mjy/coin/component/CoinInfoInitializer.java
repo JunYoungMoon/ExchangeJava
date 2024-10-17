@@ -5,7 +5,7 @@ import com.mjy.coin.enums.OrderType;
 import com.mjy.coin.dto.CoinOrderDTO;
 import com.mjy.coin.service.CoinInfoService;
 import com.mjy.coin.service.OrderBookService;
-import com.mjy.coin.service.OrderMatcherService;
+import com.mjy.coin.service.PendingOrderMatcherService;
 import com.mjy.coin.service.RedisService;
 import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Component;
@@ -15,12 +15,12 @@ import java.util.*;
 @Component
 public class CoinInfoInitializer {
 
-    private final OrderMatcherService priorityQueueManager;
+    private final PendingOrderMatcherService priorityQueueManager;
     private final OrderBookService orderBookService;
     private final CoinInfoService coinInfoService;
     private final RedisService redisService;
 
-    public CoinInfoInitializer(OrderMatcherService priorityQueueManager, OrderBookService orderBookService, CoinInfoService coinInfoService, RedisService redisService) {
+    public CoinInfoInitializer(PendingOrderMatcherService priorityQueueManager, OrderBookService orderBookService, CoinInfoService coinInfoService, RedisService redisService) {
         this.priorityQueueManager = priorityQueueManager;
         this.orderBookService = orderBookService;
         this.coinInfoService = coinInfoService;

@@ -11,6 +11,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 @Component
@@ -42,6 +43,10 @@ public class RedisService {
             return "false";
         }
         return (String) values.get(key);
+    }
+
+    public Set<String> getKeys(String pattern) {
+        return redisTemplate.keys(pattern);
     }
 
     public void deleteValues(String key) {

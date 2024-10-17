@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 @Component
-public class OrderMatcherService {
+public class PendingOrderMatcherService {
 
     private final MasterCoinOrderRepository masterCoinOrderRepository;
     private final OrderBookService orderBookService;
@@ -22,7 +22,7 @@ public class OrderMatcherService {
 
 
     @Autowired
-    public OrderMatcherService(MasterCoinOrderRepository masterCoinOrderRepository, OrderBookService orderBookService, RedisService redisService, KafkaTemplate<String, CoinOrderDTO> kafkaTemplate) {
+    public PendingOrderMatcherService(MasterCoinOrderRepository masterCoinOrderRepository, OrderBookService orderBookService, RedisService redisService, KafkaTemplate<String, CoinOrderDTO> kafkaTemplate) {
         this.masterCoinOrderRepository = masterCoinOrderRepository;
         this.orderBookService = orderBookService;
         this.redisService = redisService;

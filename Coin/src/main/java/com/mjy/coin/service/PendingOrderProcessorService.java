@@ -14,14 +14,14 @@ import java.util.UUID;
 @Component
 public class PendingOrderProcessorService {
 
-    private final OrderMatcherService priorityQueueManager;
+    private final PendingOrderMatcherService priorityQueueManager;
     private final OrderBookService orderBookService;
     private final MasterCoinOrderRepository masterCoinOrderRepository;
     private final SlaveCoinOrderRepository slaveCoinOrderRepository;
     private final RedisService redisService;
 
     @Autowired
-    public PendingOrderProcessorService(OrderMatcherService priorityQueueManager, MasterCoinOrderRepository masterCoinOrderRepository, SlaveCoinOrderRepository slaveCoinOrderRepository, OrderBookService orderBookService, RedisService redisService) {
+    public PendingOrderProcessorService(PendingOrderMatcherService priorityQueueManager, MasterCoinOrderRepository masterCoinOrderRepository, SlaveCoinOrderRepository slaveCoinOrderRepository, OrderBookService orderBookService, RedisService redisService) {
         this.priorityQueueManager = priorityQueueManager;
         this.masterCoinOrderRepository = masterCoinOrderRepository;
         this.orderBookService = orderBookService;
