@@ -6,10 +6,7 @@ import com.mjy.coin.batch.CoinOrderWriter;
 import com.mjy.coin.dto.CoinOrderDTO;
 import com.mjy.coin.service.CoinOrderService;
 import com.mjy.coin.service.RedisService;
-import org.springframework.batch.core.DefaultJobKeyGenerator;
-import org.springframework.batch.core.ExitStatus;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.Step;
+import org.springframework.batch.core.*;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.partition.support.Partitioner;
 import org.springframework.batch.core.repository.ExecutionContextSerializer;
@@ -126,12 +123,9 @@ public class CoinOrderBatchConfig {
         return new StepBuilder("checkDataStep", jobRepository)
                 .tasklet((contribution, chunkContext) -> {
 
-
-                    LocalDate today = LocalDate.now(); // 오늘 일자 기준
-                    Long[] minMaxIdx = coinOrderService.getMinMaxIdx(today); // 오늘 일자 기준
-
-//                    LocalDate yesterday = LocalDate.now().minusDays(1);
-//                    Long[] minMaxIdx = coinOrderService.getMinMaxIdx(yesterday); // 어제 일자 기준
+//                    Long[] minMaxIdx = coinOrderService.getMinMaxIdx(LocalDate.now()); // 오늘 일자 기준
+                    LocalDate yesterday = LocalDate.now().minusDays(1);
+                    Long[] minMaxIdx = coinOrderService.getMinMaxIdx(yesterday); // 어제 일자 기준
 
                     // 데이터가 없으면 배치 작업을 종료
                     if (minMaxIdx[0] == 0 && minMaxIdx[1] == 0) {
@@ -140,14 +134,17 @@ public class CoinOrderBatchConfig {
                     }
 
                     // 어제의 일일 종가가 CoinOrderDayHistory에 존재하는지 확인
-                    if (coinOrderService.hasClosingPriceForDate(today)) {
+                    if (coinOrderService.hasClosingPriceForDate(yesterday)) {
                         contribution.setExitStatus(ExitStatus.FAILED); // 종가가 존재하면 배치 작업을 종료
                         return RepeatStatus.FINISHED;
                     }
 
-                    // minMaxIdx를 partitioner으로 넘겨줘야함
+                    // StepExecutionContext에 minMaxIdx 저장
+                    chunkContext.getStepContext().getStepExecution()
+                            .getJobExecution().getExecutionContext().put("minIdx", minMaxIdx[0]);
+                    chunkContext.getStepContext().getStepExecution()
+                            .getJobExecution().getExecutionContext().put("maxIdx", minMaxIdx[1]);
 
-                    contribution.setExitStatus(ExitStatus.COMPLETED); // 조건이 충족되면 다음으로 이동
                     return RepeatStatus.FINISHED;
                 }, transactionManager)
                 .build();
@@ -158,7 +155,12 @@ public class CoinOrderBatchConfig {
         return gridSize -> {
             Map<String, ExecutionContext> partitions = new HashMap<>();
 
-            List<Map<String, Long>> chunkPartitions = coinOrderService.partitionChunks(minMaxIdx[0], minMaxIdx[1], 1000);
+            // JobExecutionContext에서 값을 읽어오기
+            StepExecution stepExecution = StepSynchronizationManager.getContext().getStepExecution();
+            Long minIdx = stepExecution.getJobExecution().getExecutionContext().getLong("minIdx");
+            Long maxIdx = stepExecution.getJobExecution().getExecutionContext().getLong("maxIdx");
+
+            List<Map<String, Long>> chunkPartitions = coinOrderService.partitionChunks(minIdx, maxIdx, 1000);
 
             for (int i = 0; i < chunkPartitions.size(); i++) {
                 ExecutionContext context = new ExecutionContext();
