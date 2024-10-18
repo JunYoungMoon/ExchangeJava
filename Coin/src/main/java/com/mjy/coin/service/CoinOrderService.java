@@ -1,7 +1,10 @@
 package com.mjy.coin.service;
 
+import com.mjy.coin.dto.CoinOrderDTO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -26,6 +29,28 @@ public class CoinOrderService {
                 rs.getLong(1), // MIN(idx)
                 rs.getLong(2)  // MAX(idx)
         }, today.atStartOfDay(), today.plusDays(1).atStartOfDay());
+    }
+
+    public List<CoinOrderDTO> getCoinOrders(String coinName, String marketName, LocalDate matchedDate) {
+        String sql = """
+                WITH OrderedCoinOrders AS (
+                    SELECT idx,
+                           coinName,
+                           matchedAt,
+                           ROW_NUMBER() OVER (ORDER BY idx) AS row_num
+                    FROM CoinOrder
+                    WHERE coinName = ? 
+                      AND marketName = ?  
+                      AND DATE(matchedAt) = ? 
+                )
+                SELECT idx, coinName, matchedAt
+                FROM OrderedCoinOrders
+                WHERE row_num % 1000 = 1;
+                """;
+
+        RowMapper<CoinOrderDTO> rowMapper = new BeanPropertyRowMapper<>(CoinOrderDTO.class);
+
+        return jdbcTemplate.query(sql, rowMapper, coinName, marketName, matchedDate);
     }
 
     public List<Map<String, Long>> partitionChunks(Long minIdx, Long maxIdx, int chunkSize) {

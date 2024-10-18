@@ -4,6 +4,7 @@ import com.mjy.coin.batch.CoinOrderProcessor;
 import com.mjy.coin.batch.CoinOrderReader;
 import com.mjy.coin.batch.CoinOrderWriter;
 import com.mjy.coin.dto.CoinOrderDTO;
+import com.mjy.coin.service.CoinInfoService;
 import com.mjy.coin.service.CoinOrderService;
 import com.mjy.coin.service.RedisService;
 import org.springframework.batch.core.*;
@@ -87,7 +88,7 @@ public class CoinOrderBatchConfig {
         return new JobBuilder("coinOrderJob", jobRepository)
                 .start(checkDataStep)
                 .next(partitionStep)
-//                .next(mergeStep)
+                .next(mergeStep)
                 .build();
     }
 
@@ -119,16 +120,31 @@ public class CoinOrderBatchConfig {
     @Bean
     public Step checkDataStep(JobRepository jobRepository,
                               PlatformTransactionManager transactionManager,
-                              CoinOrderService coinOrderService) {
+                              CoinOrderService coinOrderService, CoinInfoService coinInfoService) {
         return new StepBuilder("checkDataStep", jobRepository)
                 .tasklet((contribution, chunkContext) -> {
 
-//                    Long[] minMaxIdx = coinOrderService.getMinMaxIdx(LocalDate.now()); // 오늘 일자 기준
+//                  LocalDate today = LocalDate.now(); // 오늘 일자 기준
                     LocalDate yesterday = LocalDate.now().minusDays(1);
-                    Long[] minMaxIdx = coinOrderService.getMinMaxIdx(yesterday); // 어제 일자 기준
+
+                    List<String> keys = coinInfoService.getCoinMarketKeys();
+
+                    Map<String, List<CoinOrderDTO>> coinOrderPartitions  = new HashMap<>();
+
+                    for (String key : keys) {
+                        String[] parts = key.split("-");
+                        String coinName = parts[0];  // BTC, ETH..
+                        String marketName = parts[1]; // KRW, USDT..
+
+                        List<CoinOrderDTO> coinOrders = coinOrderService.getCoinOrders(coinName, marketName, yesterday);
+
+                        if (!coinOrders.isEmpty()) {
+                            coinOrderPartitions.put(key, coinOrders);
+                        }
+                    }
 
                     // 데이터가 없으면 배치 작업을 종료
-                    if (minMaxIdx[0] == 0 && minMaxIdx[1] == 0) {
+                    if(coinOrderPartitions .isEmpty()) {
                         contribution.setExitStatus(ExitStatus.FAILED);
                         return RepeatStatus.FINISHED;
                     }
@@ -139,11 +155,9 @@ public class CoinOrderBatchConfig {
                         return RepeatStatus.FINISHED;
                     }
 
-                    // StepExecutionContext에 minMaxIdx 저장
+                    // JobExecutionContext에 공유 데이터 저장
                     chunkContext.getStepContext().getStepExecution()
-                            .getJobExecution().getExecutionContext().put("minIdx", minMaxIdx[0]);
-                    chunkContext.getStepContext().getStepExecution()
-                            .getJobExecution().getExecutionContext().put("maxIdx", minMaxIdx[1]);
+                            .getJobExecution().getExecutionContext().put("coinOrderPartitions", coinOrderPartitions);
 
                     return RepeatStatus.FINISHED;
                 }, transactionManager)
@@ -179,8 +193,11 @@ public class CoinOrderBatchConfig {
         return new StepBuilder("mergeStep", jobRepository).tasklet((contribution, chunkContext) -> {
             System.out.println("Tasklet step executed");
 
+            StepExecution stepExecution = StepSynchronizationManager.getContext().getStepExecution();
+            String yesterday = stepExecution.getJobExecution().getExecutionContext().getString("yesterday");
+
             // RedisService를 사용한 리팩토링된 코드
-            Set<String> keys = redisService.getKeys("partition:*");
+            Set<String> keys = redisService.getKeys(yesterday + ":partition:*");
             BigDecimal totalPrice = BigDecimal.ZERO;
             BigDecimal totalVolume = BigDecimal.ZERO;
 

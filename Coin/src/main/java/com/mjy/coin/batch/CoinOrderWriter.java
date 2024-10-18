@@ -1,6 +1,8 @@
 package com.mjy.coin.batch;
 
 import com.mjy.coin.dto.CoinOrderDTO;
+import org.springframework.batch.core.StepExecution;
+import org.springframework.batch.core.scope.context.StepSynchronizationManager;
 import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -28,8 +30,11 @@ public class CoinOrderWriter implements ItemWriter<CoinOrderDTO> {
             totalVolume = totalVolume.add(item.getCoinAmount());
         }
 
+        StepExecution stepExecution = StepSynchronizationManager.getContext().getStepExecution();
+        String yesterday = stepExecution.getJobExecution().getExecutionContext().getString("yesterday");
+
         // Redis에 파티션별 데이터 저장
-        String key = "partition:" + Thread.currentThread().getName();
+        String key = yesterday + ":partition:" + Thread.currentThread().getName();
         redisTemplate.opsForHash().increment(key, "totalPrice", totalPrice.doubleValue());
         redisTemplate.opsForHash().increment(key, "totalVolume", totalVolume.doubleValue());
     }
