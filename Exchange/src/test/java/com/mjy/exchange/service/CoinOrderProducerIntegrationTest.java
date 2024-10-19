@@ -97,7 +97,10 @@ public class CoinOrderProducerIntegrationTest {
             CoinOrder coinOrder4 = new CoinOrder();
             coinOrder4.setMemberId(random.nextBoolean() ? 1L : 2L);
             coinOrder4.setMarketName("KRW");
-            coinOrder4.setCoinName("BTC");
+
+            String randomCoinName = random.nextBoolean() ? "BTC" : "ETH";
+
+            coinOrder4.setCoinName(randomCoinName);
 
             // 0.01 ~ 0.1 범위의 랜덤 금액
             BigDecimal randomAmount = new BigDecimal(0.01 + (0.09 * random.nextDouble())).setScale(2, RoundingMode.DOWN);

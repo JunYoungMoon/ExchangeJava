@@ -1,9 +1,8 @@
 package com.mjy.coin.entity.coin;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -12,8 +11,8 @@ import java.time.LocalDate;
  * 코인 거래의 체결 상세 CoinOrder를 바탕으로 일일 종가 내역을 저장합니다.
  */
 @Getter
+@Setter
 @Entity
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class CoinOrderDayHistory {
 
     @Id

@@ -13,7 +13,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CoinInfoService {
     private final RedisService redisService;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
 
     public List<String> getCoinMarketKeys() throws JsonProcessingException {
         // COIN_TYPE 환경 변수 가져오기

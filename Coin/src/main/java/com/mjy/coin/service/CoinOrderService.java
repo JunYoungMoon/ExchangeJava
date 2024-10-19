@@ -1,12 +1,14 @@
 package com.mjy.coin.service;
 
 import com.mjy.coin.dto.CoinOrderDTO;
+import com.mjy.coin.dto.CoinOrderSimpleDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,7 +25,11 @@ public class CoinOrderService {
     }
 
     public Long[] getMinMaxIdx(LocalDate today) {
-        String sql = "SELECT MIN(idx), MAX(idx) FROM CoinOrder WHERE matchedAt BETWEEN ? AND ?";
+        String sql = """
+                SELECT MIN(idx), MAX(idx) 
+                FROM CoinOrder 
+                WHERE matchedAt BETWEEN ? AND ?
+                """;
 
         return jdbcTemplate.queryForObject(sql, (rs, rowNum) -> new Long[]{
                 rs.getLong(1), // MIN(idx)
@@ -31,7 +37,24 @@ public class CoinOrderService {
         }, today.atStartOfDay(), today.plusDays(1).atStartOfDay());
     }
 
-    public List<CoinOrderDTO> getCoinOrders(String coinName, String marketName, LocalDate matchedDate) {
+    public BigDecimal getLatestExecutionPriceByDate(String coinName, LocalDate matchedDate){
+        String sql = """
+                SELECT executionprice
+                FROM CoinOrder
+                WHERE coinname = ?
+                  AND date(matchedat) = ?
+                ORDER BY matchedat DESC
+                LIMIT 1
+                """;
+
+        return jdbcTemplate.queryForObject(
+                sql,
+                new Object[]{coinName, matchedDate},
+                BigDecimal.class
+        );
+    }
+
+    public List<CoinOrderSimpleDTO> getCoinOrderChunksBy1000(String coinName, String marketName, LocalDate matchedDate) {
         String sql = """
                 WITH OrderedCoinOrders AS (
                     SELECT idx,
@@ -48,7 +71,7 @@ public class CoinOrderService {
                 WHERE row_num % 1000 = 1;
                 """;
 
-        RowMapper<CoinOrderDTO> rowMapper = new BeanPropertyRowMapper<>(CoinOrderDTO.class);
+        RowMapper<CoinOrderSimpleDTO> rowMapper = new BeanPropertyRowMapper<>(CoinOrderSimpleDTO.class);
 
         return jdbcTemplate.query(sql, rowMapper, coinName, marketName, matchedDate);
     }
@@ -68,7 +91,11 @@ public class CoinOrderService {
     }
 
     public boolean hasClosingPriceForDate(LocalDate date) {
-        String sql = "SELECT COUNT(*) FROM CoinOrderDayHistory WHERE tradingDate = ?";
+        String sql = """
+                SELECT COUNT(*) 
+                FROM CoinOrderDayHistory 
+                WHERE tradingDate = ?
+                """;
 
         Integer count = jdbcTemplate.queryForObject(sql, Integer.class, date);
         return count != null && count > 0;

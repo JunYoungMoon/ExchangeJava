@@ -9,6 +9,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
 import java.util.List;
 
 
@@ -19,28 +20,33 @@ public class CoinOrderReader implements ItemReader<CoinOrderDTO> {
     private final JdbcTemplate jdbcTemplate;
     private List<CoinOrderDTO> coinOrders;
     private int nextIndex = 0;
-    private final Long minIdx;
-    private final Long maxIdx;
+    private final Long chunkIdx;
+    private final String coinName;
+    private final LocalDate yesterday;
 
     public CoinOrderReader(JdbcTemplate jdbcTemplate,
-                           @Value("#{stepExecutionContext['minIdx']}") Long minIdx,
-                           @Value("#{stepExecutionContext['maxIdx']}") Long maxIdx) {
+                           @Value("#{stepExecutionContext['chunkIdx']}") Long chunkIdx,
+                           @Value("#{stepExecutionContext['coinName']}") String coinName,
+                           @Value("#{stepExecutionContext['yesterday']}") LocalDate yesterday) {
         this.jdbcTemplate = jdbcTemplate;
-        this.minIdx = minIdx;
-        this.maxIdx = maxIdx;
+        this.chunkIdx = chunkIdx;
+        this.coinName = coinName;
+        this.yesterday = yesterday;
     }
 
     @Override
-    public CoinOrderDTO read(){
-        // 처음 호출 시 데이터베이스에서 데이터를 가져온다
-        if (coinOrders == null) {
-            String sql = "SELECT * FROM CoinOrder WHERE idx >= ? AND idx <= ? ORDER BY idx";
+    public CoinOrderDTO read() {
+        String sql = """
+                    SELECT * FROM CoinOrder
+                    WHERE coinName = ?
+                      AND idx >= ?
+                      AND DATE(matchedAt) = ?
+                    LIMIT 0, 1000;
+                """;
 
-            RowMapper<CoinOrderDTO> rowMapper = new BeanPropertyRowMapper<>(CoinOrderDTO.class);
+        RowMapper<CoinOrderDTO> rowMapper = new BeanPropertyRowMapper<>(CoinOrderDTO.class);
 
-            coinOrders = jdbcTemplate.query(sql, rowMapper, minIdx, maxIdx);
-        }
-
+        coinOrders = jdbcTemplate.query(sql, rowMapper, coinName, chunkIdx, yesterday);
         if (nextIndex < coinOrders.size()) {
             return coinOrders.get(nextIndex++);
         } else {

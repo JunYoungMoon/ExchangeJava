@@ -1,9 +1,15 @@
 package com.mjy.coin.batch.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mjy.coin.batch.CoinOrderProcessor;
 import com.mjy.coin.batch.CoinOrderReader;
 import com.mjy.coin.batch.CoinOrderWriter;
 import com.mjy.coin.dto.CoinOrderDTO;
+import com.mjy.coin.dto.CoinOrderDayHistoryDTO;
+import com.mjy.coin.dto.CoinOrderDayHistoryMapper;
+import com.mjy.coin.dto.CoinOrderSimpleDTO;
+import com.mjy.coin.entity.coin.CoinOrderDayHistory;
+import com.mjy.coin.repository.coin.master.MasterCoinOrderDayHistoryRepository;
 import com.mjy.coin.service.CoinInfoService;
 import com.mjy.coin.service.CoinOrderService;
 import com.mjy.coin.service.RedisService;
@@ -38,6 +44,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Configuration
 public class CoinOrderBatchConfig {
@@ -87,8 +94,10 @@ public class CoinOrderBatchConfig {
                             Step mergeStep) {
         return new JobBuilder("coinOrderJob", jobRepository)
                 .start(checkDataStep)
-                .next(partitionStep)
-                .next(mergeStep)
+                .on("FAILED").end()  // checkDataStep가 FAILED면 종료
+                .from(checkDataStep).on("COMPLETED").to(partitionStep)  // checkDataStep가 성공 시 partitionStep으로 이동
+                .from(partitionStep).on("COMPLETED").to(mergeStep)  // partitionStep이 성공한 경우 mergeStep으로 이동
+                .end()
                 .build();
     }
 
@@ -120,45 +129,49 @@ public class CoinOrderBatchConfig {
     @Bean
     public Step checkDataStep(JobRepository jobRepository,
                               PlatformTransactionManager transactionManager,
-                              CoinOrderService coinOrderService, CoinInfoService coinInfoService) {
+                              CoinOrderService coinOrderService,
+                              CoinInfoService coinInfoService,
+                              ObjectMapper objectMapper) {
         return new StepBuilder("checkDataStep", jobRepository)
                 .tasklet((contribution, chunkContext) -> {
-
-//                  LocalDate today = LocalDate.now(); // 오늘 일자 기준
-                    LocalDate yesterday = LocalDate.now().minusDays(1);
+                    LocalDate date = LocalDate.now(); // 오늘 일자 기준
+//                    LocalDate date = LocalDate.now().minusDays(1); //어제 일자 기준
 
                     List<String> keys = coinInfoService.getCoinMarketKeys();
 
-                    Map<String, List<CoinOrderDTO>> coinOrderPartitions  = new HashMap<>();
+                    Map<String, List<CoinOrderSimpleDTO>> coinOrderPartitions = new HashMap<>();
 
                     for (String key : keys) {
                         String[] parts = key.split("-");
                         String coinName = parts[0];  // BTC, ETH..
                         String marketName = parts[1]; // KRW, USDT..
 
-                        List<CoinOrderDTO> coinOrders = coinOrderService.getCoinOrders(coinName, marketName, yesterday);
+                        List<CoinOrderSimpleDTO> chunkedCoinOrders = coinOrderService.getCoinOrderChunksBy1000(coinName, marketName, date);
 
-                        if (!coinOrders.isEmpty()) {
-                            coinOrderPartitions.put(key, coinOrders);
+                        if (!chunkedCoinOrders.isEmpty()) {
+                            coinOrderPartitions.put(key, chunkedCoinOrders);
                         }
                     }
 
                     // 데이터가 없으면 배치 작업을 종료
-                    if(coinOrderPartitions .isEmpty()) {
+                    if (coinOrderPartitions.isEmpty()) {
                         contribution.setExitStatus(ExitStatus.FAILED);
                         return RepeatStatus.FINISHED;
                     }
 
                     // 어제의 일일 종가가 CoinOrderDayHistory에 존재하는지 확인
-                    if (coinOrderService.hasClosingPriceForDate(yesterday)) {
-                        contribution.setExitStatus(ExitStatus.FAILED); // 종가가 존재하면 배치 작업을 종료
+                    if (coinOrderService.hasClosingPriceForDate(date)) {
+                        contribution.setExitStatus(ExitStatus.FAILED);
                         return RepeatStatus.FINISHED;
                     }
 
                     // JobExecutionContext에 공유 데이터 저장
                     chunkContext.getStepContext().getStepExecution()
                             .getJobExecution().getExecutionContext().put("coinOrderPartitions", coinOrderPartitions);
+                    chunkContext.getStepContext().getStepExecution()
+                            .getJobExecution().getExecutionContext().put("yesterday", date);
 
+                    contribution.setExitStatus(ExitStatus.COMPLETED);
                     return RepeatStatus.FINISHED;
                 }, transactionManager)
                 .build();
@@ -171,17 +184,28 @@ public class CoinOrderBatchConfig {
 
             // JobExecutionContext에서 값을 읽어오기
             StepExecution stepExecution = StepSynchronizationManager.getContext().getStepExecution();
-            Long minIdx = stepExecution.getJobExecution().getExecutionContext().getLong("minIdx");
-            Long maxIdx = stepExecution.getJobExecution().getExecutionContext().getLong("maxIdx");
 
-            List<Map<String, Long>> chunkPartitions = coinOrderService.partitionChunks(minIdx, maxIdx, 1000);
+            Map<String, List<CoinOrderSimpleDTO>> coinOrderPartitions =
+                    (Map<String, List<CoinOrderSimpleDTO>>) stepExecution.getJobExecution()
+                            .getExecutionContext()
+                            .get("coinOrderPartitions");
 
-            for (int i = 0; i < chunkPartitions.size(); i++) {
-                ExecutionContext context = new ExecutionContext();
-                context.putLong("minIdx", chunkPartitions.get(i).get("minIdx"));
-                context.putLong("maxIdx", chunkPartitions.get(i).get("maxIdx"));
-                partitions.put("partition" + i, context);
+            LocalDate yesterday = (LocalDate) stepExecution.getJobExecution()
+                    .getExecutionContext()
+                    .get("yesterday");
+
+            AtomicInteger partitionCounter = new AtomicInteger(1);
+
+            for (Map.Entry<String, List<CoinOrderSimpleDTO>> entry : coinOrderPartitions.entrySet()) {
+                for (CoinOrderSimpleDTO coinOrderSimpleDTO : entry.getValue()) {
+                    ExecutionContext context = new ExecutionContext();
+                    context.put("chunkIdx", coinOrderSimpleDTO.getIdx());
+                    context.put("coinName", coinOrderSimpleDTO.getCoinName());
+                    context.put("yesterday", yesterday);
+                    partitions.put("partition" + partitionCounter.getAndIncrement(), context);
+                }
             }
+
             return partitions;
         };
     }
@@ -189,43 +213,57 @@ public class CoinOrderBatchConfig {
     @Bean
     public Step mergeStep(JobRepository jobRepository,
                           RedisService redisService,
-                          PlatformTransactionManager transactionManager) {
+                          CoinInfoService coinInfoService,
+                          MasterCoinOrderDayHistoryRepository masterCoinOrderDayHistoryRepository,
+                          PlatformTransactionManager transactionManager, CoinOrderService coinOrderService) {
         return new StepBuilder("mergeStep", jobRepository).tasklet((contribution, chunkContext) -> {
-            System.out.println("Tasklet step executed");
+            System.out.println("mergeStep");
 
             StepExecution stepExecution = StepSynchronizationManager.getContext().getStepExecution();
-            String yesterday = stepExecution.getJobExecution().getExecutionContext().getString("yesterday");
 
-            // RedisService를 사용한 리팩토링된 코드
-            Set<String> keys = redisService.getKeys(yesterday + ":partition:*");
-            BigDecimal totalPrice = BigDecimal.ZERO;
-            BigDecimal totalVolume = BigDecimal.ZERO;
+            LocalDate yesterday = (LocalDate) stepExecution.getJobExecution()
+                    .getExecutionContext()
+                    .get("yesterday");
+
+            List<String> keys = coinInfoService.getCoinMarketKeys();
 
             for (String key : keys) {
-                BigDecimal price = new BigDecimal(redisService.getHashOps(key, "totalPrice"));
-                BigDecimal volume = new BigDecimal(redisService.getHashOps(key, "totalVolume"));
+                String[] parts = key.split("-");
+                String coinName = parts[0];  // BTC, ETH..
 
-                totalPrice = totalPrice.add(price);
-                totalVolume = totalVolume.add(volume);
+                Set<String> redisKeys = redisService.getKeys(yesterday + ":" + coinName + ":partition:*");
+                BigDecimal totalPrice = BigDecimal.ZERO;
+                BigDecimal totalVolume = BigDecimal.ZERO;
+
+                for (String redisKey : redisKeys) {
+                    BigDecimal price = new BigDecimal(redisService.getHashOps(redisKey, "totalPrice"));
+                    BigDecimal volume = new BigDecimal(redisService.getHashOps(redisKey, "totalVolume"));
+                    totalPrice = totalPrice.add(price);
+                    totalVolume = totalVolume.add(volume);
+                }
+
+                // 평균 가격 계산
+                BigDecimal averagePrice = totalPrice.divide(totalVolume, RoundingMode.HALF_UP);
+
+                //마지막 idx를 종가로 설정
+                BigDecimal closingPrice = coinOrderService.getLatestExecutionPriceByDate(key, yesterday);
+
+                //최종 결과를 DB에 저장
+                CoinOrderDayHistoryDTO history = new CoinOrderDayHistoryDTO();
+                history.setMarketName("KRW");
+                history.setCoinName(coinName);
+                history.setAveragePrice(averagePrice);
+                history.setTradingVolume(totalVolume);
+                history.setClosingPrice(closingPrice);
+                history.setTradingDate(yesterday);
+
+                // DB 저장
+                masterCoinOrderDayHistoryRepository.save(CoinOrderDayHistoryMapper.toEntity(history));
+
             }
 
-            // 평균 가격 계산
-            BigDecimal averagePrice = totalPrice.divide(totalVolume, RoundingMode.HALF_UP);
+            //redis 삭제필요
 
-            // 마지막 idx가 종가로 설정
-//            BigDecimal closingPrice = // 마지막 처리된 CoinOrder의 executionPrice 가져오기 로직;
-
-            // 최종 결과를 DB에 저장
-//            CoinOrderDayHistory history = new CoinOrderDayHistory();
-//            history.setMarketName("KRW");
-//            history.setCoinName("BTC");
-//            history.setAveragePrice(averagePrice);
-//            history.setTradingVolume(totalVolume);
-//            history.setClosingPrice(closingPrice);
-//            history.setTradingDate(LocalDate.now());
-//
-//            // DB 저장
-//            coinOrderDayHistoryRepository.save(history);
             return RepeatStatus.FINISHED;
         }, transactionManager).build();
     }

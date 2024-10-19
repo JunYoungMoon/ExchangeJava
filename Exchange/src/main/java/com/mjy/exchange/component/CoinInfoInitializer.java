@@ -18,10 +18,14 @@ public class CoinInfoInitializer implements SmartInitializingSingleton {
 
     private final SlaveCoinInfoRepository slaveCoinInfoRepository;
     private final RedisService redisService;
+    private final ObjectMapper objectMapper;
 
-    public CoinInfoInitializer(SlaveCoinInfoRepository slaveCoinInfoRepository, RedisService redisService) {
+    public CoinInfoInitializer(SlaveCoinInfoRepository slaveCoinInfoRepository,
+                               RedisService redisService,
+                               ObjectMapper objectMapper) {
         this.slaveCoinInfoRepository = slaveCoinInfoRepository;
         this.redisService = redisService;
+        this.objectMapper = objectMapper;
     }
 
     //모든 빈이 초기화된 후 실행 CoinInfoInitializer 실행
@@ -46,7 +50,7 @@ public class CoinInfoInitializer implements SmartInitializingSingleton {
             String key = entry.getKey(); // MAJOR 또는 MINOR
             String jsonValue = null; // JSON 문자열로 변환
             try {
-                jsonValue = new ObjectMapper().writeValueAsString(entry.getValue());
+                jsonValue = objectMapper.writeValueAsString(entry.getValue());
             } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);
             }

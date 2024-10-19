@@ -9,7 +9,7 @@ import java.time.LocalDate;
 
 @Setter
 @Getter
-public class CoinOrderDayHistory {
+public class CoinOrderDayHistoryDTO {
     private Long idx;
     private String marketName; // 예: KRW
     private String coinName; // 예: BTC
