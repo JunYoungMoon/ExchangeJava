@@ -48,6 +48,8 @@ spring:
 
   data:
     redis:
+#      repositories:
+#        enabled: false
       host: localhost
       port: 6379
 

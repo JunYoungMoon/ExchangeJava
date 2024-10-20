@@ -22,7 +22,7 @@ public class BatchScheduler {
         this.coinOrderJob = orderJob;
     }
 
-    @Scheduled(fixedRate = 600000) // 10분 = 600000밀리초
+    @Scheduled(fixedRate = 86400000) // 1일 단위
     public void runOrderJob() {
         try {
             jobLauncher.run(coinOrderJob, new JobParametersBuilder()

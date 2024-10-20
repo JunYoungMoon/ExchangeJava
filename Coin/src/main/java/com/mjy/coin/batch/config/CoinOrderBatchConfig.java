@@ -130,12 +130,11 @@ public class CoinOrderBatchConfig {
     public Step checkDataStep(JobRepository jobRepository,
                               PlatformTransactionManager transactionManager,
                               CoinOrderService coinOrderService,
-                              CoinInfoService coinInfoService,
-                              ObjectMapper objectMapper) {
+                              CoinInfoService coinInfoService) {
         return new StepBuilder("checkDataStep", jobRepository)
                 .tasklet((contribution, chunkContext) -> {
-                    LocalDate date = LocalDate.now(); // 오늘 일자 기준
-//                    LocalDate date = LocalDate.now().minusDays(1); //어제 일자 기준
+//                    LocalDate date = LocalDate.now(); // 오늘 일자 기준
+                    LocalDate date = LocalDate.now().minusDays(1); //어제 일자 기준
 
                     List<String> keys = coinInfoService.getCoinMarketKeys();
 
@@ -178,7 +177,7 @@ public class CoinOrderBatchConfig {
     }
 
     @Bean(name = "CoinOrderPartitioner")
-    public Partitioner partitioner(CoinOrderService coinOrderService) {
+    public Partitioner partitioner() {
         return gridSize -> {
             Map<String, ExecutionContext> partitions = new HashMap<>();
 
@@ -246,7 +245,7 @@ public class CoinOrderBatchConfig {
                 BigDecimal averagePrice = totalPrice.divide(totalVolume, RoundingMode.HALF_UP);
 
                 //마지막 idx를 종가로 설정
-                BigDecimal closingPrice = coinOrderService.getLatestExecutionPriceByDate(key, yesterday);
+                BigDecimal closingPrice = coinOrderService.getLatestExecutionPriceByDate(coinName, yesterday);
 
                 //최종 결과를 DB에 저장
                 CoinOrderDayHistoryDTO history = new CoinOrderDayHistoryDTO();
@@ -259,10 +258,7 @@ public class CoinOrderBatchConfig {
 
                 // DB 저장
                 masterCoinOrderDayHistoryRepository.save(CoinOrderDayHistoryMapper.toEntity(history));
-
             }
-
-            //redis 삭제필요
 
             return RepeatStatus.FINISHED;
         }, transactionManager).build();

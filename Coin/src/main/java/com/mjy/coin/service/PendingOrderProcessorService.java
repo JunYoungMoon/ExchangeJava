@@ -39,7 +39,7 @@ public class PendingOrderProcessorService {
             String uuid = UUID.randomUUID() + "_" + order.getMemberId();
 
             // Redis에서 해당 orderId가 존재하는지 확인
-            String existingOrder = redisService.getHashOps(key, uuid);
+            String existingOrder = redisService.getHashOps("PENDING:ORDER:" + key, uuid);
 
             // 주문이 존재하지 않을 경우에만 저장
             if (existingOrder.isEmpty()) {

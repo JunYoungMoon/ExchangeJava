@@ -60,6 +60,13 @@ public class RedisService {
         values.putAll(key, data);
     }
 
+    public void incrementHashValue(String key, String hashKey, Double incrementBy, Duration ttlDuration) {
+        HashOperations<String, Object, Double> values = redisTemplate.opsForHash();
+        values.increment(key, hashKey, incrementBy);
+
+        redisTemplate.expire(key, ttlDuration);
+    }
+
     public String getHashOps(String key, String hashKey) {
         HashOperations<String, Object, Object> values = redisTemplate.opsForHash();
         return Boolean.TRUE.equals(values.hasKey(key, hashKey)) ? (String) redisTemplate.opsForHash().get(key, hashKey) : "";
@@ -70,7 +77,7 @@ public class RedisService {
         Map<Object, Object> entries = values.entries(key);
 
         Map<String, String> result = new HashMap<>();
-        for (Map.Entry<Object, Object> entry: entries.entrySet()){
+        for (Map.Entry<Object, Object> entry : entries.entrySet()) {
             result.put((String) entry.getKey(), (String) entry.getValue());
         }
 
@@ -94,7 +101,8 @@ public class RedisService {
 
     public Map<String, String> convertStringToMap(String json) {
         try {
-            return objectMapper.readValue(json, new TypeReference<>() {});
+            return objectMapper.readValue(json, new TypeReference<>() {
+            });
         } catch (Exception e) {
             System.err.println("Failed to convert string to map: " + e.getMessage());
             return null;
@@ -120,7 +128,7 @@ public class RedisService {
     public void updateOrderInRedis(CoinOrderDTO order) {
         try {
             // 1. Redis에서 기존 데이터 가져오기
-            String orderData = getHashOps(order.getCoinName() + "-" + order.getMarketName(), order.getUuid());
+            String orderData = getHashOps("PENDING:ORDER:" + order.getCoinName() + "-" + order.getMarketName(), order.getUuid());
 
             // 2. String 데이터를 Map으로 변환
             Map<String, String> orderDataMap = convertStringToMap(orderData);
@@ -136,7 +144,7 @@ public class RedisService {
             String updatedOrderData = convertMapToString(orderDataMap);
 
             // 5. 수정된 데이터를 Redis에 다시 저장 (Hash 구조 사용)
-            setHashOps(order.getCoinName() + "-" + order.getMarketName(), Map.of(order.getUuid(), updatedOrderData));
+            setHashOps("PENDING:ORDER:" + order.getCoinName() + "-" + order.getMarketName(), Map.of(order.getUuid(), updatedOrderData));
 
         } catch (Exception e) {
             System.err.println("Failed to update order in Redis: " + e.getMessage());
@@ -176,7 +184,7 @@ public class RedisService {
             String jsonOrderData = convertMapToString(orderDataMap);
 
             // Redis에 주문 데이터 저장 (Hash 구조 사용)
-            setHashOps(order.getCoinName() + "-" + order.getMarketName(), Map.of(order.getUuid(), jsonOrderData));
+            setHashOps("PENDING:ORDER:" + order.getCoinName() + "-" + order.getMarketName(), Map.of(order.getUuid(), jsonOrderData));
 
         } catch (Exception e) {
             System.err.println("Failed to insert order in Redis: " + e.getMessage());

@@ -28,7 +28,7 @@ public class CoinInfoInitializer {
     }
 
     @PostConstruct
-    public void init() throws JsonProcessingException {
+    public void init() {
         List<String> keys = coinInfoService.getCoinMarketKeys();
 
         // 매수/매도 주문을 저장할 맵
@@ -47,7 +47,7 @@ public class CoinInfoInitializer {
             ));
 
             // Redis에서 해당 코인-마켓 조합의 모든 데이터를 조회
-            Map<String, String> redisOrders = redisService.getAllHashOps(key);
+            Map<String, String> redisOrders = redisService.getAllHashOps("PENDING:ORDER:" + key);
 
             // Redis에서 가져온 데이터를 CoinOrderDTO로 변환 후 처리
             for (String orderData : redisOrders.values()) {

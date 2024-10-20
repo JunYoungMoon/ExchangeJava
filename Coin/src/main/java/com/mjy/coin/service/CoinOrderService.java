@@ -39,11 +39,11 @@ public class CoinOrderService {
 
     public BigDecimal getLatestExecutionPriceByDate(String coinName, LocalDate matchedDate){
         String sql = """
-                SELECT executionprice
+                SELECT executionPrice
                 FROM CoinOrder
-                WHERE coinname = ?
-                  AND date(matchedat) = ?
-                ORDER BY matchedat DESC
+                WHERE coinName = ?
+                  AND date(matchedAt) = ?
+                ORDER BY matchedAt DESC
                 LIMIT 1
                 """;
 

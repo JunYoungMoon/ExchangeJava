@@ -18,14 +18,11 @@ public class CoinInfoInitializer implements SmartInitializingSingleton {
 
     private final SlaveCoinInfoRepository slaveCoinInfoRepository;
     private final RedisService redisService;
-    private final ObjectMapper objectMapper;
 
     public CoinInfoInitializer(SlaveCoinInfoRepository slaveCoinInfoRepository,
-                               RedisService redisService,
-                               ObjectMapper objectMapper) {
+                               RedisService redisService) {
         this.slaveCoinInfoRepository = slaveCoinInfoRepository;
         this.redisService = redisService;
-        this.objectMapper = objectMapper;
     }
 
     //모든 빈이 초기화된 후 실행 CoinInfoInitializer 실행
@@ -35,27 +32,16 @@ public class CoinInfoInitializer implements SmartInitializingSingleton {
         //코인 정보 redis 저장
         List<CoinInfo> coinInfoList = slaveCoinInfoRepository.findAll();
 
-        // coinType에 따라 분리하여 저장할 맵
-        Map<String, List<CoinInfo>> groupedCoinInfo = new HashMap<>();
-
-        // 코인 정보를 coinType에 따라 그룹화
+        // 코인 정보를 MAJOR:BTC-KRW 와 같이 해시 테이블 생성
         for (CoinInfo coinInfo : coinInfoList) {
-            String coinType = coinInfo.getCoinType().name(); // MAJOR 또는 MINOR
-            groupedCoinInfo.putIfAbsent(coinType, new ArrayList<>()); // 키가 없으면 새 리스트 생성
-            groupedCoinInfo.get(coinType).add(coinInfo); // 해당 coinType 리스트에 추가
-        }
+            Map<String, String> coinInfoMap = new HashMap<>();
 
-        // Redis에 저장
-        for (Map.Entry<String, List<CoinInfo>> entry : groupedCoinInfo.entrySet()) {
-            String key = entry.getKey(); // MAJOR 또는 MINOR
-            String jsonValue = null; // JSON 문자열로 변환
-            try {
-                jsonValue = objectMapper.writeValueAsString(entry.getValue());
-            } catch (JsonProcessingException e) {
-                throw new RuntimeException(e);
-            }
-            redisService.setValues(key, jsonValue); // Redis에 저장
-            System.out.println(key + " list saved to Redis: " + jsonValue);
+            coinInfoMap.put("coinName", String.valueOf(coinInfo.getCoinName()));
+            coinInfoMap.put("coinType", String.valueOf(coinInfo.getCoinType()));
+            coinInfoMap.put("marketName", String.valueOf(coinInfo.getMarketName()));
+            coinInfoMap.put("feeRate", String.valueOf(coinInfo.getFeeRate()));
+
+            redisService.setHashOps(coinInfo.getCoinType() + ":COIN:" + coinInfo.getCoinName() + "-" + coinInfo.getMarketName(), coinInfoMap);
         }
     }
 }

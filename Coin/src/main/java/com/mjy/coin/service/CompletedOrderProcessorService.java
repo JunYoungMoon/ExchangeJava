@@ -42,7 +42,7 @@ public class CompletedOrderProcessorService {
         // MySQL에 동기로 저장
         masterCoinOrderRepository.save(CoinOrderMapper.toEntity(order));
 
-        // Redis에서 UUID 삭제
-        redisService.deleteHashOps(order.getCoinName() + "-" + order.getMarketName(), order.getUuid());
+        // Redis에서 PENDING ORDER 삭제
+        redisService.deleteHashOps("PENDING:ORDER:" + order.getCoinName() + "-" + order.getMarketName(), order.getUuid());
     }
 }
