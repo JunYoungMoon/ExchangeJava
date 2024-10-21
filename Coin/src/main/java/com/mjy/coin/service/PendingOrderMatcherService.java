@@ -5,6 +5,7 @@ import com.mjy.coin.enums.OrderStatus;
 import com.mjy.coin.repository.coin.master.MasterCoinOrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -19,14 +20,19 @@ public class PendingOrderMatcherService {
     private final OrderBookService orderBookService;
     private final RedisService redisService;
     private final KafkaTemplate<String, CoinOrderDTO> kafkaTemplate;
-
+    private final SimpMessagingTemplate messagingTemplate;
 
     @Autowired
-    public PendingOrderMatcherService(MasterCoinOrderRepository masterCoinOrderRepository, OrderBookService orderBookService, RedisService redisService, KafkaTemplate<String, CoinOrderDTO> kafkaTemplate) {
+    public PendingOrderMatcherService(MasterCoinOrderRepository masterCoinOrderRepository,
+                                      OrderBookService orderBookService,
+                                      RedisService redisService,
+                                      KafkaTemplate<String, CoinOrderDTO> kafkaTemplate,
+                                      SimpMessagingTemplate messagingTemplate) {
         this.masterCoinOrderRepository = masterCoinOrderRepository;
         this.orderBookService = orderBookService;
         this.redisService = redisService;
         this.kafkaTemplate = kafkaTemplate;
+        this.messagingTemplate = messagingTemplate;
     }
 
     private Map<String, PriorityQueue<CoinOrderDTO>> buyOrderQueues = new HashMap<>();
