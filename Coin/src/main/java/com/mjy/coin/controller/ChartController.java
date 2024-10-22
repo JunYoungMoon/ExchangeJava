@@ -1,4 +1,4 @@
-package com.mjy.coin.api;
+package com.mjy.coin.controller;
 
 import com.mjy.coin.dto.ApiResponse;
 import com.mjy.coin.dto.ChartDataRequest;

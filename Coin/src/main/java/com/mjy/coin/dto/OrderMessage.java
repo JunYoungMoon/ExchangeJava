@@ -6,5 +6,6 @@ import lombok.Setter;
 @Setter
 @Getter
 public class OrderMessage {
-    String msg;
+    private int price;
+    private int quantity;
 }

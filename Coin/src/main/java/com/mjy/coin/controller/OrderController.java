@@ -1,4 +1,4 @@
-package com.mjy.coin.api;
+package com.mjy.coin.controller;
 
 import com.mjy.coin.dto.ChartMessage;
 import com.mjy.coin.dto.OrderMessage;
@@ -20,12 +20,9 @@ public class OrderController {
 
     @MessageMapping("/coin/BTC-KRW/order")
     @SendTo("/topic/coin/BTC-KRW/order")
-    public String sendOrder() {
-
-//        messagingTemplate.convertAndSend("/coin/" + key + "/order", priceMessage);
-
-        // 주문 메시지를 구독한 클라이언트에게 전송
-        return "Order message received for symbol: BTC-KRW";
+    public OrderMessage sendOrder(OrderMessage orderMessage) {
+        // 실제로 전송할 메시지를 반환
+        return orderMessage;
     }
 
     @MessageMapping("/coin/{symbol}/price")
