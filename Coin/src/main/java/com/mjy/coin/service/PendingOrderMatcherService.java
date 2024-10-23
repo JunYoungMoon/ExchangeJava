@@ -130,6 +130,8 @@ public class PendingOrderMatcherService {
                         // 체결 되었으니 호가 리스트 제거
                         orderBookService.updateOrderBook(key, buyOrder, true, false);
                         orderBookService.updateOrderBook(key, sellOrder, false, false);
+
+                        messagingTemplate.convertAndSend("/topic/coin/" + key + "/order", buyOrder);
                     } else if (remainingQuantity.compareTo(BigDecimal.ZERO) > 0) {
                         // 매도량 보다 매수량이 높은경우
                         // 매도는 모두 체결되고 매수는 일부 남음

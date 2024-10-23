@@ -81,9 +81,3 @@ management:
     web:
       exposure:
         include: health, info, metrics, prometheus
-
-logging:
-  level:
-    org.springframework.web.socket: DEBUG
-    org.springframework.messaging.simp: DEBUG
-    org.springframework.web.socket.sockjs: DEBUG

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket STOMP Chat</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <style>
+        #chatPage { display: none; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+<div id="chatPage" class="hidden">
+    <h2>채팅 페이지</h2>
+    <div id="messages"></div>
+    <div id="log"></div> <!-- 로그 메시지를 표시할 DIV -->
+</div>
+
+<script>
+    let stompClient = null;
+    const chatPage = document.querySelector('#chatPage'); // 채팅 페이지
+
+    // 페이지가 로드될 때 연결 시도
+    window.onload = () => {
+        connect();
+    };
+
+    function connect() {
+        const socket = new WebSocket('ws://172.29.92.233:8081/ws'); // WebSocket 연결
+        stompClient = Stomp.over(socket);
+
+        // STOMP 서버에 연결
+        stompClient.connect({}, onConnected, onError);
+    }
+
+    // 연결 성공 시 호출되는 함수
+    function onConnected() {
+        chatPage.classList.remove('hidden'); // 채팅 페이지 표시
+
+        // 주제 구독
+        stompClient.subscribe('/topic/coin/BTC-KRW/order', function (message) {
+
+            debugger;
+            const response = JSON.parse(message.body);
+            displayMessage(response.message); // 메시지 표시
+        });
+
+        logMessage('WebSocket에 연결되었습니다.'); // 연결 성공 로그
+    }
+
+    // 연결 실패 시 호출되는 함수
+    function onError(error) {
+        console.error('WebSocket 연결 오류: ', error);
+        logMessage('WebSocket 연결 오류: ' + error); // 오류 로그
+    }
+
+    // 메시지를 화면에 표시하는 함수
+    function displayMessage(message) {
+        const messageElement = document.createElement('div');
+        messageElement.textContent = message;
+        document.querySelector('#messages').appendChild(messageElement);
+    }
+
+    // 로그 메시지를 화면에 표시하는 함수
+    function logMessage(log) {
+        const logElement = document.createElement('div');
+        logElement.textContent = log;
+        document.querySelector('#log').appendChild(logElement);
+    }
+</script>
+</body>
+</html>

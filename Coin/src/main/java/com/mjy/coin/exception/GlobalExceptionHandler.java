@@ -3,6 +3,7 @@ package com.mjy.coin.exception;
 import com.mjy.coin.dto.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.validation.BindingResult;
@@ -31,7 +32,9 @@ public class GlobalExceptionHandler {
                 .msg(firstError != null ? firstError.getDefaultMessage() : "Validation failed")
                 .build();
 
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .contentType(MediaType.APPLICATION_JSON)  // Content-Type 설정
+                .body(response);
     }
 
     @ExceptionHandler(Exception.class)
@@ -41,7 +44,9 @@ public class GlobalExceptionHandler {
                 .msg(ex.getMessage())
                 .build();
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .contentType(MediaType.APPLICATION_JSON)  // Content-Type 설정
+                .body(response);
     }
 
     private Map<String, String> getFieldErrorMessages(List<FieldError> fieldErrors) {
