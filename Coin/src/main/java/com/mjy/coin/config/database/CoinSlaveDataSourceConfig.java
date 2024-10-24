@@ -8,6 +8,7 @@ import org.springframework.boot.orm.jpa.EntityManagerFactoryBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -45,5 +46,10 @@ public class CoinSlaveDataSourceConfig {
     public PlatformTransactionManager transactionManager(
             @Qualifier("coinSlaveEntityManagerFactory") EntityManagerFactory entityManagerFactory) {
         return new JpaTransactionManager(entityManagerFactory);
+    }
+
+    @Bean
+    public JdbcTemplate jdbcTemplate(@Qualifier("coinSlaveDataSource") DataSource dataSource) {
+        return new JdbcTemplate(dataSource);
     }
 }

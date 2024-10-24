@@ -98,6 +98,20 @@ public class OrderBookService {
         }
     }
 
+    public Map<String, Map<BigDecimal, BigDecimal>> getTopNOrders(String key, int n) {
+        Map<String, Map<BigDecimal, BigDecimal>> topOrders = new HashMap<>();
+
+        // 매수 주문
+        Map<BigDecimal, BigDecimal> topBuyOrders = getTopNBuyOrders(key, n);
+        // 매도 주문
+        Map<BigDecimal, BigDecimal> topSellOrders = getTopNSellOrders(key, n);
+
+        topOrders.put("buy", topBuyOrders);  // 매수 주문을 "buy" 키로 저장
+        topOrders.put("sell", topSellOrders);  // 매도 주문을 "sell" 키로 저장
+
+        return topOrders;  // 매수/매도 주문을 담은 Map 반환
+    }
+
     public void printOrderBook(String key) {
         Map<BigDecimal, BigDecimal> topBuyOrders = getTopNBuyOrders(key, 10);
         Map<BigDecimal, BigDecimal> topSellOrders = getTopNSellOrders(key, 10);

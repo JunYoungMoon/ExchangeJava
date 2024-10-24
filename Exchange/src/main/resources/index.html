@@ -40,8 +40,6 @@
 
         // 주제 구독
         stompClient.subscribe('/topic/coin/BTC-KRW/order', function (message) {
-
-            debugger;
             const response = JSON.parse(message.body);
             displayMessage(response.message); // 메시지 표시
         });
