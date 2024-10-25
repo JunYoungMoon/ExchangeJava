@@ -53,28 +53,30 @@ spring:
       host: localhost
       port: 6379
 
-  kafka:
-    bootstrap-servers: localhost:9092
-    consumer:
-      group-id: coinOrderGroup
-      auto-offset-reset: earliest
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-      properties:
-        allow.auto.create.topics: false
-        spring:
-          json:
-            trusted.packages: "*"
-            type.mapping: "coinOrder:com.mjy.coin.dto.CoinOrderDTO"
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-      properties:
-        allow.auto.create.topics: false
-        spring:
-          json:
-            trusted.packages: "*"
-            type.mapping: "coinOrder:com.mjy.coin.dto.CoinOrderDTO"
+#  kafka:
+#    bootstrap-servers: localhost:9092
+#    consumer:
+#      group-id: coinOrderGroup
+#      auto-offset-reset: earliest
+#      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+#      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+#      properties:
+#        allow.auto.create.topics: false
+#        spring:
+#          json:
+#            trusted.packages: "*"
+#            type.mapping: "coinOrder:com.mjy.coin.dto.CoinOrderDTO"
+
+#    producer:
+#      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+#      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+#      properties:
+#        allow.auto.create.topics: false
+#        spring:
+#          json:
+#            trusted.packages: "*"
+##            type.mapping: "coinOrder:com.mjy.coin.dto.CoinOrderDTO"
+#            type.mapping: "coinOrderList:java.util.ArrayList<com.mjy.coin.dto.CoinOrderDTO>"
 
 management:
   endpoints:

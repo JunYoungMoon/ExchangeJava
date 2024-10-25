@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
 public class CompletedOrderListener {
 
@@ -16,8 +18,9 @@ public class CompletedOrderListener {
         this.completedOrderProcessorService = completedOrderProcessorService;
     }
 
-    @KafkaListener(topics = "Order-Completed", groupId = "coinOrderGroup", concurrency = "4")
-    public void listen(CoinOrderDTO order) {
-        completedOrderProcessorService.completedProcessorOrder(order);
+    @KafkaListener(topics = "Order-Completed", groupId = "coinOrderGroup", concurrency = "4"/*, containerFactory = "coinOrderListKafkaListenerContainerFactory"*/)
+    public void listen(List<CoinOrderDTO> order) {
+        System.out.println(order);
+//        completedOrderProcessorService.completedProcessorOrder(order);
     }
 }

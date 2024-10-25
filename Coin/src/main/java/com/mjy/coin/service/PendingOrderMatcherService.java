@@ -1,9 +1,11 @@
 package com.mjy.coin.service;
 
 import com.mjy.coin.dto.CoinOrderDTO;
+import com.mjy.coin.dto.PriceVolumeDTO;
 import com.mjy.coin.enums.OrderStatus;
 import com.mjy.coin.repository.coin.master.MasterCoinOrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
@@ -16,22 +18,27 @@ import java.util.*;
 @Component
 public class PendingOrderMatcherService {
 
+    private static final List<PriceVolumeDTO> priceVolumeList = new ArrayList<>();
+    private static final PriceVolumeDTO priceVolumeDTO = new PriceVolumeDTO();
+    private static final List<CoinOrderDTO> coinOrderList = new ArrayList<>();
+
     private final MasterCoinOrderRepository masterCoinOrderRepository;
     private final OrderBookService orderBookService;
     private final RedisService redisService;
-    private final KafkaTemplate<String, CoinOrderDTO> kafkaTemplate;
+//    private final KafkaTemplate<String, List<CoinOrderDTO>> kafkaTemplate;
     private final SimpMessagingTemplate messagingTemplate;
 
     @Autowired
     public PendingOrderMatcherService(MasterCoinOrderRepository masterCoinOrderRepository,
                                       OrderBookService orderBookService,
                                       RedisService redisService,
-                                      KafkaTemplate<String, CoinOrderDTO> kafkaTemplate,
+//                                      KafkaTemplate<String, List<CoinOrderDTO>> kafkaTemplate,
+//                                      @Qualifier("listCoinOrderKafkaTemplate") KafkaTemplate<String, List<CoinOrderDTO>> kafkaTemplate,
                                       SimpMessagingTemplate messagingTemplate) {
         this.masterCoinOrderRepository = masterCoinOrderRepository;
         this.orderBookService = orderBookService;
         this.redisService = redisService;
-        this.kafkaTemplate = kafkaTemplate;
+//        this.kafkaTemplate = kafkaTemplate;
         this.messagingTemplate = messagingTemplate;
     }
 
@@ -73,11 +80,15 @@ public class PendingOrderMatcherService {
     }
 
     // 체결 로직
-    public void matchOrders(String key) {
+    public synchronized void matchOrders(String key) {
         PriorityQueue<CoinOrderDTO> buyOrders = buyOrderQueues.get(key);
         PriorityQueue<CoinOrderDTO> sellOrders = sellOrderQueues.get(key);
 
         if (buyOrders != null && sellOrders != null) {
+
+            priceVolumeList.clear();
+            coinOrderList.clear();
+
             while (!buyOrders.isEmpty() && !sellOrders.isEmpty()) {
                 CoinOrderDTO buyOrder = buyOrders.peek();
                 CoinOrderDTO sellOrder = sellOrders.peek();
@@ -120,8 +131,10 @@ public class PendingOrderMatcherService {
                         redisService.updateOrderInRedis(sellOrder);
                         //////////////////////////////////끝////////////////////////////////////
 
-                        kafkaTemplate.send("Order-Completed", buyOrder);
-                        kafkaTemplate.send("Order-Completed", sellOrder);
+                        coinOrderList.add(buyOrder);
+                        coinOrderList.add(sellOrder);
+//                        kafkaTemplate.send("Order-Completed", buyOrder);
+//                        kafkaTemplate.send("Order-Completed", sellOrder);
 
                         // 큐에서 양쪽 주문 제거
                         buyOrders.poll();
@@ -131,7 +144,13 @@ public class PendingOrderMatcherService {
                         orderBookService.updateOrderBook(key, buyOrder, true, false);
                         orderBookService.updateOrderBook(key, sellOrder, false, false);
 
-                        messagingTemplate.convertAndSend("/topic/coin/" + key + "/order", buyOrder);
+//                        messagingTemplate.convertAndSend("/topic/coin/" + key + "/order", buyOrder);
+
+                        //체결 완료 된 데이터를 쌓아서 kafka로 전달할 list
+                        priceVolumeDTO.setPrice(buyOrder.getExecutionPrice());
+                        priceVolumeDTO.setVolume(buyOrder.getCoinAmount());
+                        priceVolumeList.add(priceVolumeDTO);
+
                     } else if (remainingQuantity.compareTo(BigDecimal.ZERO) > 0) {
                         // 매도량 보다 매수량이 높은경우
                         // 매도는 모두 체결되고 매수는 일부 남음
@@ -141,7 +160,12 @@ public class PendingOrderMatcherService {
                         sellOrder.setOrderStatus(OrderStatus.COMPLETED);
                         sellOrder.setMatchedAt(LocalDateTime.now());
                         sellOrder.setMatchIdx(buyOrder.getIdx() + "|" + sellOrder.getIdx());
-                        sellOrder.setExecutionPrice(buyOrder.getOrderPrice());   //실제 체결 되는 가격은 매수자의 가격으로 체결
+                        sellOrder.setExecutionPrice(sellOrder.getOrderPrice());   //실제 체결 되는 가격은 매도자의 가격으로 체결
+
+                        //체결 완료 된 데이터를 쌓아서 kafka로 전달할 list
+                        priceVolumeDTO.setPrice(sellOrder.getExecutionPrice());
+                        priceVolumeDTO.setVolume(sellOrder.getCoinAmount());
+                        priceVolumeList.add(priceVolumeDTO);
 
 //                        masterCoinOrderRepository.save(CoinOrderMapper.toEntity(sellOrder));
 
@@ -182,8 +206,10 @@ public class PendingOrderMatcherService {
                         redisService.insertOrderInRedis(buyOrder);
                         //////////////////////////////////끝////////////////////////////////////
 
-                        kafkaTemplate.send("Order-Completed", buyOrder);
-                        kafkaTemplate.send("Order-Completed", sellOrder);
+                        coinOrderList.add(buyOrder);
+                        coinOrderList.add(sellOrder);
+//                        kafkaTemplate.send("Order-Completed", buyOrder);
+//                        kafkaTemplate.send("Order-Completed", sellOrder);
 
                         // 이미 미체결을 넣어줬기 때문에 체결 되었으니 호가 리스트 제거(가격만 구분하고 수량 차감은 같이 한다.)
                         orderBookService.updateOrderBook(key, buyOrder, true, false);
@@ -218,6 +244,11 @@ public class PendingOrderMatcherService {
                         buyOrder.setMatchedAt(LocalDateTime.now());
                         buyOrder.setMatchIdx(buyOrder.getIdx() + "|" + sellOrder.getIdx());
                         buyOrder.setExecutionPrice(buyOrder.getOrderPrice());   //실제 체결 되는 가격은 매수자의 가격으로 체결
+
+                        //체결 완료 된 데이터를 쌓아서 kafka로 전달할 list
+                        priceVolumeDTO.setPrice(buyOrder.getExecutionPrice());
+                        priceVolumeDTO.setVolume(buyOrder.getCoinAmount());
+                        priceVolumeList.add(priceVolumeDTO);
 
 //                        masterCoinOrderRepository.save(CoinOrderMapper.toEntity(buyOrder));
 
@@ -258,8 +289,11 @@ public class PendingOrderMatcherService {
                         redisService.insertOrderInRedis(sellOrder);
                         //////////////////////////////////끝////////////////////////////////////
 
-                        kafkaTemplate.send("Order-Completed", buyOrder);
-                        kafkaTemplate.send("Order-Completed", sellOrder);
+
+                        coinOrderList.add(buyOrder);
+                        coinOrderList.add(sellOrder);
+//                        kafkaTemplate.send("Order-Completed", buyOrder);
+//                        kafkaTemplate.send("Order-Completed", sellOrder);
 
                         // 이미 미체결을 넣어줬기 때문에 체결 되었으니 호가 리스트 제거(가격만 구분하고 수량 차감은 같이 한다.)
                         orderBookService.updateOrderBook(key, sellOrder, false, false);
@@ -288,6 +322,15 @@ public class PendingOrderMatcherService {
                     break; // 더 이상 체결할 수 없으면 중단
                 }
             }
+
+            //차트는 체결된 리스트를 소켓으로 반환
+            if(!priceVolumeList.isEmpty()){
+                messagingTemplate.convertAndSend("/topic/coin/" + key + "/chart", priceVolumeList);
+            }
+
+//            if(!coinOrderList.isEmpty()){
+//                kafkaTemplate.send("Order-Completed", coinOrderList);
+//            }
         }
     }
 }

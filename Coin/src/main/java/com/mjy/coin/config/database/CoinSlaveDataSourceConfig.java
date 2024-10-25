@@ -48,8 +48,8 @@ public class CoinSlaveDataSourceConfig {
         return new JpaTransactionManager(entityManagerFactory);
     }
 
-    @Bean
-    public JdbcTemplate jdbcTemplate(@Qualifier("coinSlaveDataSource") DataSource dataSource) {
+    @Bean(name = "slaveJdbcTemplate")
+    public JdbcTemplate slaveJdbcTemplate(@Qualifier("coinSlaveDataSource") DataSource dataSource) {
         return new JdbcTemplate(dataSource);
     }
 }

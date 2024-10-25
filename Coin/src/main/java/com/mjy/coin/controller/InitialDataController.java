@@ -32,7 +32,7 @@ public class InitialDataController {
 
     @GetMapping("/chart")
     public ApiResponse getChartData(@Valid ChartDataRequest chartDataRequest) {
-        List<CandleDTO[]> chartData = chartService.getChartData(chartDataRequest);
+        List<CandleDTO> chartData = chartService.getChartData(chartDataRequest);
 
         return ApiResponse.builder()
                 .status("success")

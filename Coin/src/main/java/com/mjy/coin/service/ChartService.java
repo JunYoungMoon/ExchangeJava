@@ -2,24 +2,23 @@ package com.mjy.coin.service;
 
 import com.mjy.coin.dto.CandleDTO;
 import com.mjy.coin.dto.ChartDataRequest;
-import org.springframework.jdbc.core.JdbcTemplate;
+import com.mjy.coin.repository.coin.slave.SlaveChartRepository;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Service
 public class ChartService {
 
-    private JdbcTemplate jdbcTemplate;
+    private final SlaveChartRepository slaveChartRepository;
 
+    public ChartService(SlaveChartRepository slaveChartRepository){
+        this.slaveChartRepository = slaveChartRepository;
+    }
 
-    public List<CandleDTO[]> getChartData(ChartDataRequest chartDataRequest) {
-
+    public List<CandleDTO> getChartData(ChartDataRequest chartDataRequest) {
         String symbol = chartDataRequest.getSymbol();
-        String[] symbolArray = symbol.split("_");
+        String[] symbolArray = symbol.split("-");
         String coinName = symbolArray[0].toLowerCase();
         String marketName = symbolArray[1].toLowerCase();
 
@@ -29,10 +28,7 @@ public class ChartService {
 
         String minutes = convertToMinutes(resolution);
 
-        String fromDate = convertTimestampToDate(fromTimestamp);
-        String toDate = convertTimestampToDate(toTimestamp);
-
-        return null;
+        return slaveChartRepository.getChartData(coinName, marketName, fromTimestamp, toTimestamp, minutes);
     }
 
     private String convertToMinutes(String resolution) {
@@ -46,12 +42,5 @@ public class ChartService {
             case "m", "1m" -> "43200"; // 1개월
             default -> throw new IllegalArgumentException("Invalid interval: " + resolution);
         };
-    }
-
-    // 타임스탬프를 날짜로 변환하는 함수
-    private String convertTimestampToDate(long timestamp) {
-        return Instant.ofEpochSecond(timestamp)
-                .atZone(ZoneId.systemDefault())
-                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
     }
 }

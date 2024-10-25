@@ -44,6 +44,11 @@
             displayMessage(response.message); // 메시지 표시
         });
 
+        stompClient.subscribe('/topic/coin/BTC-KRW/chart', function (message) {
+            const response = JSON.parse(message.body);
+            displayMessage(response.message); // 메시지 표시
+        });
+
         logMessage('WebSocket에 연결되었습니다.'); // 연결 성공 로그
     }
 

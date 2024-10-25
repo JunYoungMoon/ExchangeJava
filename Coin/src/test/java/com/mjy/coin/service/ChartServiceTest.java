@@ -1,16 +1,11 @@
 package com.mjy.coin.service;
 
-import com.mjy.coin.dto.CandleDTO;
-import com.mjy.coin.dto.ChartDataRequest;
 import com.mjy.coin.repository.coin.slave.SlaveChartRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
 
 class ChartServiceTest {
 

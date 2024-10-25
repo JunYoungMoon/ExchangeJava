@@ -6,6 +6,7 @@ import com.mjy.coin.service.CoinInfoService;
 import com.mjy.coin.service.PendingOrderProcessorService;
 import jakarta.annotation.PostConstruct;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.kafka.config.KafkaListenerContainerFactory;
 import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
@@ -25,14 +26,18 @@ public class PendingOrderListenerCreator {
 
     private final CoinInfoService coinInfoService;
     private final KafkaListenerEndpointRegistry kafkaListenerEndpointRegistry;
-    private final KafkaListenerContainerFactory<?> kafkaListenerContainerFactory;
+    private final KafkaListenerContainerFactory<?> coinOrderKafkaListenerContainerFactory;
     private final PendingOrderProcessorService pendingOrderProcessorService;
 
-    public PendingOrderListenerCreator(PendingOrderProcessorService pendingOrderProcessorService, CoinInfoService coinInfoService, KafkaListenerEndpointRegistry kafkaListenerEndpointRegistry, KafkaListenerContainerFactory<?> kafkaListenerContainerFactory) {
+    public PendingOrderListenerCreator(
+            PendingOrderProcessorService pendingOrderProcessorService,
+            CoinInfoService coinInfoService,
+            KafkaListenerEndpointRegistry kafkaListenerEndpointRegistry,
+            @Qualifier("coinOrderKafkaListenerContainerFactory") KafkaListenerContainerFactory<?> coinOrderKafkaListenerContainerFactory) {
         this.pendingOrderProcessorService = pendingOrderProcessorService;
         this.coinInfoService = coinInfoService;
-        this.kafkaListenerContainerFactory = kafkaListenerContainerFactory;
         this.kafkaListenerEndpointRegistry = kafkaListenerEndpointRegistry;
+        this.coinOrderKafkaListenerContainerFactory = coinOrderKafkaListenerContainerFactory;
     }
 
     @PostConstruct
@@ -71,7 +76,7 @@ public class PendingOrderListenerCreator {
     public void createAndRegisterListener(String topic) {
         if (kafkaListenerEndpointRegistry.getListenerContainers().stream().noneMatch(container -> container.getListenerId().equals(topic))) {
             MethodKafkaListenerEndpoint<String, CoinOrderDTO> listener = createKafkaListenerEndpoint(topic);
-            kafkaListenerEndpointRegistry.registerListenerContainer(listener, kafkaListenerContainerFactory, true);
+            kafkaListenerEndpointRegistry.registerListenerContainer(listener, coinOrderKafkaListenerContainerFactory, true);
         } else {
             System.out.println("Listener for topic " + topic + " already exists.");
         }
