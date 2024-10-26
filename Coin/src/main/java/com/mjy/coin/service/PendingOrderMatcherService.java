@@ -20,25 +20,23 @@ public class PendingOrderMatcherService {
 
     private static final List<PriceVolumeDTO> priceVolumeList = new ArrayList<>();
     private static final PriceVolumeDTO priceVolumeDTO = new PriceVolumeDTO();
-    private static final List<CoinOrderDTO> coinOrderList = new ArrayList<>();
 
     private final MasterCoinOrderRepository masterCoinOrderRepository;
     private final OrderBookService orderBookService;
     private final RedisService redisService;
-//    private final KafkaTemplate<String, List<CoinOrderDTO>> kafkaTemplate;
+    private final KafkaTemplate<String, List<CoinOrderDTO>> kafkaTemplate;
     private final SimpMessagingTemplate messagingTemplate;
 
     @Autowired
     public PendingOrderMatcherService(MasterCoinOrderRepository masterCoinOrderRepository,
                                       OrderBookService orderBookService,
                                       RedisService redisService,
-//                                      KafkaTemplate<String, List<CoinOrderDTO>> kafkaTemplate,
-//                                      @Qualifier("listCoinOrderKafkaTemplate") KafkaTemplate<String, List<CoinOrderDTO>> kafkaTemplate,
+                                      @Qualifier("coinOrderListKafkaTemplate") KafkaTemplate<String, List<CoinOrderDTO>> kafkaTemplate,
                                       SimpMessagingTemplate messagingTemplate) {
         this.masterCoinOrderRepository = masterCoinOrderRepository;
         this.orderBookService = orderBookService;
         this.redisService = redisService;
-//        this.kafkaTemplate = kafkaTemplate;
+        this.kafkaTemplate = kafkaTemplate;
         this.messagingTemplate = messagingTemplate;
     }
 
@@ -69,25 +67,14 @@ public class PendingOrderMatcherService {
         sellOrderQueues.get(key).add(order);
     }
 
-    // 매수 주문 조회
-    public PriorityQueue<CoinOrderDTO> getBuyOrders(String key) {
-        return buyOrderQueues.get(key);
-    }
-
-    // 매도 주문 조회
-    public PriorityQueue<CoinOrderDTO> getSellOrders(String key) {
-        return sellOrderQueues.get(key);
-    }
-
     // 체결 로직
     public synchronized void matchOrders(String key) {
         PriorityQueue<CoinOrderDTO> buyOrders = buyOrderQueues.get(key);
         PriorityQueue<CoinOrderDTO> sellOrders = sellOrderQueues.get(key);
 
         if (buyOrders != null && sellOrders != null) {
-
+            List<CoinOrderDTO> coinOrderList = new ArrayList<>();
             priceVolumeList.clear();
-            coinOrderList.clear();
 
             while (!buyOrders.isEmpty() && !sellOrders.isEmpty()) {
                 CoinOrderDTO buyOrder = buyOrders.peek();
@@ -324,13 +311,14 @@ public class PendingOrderMatcherService {
             }
 
             //차트는 체결된 리스트를 소켓으로 반환
-            if(!priceVolumeList.isEmpty()){
+            if (!priceVolumeList.isEmpty()) {
                 messagingTemplate.convertAndSend("/topic/coin/" + key + "/chart", priceVolumeList);
             }
 
-//            if(!coinOrderList.isEmpty()){
-//                kafkaTemplate.send("Order-Completed", coinOrderList);
-//            }
+            //완료된 데이터 kafka로 전달
+            if (!coinOrderList.isEmpty()) {
+                kafkaTemplate.send("Order-Completed", coinOrderList);
+            }
         }
     }
 }

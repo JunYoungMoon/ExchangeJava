@@ -67,26 +67,6 @@ public class CoinOrderDTO {
         this.uuid = uuid;
     }
 
-    // 엔티티에서 VO로 변환하는 정적 팩토리 메서드
-    public static CoinOrderDTO fromEntity(CoinOrder entity) {
-        return new CoinOrderDTO(
-                entity.getIdx(),
-                entity.getMemberId(),
-                entity.getMarketName(),
-                entity.getCoinName(),
-                entity.getCoinAmount(),
-                entity.getOrderPrice(),
-                entity.getOrderType(),
-                entity.getOrderStatus(),
-                entity.getFee(),
-                entity.getCreatedAt(),
-                entity.getMatchIdx(),
-                entity.getMatchedAt(),
-                entity.getExecutionPrice(),
-                entity.getUuid()
-        );
-    }
-
     @Override
     public String toString() {
         return "CoinOrderDTO{" +

@@ -30,6 +30,25 @@ public class CoinOrderMapper {
         return entity;
     }
 
+    public static CoinOrderDTO fromEntity(CoinOrder entity) {
+        return new CoinOrderDTO(
+                entity.getIdx(),
+                entity.getMemberId(),
+                entity.getMarketName(),
+                entity.getCoinName(),
+                entity.getCoinAmount(),
+                entity.getOrderPrice(),
+                entity.getOrderType(),
+                entity.getOrderStatus(),
+                entity.getFee(),
+                entity.getCreatedAt(),
+                entity.getMatchIdx(),
+                entity.getMatchedAt(),
+                entity.getExecutionPrice(),
+                entity.getUuid()
+        );
+    }
+
     // 새로운 리스트 변환 메서드
     public static List<CoinOrder> toEntityList(List<CoinOrderDTO> orderDTOList) {
         return orderDTOList.stream()

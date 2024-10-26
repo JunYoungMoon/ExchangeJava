@@ -1,6 +1,9 @@
 package com.mjy.coin.config;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mjy.coin.dto.CoinOrderDTO;
+import com.mjy.coin.util.CustomListJsonSerializer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.context.annotation.Bean;
@@ -8,26 +11,38 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
-import org.springframework.kafka.support.serializer.JsonSerializer;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-//@Configuration
-//public class KafkaProducerConfig {
-//
-//    @Bean(name = "listCoinOrderProducerFactory")
-//    public ProducerFactory<String, List<CoinOrderDTO>> producerFactory() {
-//        Map<String, Object> configProps = new HashMap<>();
-//        configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
-//        configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-//        configProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
-//        return new DefaultKafkaProducerFactory<>(configProps);
-//    }
-//
-//    @Bean(name = "listCoinOrderKafkaTemplate")
-//    public KafkaTemplate<String, List<CoinOrderDTO>> kafkaTemplate() {
-//        return new KafkaTemplate<>(producerFactory());
-//    }
-//}
+@Configuration
+public class KafkaProducerConfig {
+
+    private final ObjectMapper objectMapper;
+
+    public KafkaProducerConfig(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
+
+    @Bean
+    public ProducerFactory<String, List<CoinOrderDTO>> coinOrderListProducerFactory() {
+        Map<String, Object> config = new HashMap<>();
+        config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+//        config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+//        config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+//        config.put(JsonSerializer.TYPE_MAPPINGS, "coinOrderList:com.mjy.coin.dto.CoinOrderDTOList");
+
+        // List<CoinOrderDTO> 타입의 직렬화 설정
+        return new DefaultKafkaProducerFactory<>(config,
+                new StringSerializer(),
+                new CustomListJsonSerializer<>(objectMapper, new TypeReference<>() {}));
+
+//        return new DefaultKafkaProducerFactory<>(config);
+    }
+
+    @Bean(name = "coinOrderListKafkaTemplate")
+    public KafkaTemplate<String, List<CoinOrderDTO>> kafkaTemplate() {
+        return new KafkaTemplate<>(coinOrderListProducerFactory());
+    }
+}

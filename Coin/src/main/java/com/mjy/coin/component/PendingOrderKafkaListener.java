@@ -9,12 +9,12 @@ import org.springframework.stereotype.Component;
 
 
 @Component
-public class PendingOrderListener implements MessageListener<String, CoinOrderDTO> {
+public class PendingOrderKafkaListener implements MessageListener<String, CoinOrderDTO> {
 
     private final PendingOrderProcessorService pendingOrderProcessorService;
 
     @Autowired
-    public PendingOrderListener(PendingOrderProcessorService pendingOrderProcessorService) {
+    public PendingOrderKafkaListener(PendingOrderProcessorService pendingOrderProcessorService) {
         this.pendingOrderProcessorService = pendingOrderProcessorService;
     }
 

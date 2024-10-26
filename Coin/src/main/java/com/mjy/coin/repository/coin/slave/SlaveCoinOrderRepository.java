@@ -20,4 +20,6 @@ public interface SlaveCoinOrderRepository extends JpaRepository<CoinOrder, Long>
 
     Optional<CoinOrder> findByUuid(
             String uuid);
+
+    List<CoinOrder> findAllByUuidIn(List<String> uuids);
 }

@@ -9,18 +9,17 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 @Component
-public class CompletedOrderListener {
+public class CompletedOrderKafkaListener {
 
     private final CompletedOrderProcessorService completedOrderProcessorService;
 
     @Autowired
-    public CompletedOrderListener(CompletedOrderProcessorService completedOrderProcessorService) {
+    public CompletedOrderKafkaListener(CompletedOrderProcessorService completedOrderProcessorService) {
         this.completedOrderProcessorService = completedOrderProcessorService;
     }
 
-    @KafkaListener(topics = "Order-Completed", groupId = "coinOrderGroup", concurrency = "4"/*, containerFactory = "coinOrderListKafkaListenerContainerFactory"*/)
+    @KafkaListener(topics = "Order-Completed", groupId = "coinOrderGroup", concurrency = "4", containerFactory = "coinOrderListKafkaListenerContainerFactory")
     public void listen(List<CoinOrderDTO> order) {
-        System.out.println(order);
-//        completedOrderProcessorService.completedProcessorOrder(order);
+        completedOrderProcessorService.completedProcessorOrder(order);
     }
 }

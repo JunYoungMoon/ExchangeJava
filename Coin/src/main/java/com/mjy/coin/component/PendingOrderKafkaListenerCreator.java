@@ -19,7 +19,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 @Component
 @DependsOn("kafkaAdmin")
-public class PendingOrderListenerCreator {
+public class PendingOrderKafkaListenerCreator {
 
     private static final String KAFKA_GROUP_ID = "coinOrderGroup";
     private static final AtomicLong endpointIdIndex = new AtomicLong(1);
@@ -29,7 +29,7 @@ public class PendingOrderListenerCreator {
     private final KafkaListenerContainerFactory<?> coinOrderKafkaListenerContainerFactory;
     private final PendingOrderProcessorService pendingOrderProcessorService;
 
-    public PendingOrderListenerCreator(
+    public PendingOrderKafkaListenerCreator(
             PendingOrderProcessorService pendingOrderProcessorService,
             CoinInfoService coinInfoService,
             KafkaListenerEndpointRegistry kafkaListenerEndpointRegistry,
@@ -57,11 +57,11 @@ public class PendingOrderListenerCreator {
         kafkaListenerEndpoint.setTopics(topic);
         kafkaListenerEndpoint.setMessageHandlerMethodFactory(new DefaultMessageHandlerMethodFactory());
 
-        PendingOrderListener listener = new PendingOrderListener(pendingOrderProcessorService);
+        PendingOrderKafkaListener listener = new PendingOrderKafkaListener(pendingOrderProcessorService);
         kafkaListenerEndpoint.setBean(listener);
 
         try {
-            kafkaListenerEndpoint.setMethod(PendingOrderListener.class.getMethod("onMessage", ConsumerRecord.class));
+            kafkaListenerEndpoint.setMethod(PendingOrderKafkaListener.class.getMethod("onMessage", ConsumerRecord.class));
         } catch (NoSuchMethodException e) {
             throw new RuntimeException("Attempt to call a non-existent method " + e);
         }
