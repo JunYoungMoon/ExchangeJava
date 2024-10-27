@@ -21,19 +21,19 @@ public class PendingOrderMatcherService {
     private final OrderBookService orderBookService;
     private final RedisService redisService;
     private final KafkaTemplate<String, List<CoinOrderDTO>> coinOrderListKafkaTemplate;
-    private final KafkaTemplate<String, List<PriceVolumeDTO>> priceVolumeListKafkaTemplate;
+    private final KafkaTemplate<String, Map<String, List<PriceVolumeDTO>>> priceVolumeMapKafkaTemplate;
 
     @Autowired
     public PendingOrderMatcherService(MasterCoinOrderRepository masterCoinOrderRepository,
                                       OrderBookService orderBookService,
                                       RedisService redisService,
                                       @Qualifier("coinOrderListKafkaTemplate") KafkaTemplate<String, List<CoinOrderDTO>> coinOrderListKafkaTemplate,
-                                      @Qualifier("priceVolumeListKafkaTemplate") KafkaTemplate<String, List<PriceVolumeDTO>> priceVolumeListKafkaTemplate) {
+                                      @Qualifier("priceVolumeMapKafkaTemplate") KafkaTemplate<String, Map<String, List<PriceVolumeDTO>>> priceVolumeMapKafkaTemplate) {
         this.masterCoinOrderRepository = masterCoinOrderRepository;
         this.orderBookService = orderBookService;
         this.redisService = redisService;
         this.coinOrderListKafkaTemplate = coinOrderListKafkaTemplate;
-        this.priceVolumeListKafkaTemplate = priceVolumeListKafkaTemplate;
+        this.priceVolumeMapKafkaTemplate = priceVolumeMapKafkaTemplate;
     }
 
     private Map<String, PriorityQueue<CoinOrderDTO>> buyOrderQueues = new HashMap<>();
@@ -72,6 +72,7 @@ public class PendingOrderMatcherService {
 
         if (buyOrders != null && sellOrders != null) {
             List<CoinOrderDTO> matchList = new ArrayList<>();
+
             List<PriceVolumeDTO> priceVolumeList = new ArrayList<>();
 
             while (!buyOrders.isEmpty() && !sellOrders.isEmpty()) {
@@ -307,7 +308,10 @@ public class PendingOrderMatcherService {
 
             //반복하는 동안 쌓인 가격과 볼륨 리스트 kafka로 전달(실시간 차트에서 사용)
             if (!priceVolumeList.isEmpty()) {
-                priceVolumeListKafkaTemplate.send("Price-Volume", priceVolumeList);
+                Map<String, List<PriceVolumeDTO>> priceVolumeMap = new HashMap<>();
+                priceVolumeMap.put(key, priceVolumeList);
+                priceVolumeMapKafkaTemplate.send("Price-Volume", priceVolumeMap);
+//                priceVolumeListKafkaTemplate.send("Price-Volume", priceVolumeList);
             }
 
             //반복하는 동안 쌓인 완료 주문 리스트 kafka로 전달(redis에서 mysql로 이동하기 위해 사용)

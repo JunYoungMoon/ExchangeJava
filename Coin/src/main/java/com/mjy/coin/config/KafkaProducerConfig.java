@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mjy.coin.dto.CoinOrderDTO;
 import com.mjy.coin.dto.PriceVolumeDTO;
-import com.mjy.coin.util.CustomListJsonSerializer;
+import com.mjy.coin.util.CustomJsonSerializer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.context.annotation.Bean;
@@ -34,7 +34,7 @@ public class KafkaProducerConfig {
         // List<CoinOrderDTO> 타입의 직렬화 설정
         return new DefaultKafkaProducerFactory<>(config,
                 new StringSerializer(),
-                new CustomListJsonSerializer<>(objectMapper, new TypeReference<>() {}));
+                new CustomJsonSerializer<>(objectMapper, new TypeReference<>() {}));
 
 //        key-value 방식
 //        config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
@@ -51,17 +51,17 @@ public class KafkaProducerConfig {
 
 
     @Bean
-    public ProducerFactory<String, List<PriceVolumeDTO>> priceVolumeListProducerFactory() {
+    public ProducerFactory<String, Map<String, List<PriceVolumeDTO>>> priceVolumeMapProducerFactory() {
         Map<String, Object> config = new HashMap<>();
         config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
 
         return new DefaultKafkaProducerFactory<>(config,
                 new StringSerializer(),
-                new CustomListJsonSerializer<>(objectMapper, new TypeReference<>() {}));
+                new CustomJsonSerializer<>(objectMapper, new TypeReference<>() {}));
     }
 
-    @Bean(name = "priceVolumeListKafkaTemplate")
-    public KafkaTemplate<String, List<PriceVolumeDTO>> priceVolumeListKafkaTemplate() {
-        return new KafkaTemplate<>(priceVolumeListProducerFactory());
+    @Bean(name = "priceVolumeMapKafkaTemplate")
+    public KafkaTemplate<String, Map<String, List<PriceVolumeDTO>>> priceVolumeMapKafkaTemplate() {
+        return new KafkaTemplate<>(priceVolumeMapProducerFactory());
     }
 }

@@ -6,15 +6,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.common.serialization.Deserializer;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 
-public class CustomListJsonDeserializer<T> implements Deserializer<List<T>> {
+public class CustomJsonDeserializer<T> implements Deserializer<T> {
 
     private final ObjectMapper objectMapper;
-    private final TypeReference<List<T>> listTypeReference;
+    private final TypeReference<T> listTypeReference;
 
-    public CustomListJsonDeserializer(ObjectMapper objectMapper, TypeReference<List<T>> listTypeReference) {
+    public CustomJsonDeserializer(ObjectMapper objectMapper, TypeReference<T> listTypeReference) {
         this.objectMapper = objectMapper;
         this.listTypeReference = listTypeReference;
     }
@@ -23,7 +22,7 @@ public class CustomListJsonDeserializer<T> implements Deserializer<List<T>> {
     public void configure(Map<String, ?> configs, boolean isKey) {}
 
     @Override
-    public List<T> deserialize(String topic, byte[] data) {
+    public T deserialize(String topic, byte[] data) {
         try {
             // JSON 배열을 리스트로 역직렬화
             return objectMapper.readValue(data, listTypeReference);
