@@ -20,10 +20,6 @@ public class PendingOrderKafkaListener implements MessageListener<String, CoinOr
 
     @Override
     public void onMessage(ConsumerRecord<String, CoinOrderDTO> record) {
-        CoinOrderDTO order = record.value();
-
-        // 미체결 주문 처리
-        pendingOrderProcessorService.processOrder(order);
-        System.out.println("Pending order processed: " + order);
+        pendingOrderProcessorService.processOrder(record.value());
     }
 }

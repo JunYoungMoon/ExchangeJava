@@ -67,6 +67,24 @@ public class CoinOrderDTO {
         this.uuid = uuid;
     }
 
+    // 복사 생성자
+    public CoinOrderDTO(CoinOrderDTO order) {
+        this.idx = order.idx;
+        this.memberId = order.memberId;
+        this.marketName = order.marketName;
+        this.coinName = order.coinName;
+        this.coinAmount = order.coinAmount;
+        this.orderPrice = order.orderPrice;
+        this.executionPrice = order.executionPrice;
+        this.orderType = order.orderType;
+        this.orderStatus = order.orderStatus;
+        this.fee = order.fee;
+        this.createdAt = order.createdAt;
+        this.matchedAt = order.matchedAt;
+        this.matchIdx = order.matchIdx;
+        this.uuid = order.uuid;
+    }
+
     @Override
     public String toString() {
         return "CoinOrderDTO{" +
