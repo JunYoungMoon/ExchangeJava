@@ -1,4 +1,4 @@
-package com.mjy.exchange.api;
+package com.mjy.exchange.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;

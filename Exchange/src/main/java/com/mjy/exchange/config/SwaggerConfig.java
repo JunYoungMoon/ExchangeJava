@@ -6,16 +6,25 @@ import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
 import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.info.License;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
+import io.swagger.v3.oas.annotations.security.SecuritySchemes;
 import io.swagger.v3.oas.annotations.servers.Server;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@SecurityScheme(
-        name = "csrfToken",
-        type = SecuritySchemeType.APIKEY,
-        in = SecuritySchemeIn.HEADER,
-        paramName = "X-XSRF-TOKEN"  // CSRF 토큰을 받을 헤더 이름
-)
+@SecuritySchemes({
+        @SecurityScheme(
+                name = "csrfToken",
+                type = SecuritySchemeType.APIKEY,
+                in = SecuritySchemeIn.HEADER,
+                paramName = "X-XSRF-TOKEN"  // CSRF 토큰을 받을 헤더 이름
+        ),
+        @SecurityScheme(
+                name = "bearerAuth",
+                type = SecuritySchemeType.HTTP,
+                scheme = "bearer",
+                bearerFormat = "JWT"
+        )
+})
 @OpenAPIDefinition(
         info = @Info(
                 title = "Exchange API",

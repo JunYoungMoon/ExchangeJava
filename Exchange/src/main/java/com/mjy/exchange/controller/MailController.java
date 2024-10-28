@@ -1,4 +1,4 @@
-package com.mjy.exchange.api;
+package com.mjy.exchange.controller;
 
 import com.mjy.exchange.annotation.RateLimit;
 import com.mjy.exchange.dto.ApiResponse;

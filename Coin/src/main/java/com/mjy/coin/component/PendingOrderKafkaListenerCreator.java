@@ -41,7 +41,7 @@ public class PendingOrderKafkaListenerCreator {
     }
 
     @PostConstruct
-    public void init() throws JsonProcessingException {
+    public void init() {
         List<String> keys = coinInfoService.getCoinMarketKeys();
 
         for (String key : keys) {

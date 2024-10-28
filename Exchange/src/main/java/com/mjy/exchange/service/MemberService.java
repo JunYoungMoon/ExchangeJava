@@ -1,7 +1,9 @@
 package com.mjy.exchange.service;
 
 import com.mjy.exchange.dto.*;
+import com.mjy.exchange.entity.CoinHolding;
 import com.mjy.exchange.entity.Member;
+import com.mjy.exchange.repository.master.MasterCoinHoldingRepository;
 import com.mjy.exchange.repository.master.MasterMemberRepository;
 import com.mjy.exchange.repository.slave.SlaveMemberRepository;
 import com.mjy.exchange.security.JwtTokenProvider;
@@ -15,6 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.time.Duration;
@@ -25,6 +28,7 @@ import java.util.*;
 public class MemberService {
     private final MasterMemberRepository masterMemberRepository;
     private final SlaveMemberRepository slaveMemberRepository;
+    private final MasterCoinHoldingRepository masterCoinHoldingRepository;
     private final MessageSourceAccessor messageSourceAccessor;
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final JwtTokenProvider jwtTokenProvider;
@@ -77,7 +81,31 @@ public class MemberService {
                 .roles(roles)
                 .build();
 
-        masterMemberRepository.save(member);
+        member = masterMemberRepository.save(member); // 저장된 Member 객체
+        Long memberIdx = member.getIdx(); // 자동 생성된 memberIdx 가져오기
+
+        // 임시 지갑 생성
+        CoinHolding coinHolding1 = CoinHolding.builder()
+                .memberIdx(memberIdx)
+                .coinType("BTC")
+                .usingAmount(BigDecimal.valueOf(100000000))
+                .availableAmount(BigDecimal.valueOf(100000000))
+                .walletAddress("1YoURbEATcoiN99MYWaLLetiDaDdRess72")
+                .isFavorited(false)
+                .build();
+
+        CoinHolding coinHolding2 = CoinHolding.builder()
+                .memberIdx(memberIdx)
+                .coinType("ETH")
+                .usingAmount(BigDecimal.valueOf(100000000))
+                .availableAmount(BigDecimal.valueOf(100000000))
+                .walletAddress("0x1234567890ABCDEF1234567890ABCDEF123456")
+                .isFavorited(false)
+                .build();
+
+        List<CoinHolding> coinHoldings = Arrays.asList(coinHolding1, coinHolding2);
+
+        masterCoinHoldingRepository.saveAll(coinHoldings);
 
         // 회원가입 성공 후에 storedEmailVerification 값을 제거
         redisService.deleteValues(EMAIL_VERIFICATION_PREFIX + request.getEmail());

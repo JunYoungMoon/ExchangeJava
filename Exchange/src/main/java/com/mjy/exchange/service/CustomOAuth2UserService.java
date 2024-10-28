@@ -1,10 +1,12 @@
 package com.mjy.exchange.service;
 
+import com.mjy.exchange.entity.CoinHolding;
 import com.mjy.exchange.entity.Member;
 import com.mjy.exchange.entity.SocialMember;
 import com.mjy.exchange.enums.AuthProvider;
 import com.mjy.exchange.oauth2.OAuth2UserInfo;
 import com.mjy.exchange.oauth2.OAuth2UserInfoFactory;
+import com.mjy.exchange.repository.master.MasterCoinHoldingRepository;
 import com.mjy.exchange.repository.master.MasterMemberRepository;
 import com.mjy.exchange.repository.master.MasterSocialMemberRepository;
 import com.mjy.exchange.repository.slave.SlaveMemberRepository;
@@ -19,16 +21,15 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.math.BigDecimal;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     private final MasterSocialMemberRepository masterSocialMemberRepository;
+    private final MasterCoinHoldingRepository masterCoinHoldingRepository;
     private final SlaveSocialMemberRepository socialMemberRepository;
     private final MasterMemberRepository masterMemberRepository;
     private final SlaveMemberRepository slaveMemberRepository;
@@ -76,7 +77,31 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                     .profileImage(oAuth2UserInfo.getProfileImage())
                     .build();
 
-            masterMemberRepository.save(member);
+            member = masterMemberRepository.save(member); // 저장된 Member 객체
+            Long memberIdx = member.getIdx(); // 자동 생성된 memberIdx 가져오기
+
+            // 임시 지갑 생성
+            CoinHolding coinHolding1 = CoinHolding.builder()
+                    .memberIdx(memberIdx)
+                    .coinType("BTC")
+                    .usingAmount(BigDecimal.valueOf(100000000))
+                    .availableAmount(BigDecimal.valueOf(100000000))
+                    .walletAddress("1YoURbEATcoiN99MYWaLLetiDaDdRess72")
+                    .isFavorited(false)
+                    .build();
+
+            CoinHolding coinHolding2 = CoinHolding.builder()
+                    .memberIdx(memberIdx)
+                    .coinType("ETH")
+                    .usingAmount(BigDecimal.valueOf(100000000))
+                    .availableAmount(BigDecimal.valueOf(100000000))
+                    .walletAddress("0x1234567890ABCDEF1234567890ABCDEF123456")
+                    .isFavorited(false)
+                    .build();
+
+            List<CoinHolding> coinHoldings = Arrays.asList(coinHolding1, coinHolding2);
+
+            masterCoinHoldingRepository.saveAll(coinHoldings);
         } else {
             socialMember = optionalUser.get();
 
