@@ -311,7 +311,6 @@ public class PendingOrderMatcherService {
                 Map<String, List<PriceVolumeDTO>> priceVolumeMap = new HashMap<>();
                 priceVolumeMap.put(key, priceVolumeList);
                 priceVolumeMapKafkaTemplate.send("Price-Volume", priceVolumeMap);
-//                priceVolumeListKafkaTemplate.send("Price-Volume", priceVolumeList);
             }
 
             //반복하는 동안 쌓인 완료 주문 리스트 kafka로 전달(redis에서 mysql로 이동하기 위해 사용)

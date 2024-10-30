@@ -102,7 +102,7 @@ public class MemberController {
                 .build();
     }
 
-    @Operation(summary = "회원 정보 수정", description = "현재 로그인된 사용자의 정보를 수정합니다.", security = {@SecurityRequirement(name = "csrfToken")})
+    @Operation(summary = "회원 정보 수정", description = "현재 로그인된 사용자의 정보를 수정합니다.", security = {@SecurityRequirement(name = "csrfToken"), @SecurityRequirement(name = "bearerAuth")})
     @PutMapping("/me")
     public ApiResponse setUserInfo(
             HttpServletRequest servletRequest,

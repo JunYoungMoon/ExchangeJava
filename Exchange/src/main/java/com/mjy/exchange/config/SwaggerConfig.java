@@ -21,6 +21,7 @@ import org.springframework.context.annotation.Configuration;
         @SecurityScheme(
                 name = "bearerAuth",
                 type = SecuritySchemeType.HTTP,
+                in = SecuritySchemeIn.HEADER,
                 scheme = "bearer",
                 bearerFormat = "JWT"
         )
