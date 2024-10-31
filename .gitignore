@@ -1,5 +1,7 @@
 ## database ##
 db
+ngrinder-data
+logs
 
 ### IntelliJ IDEA ###
 .idea

@@ -4,6 +4,7 @@ services:
   # 샤드 1: KRW 마켓 메이저 코인 체결 정보 (마스터)
   shard1-krw-major-master:
     image: mysql:8.0.30
+    restart: unless-stopped
     command: --server-id=3 --log-bin=mysql-bin --gtid-mode=ON --enforce-gtid-consistency=true
     environment:
       MYSQL_ROOT_PASSWORD: 1234
@@ -21,6 +22,7 @@ services:
 
   shard1-krw-major-slave:
     image: mysql:8.0.30
+    restart: unless-stopped
     command: --server-id=4 --log-bin=mysql-bin --gtid-mode=ON --enforce-gtid-consistency=true
     environment:
       MYSQL_ROOT_PASSWORD: 1234
@@ -37,6 +39,7 @@ services:
   # 샤드 2: KRW 마켓 기타 코인 체결 정보 (마스터)
   shard2-krw-minor-master:
     image: mysql:8.0.30
+    restart: unless-stopped
     command: --server-id=5 --log-bin=mysql-bin --gtid-mode=ON --enforce-gtid-consistency=true
     environment:
       MYSQL_ROOT_PASSWORD: 1234
@@ -54,6 +57,7 @@ services:
 
   shard2-krw-minor-slave:
     image: mysql:8.0.30
+    restart: unless-stopped
     command: --server-id=6 --log-bin=mysql-bin --gtid-mode=ON --enforce-gtid-consistency=true
     environment:
       MYSQL_ROOT_PASSWORD: 1234
@@ -70,6 +74,7 @@ services:
   # 회원 및 기타 정보 저장 DB
   exchange-master:
     image: mysql:8.0.30
+    restart: unless-stopped
     command: --server-id=1 --log-bin=mysql-bin --gtid-mode=ON --enforce-gtid-consistency=true
     environment:
       MYSQL_ROOT_PASSWORD: 1234
@@ -87,6 +92,7 @@ services:
 
   exchange-slave:
     image: mysql:8.0.30
+    restart: unless-stopped
     command: --server-id=2 --log-bin=mysql-bin --gtid-mode=ON --enforce-gtid-consistency=true
     environment:
       MYSQL_ROOT_PASSWORD: 1234
@@ -102,6 +108,7 @@ services:
 
   redis:
     image: redis:latest
+    restart: unless-stopped
     volumes:
       - ./db/redis-data:/data
       - ./config/redis/redis.conf:/etc/redis/redis.conf
@@ -111,11 +118,13 @@ services:
 
   zookeeper:
     image: wurstmeister/zookeeper:latest
+    restart: unless-stopped
     ports:
       - "2181:2181"
 
   kafka:
     image: wurstmeister/kafka:latest
+    restart: unless-stopped
     ports:
       - "9092:9092"
     environment:
@@ -129,6 +138,7 @@ services:
 
   prometheus:
     image: prom/prometheus:latest
+    restart: unless-stopped
     container_name: prometheus
     ports:
       - "9090:9090"
@@ -137,11 +147,52 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
+  loki:
+    image: grafana/loki:latest
+    restart: unless-stopped
+    container_name: loki
+    ports:
+      - "3100:3100"
+
+  promtail:
+    image: grafana/promtail:latest
+    restart: unless-stopped
+    container_name: promtail
+    volumes:
+      - ./logs:/logs
+      - ./promtail-config.yml:/etc/promtail/config.yml
+
   grafana:
     image: grafana/grafana:latest
+    restart: unless-stopped
     container_name: grafana
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
     ports:
       - "3000:3000"
+
+  controller:
+    image: ngrinder/controller:latest
+    container_name: ngrinder_controller
+    restart: unless-stopped
+    ports:
+      - "9000:80"
+      - "16001:16001"
+      - "12000-12009:12000-12009"
+    volumes:
+      - ./ngrinder-data:/opt/ngrinder-controller
+
+  agent1:
+    image: ngrinder/agent:latest
+    container_name: ngrinder_agent1
+    restart: unless-stopped
+    links:
+      - controller
+
+  agent2:
+    image: ngrinder/agent:latest
+    container_name: ngrinder_agent2
+    restart: unless-stopped
+    links:
+      - controller

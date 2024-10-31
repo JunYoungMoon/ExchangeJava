@@ -24,7 +24,7 @@ import org.springframework.context.annotation.Configuration;
                         "<p>회원가입 시 이메일 인증을 먼저 진행해야 합니다.</p>",
                 license = @License(name = "GitHub", url = "https://github.com/JunYoungMoon/Exchange")
         ),
-        servers = @Server(url = "http://localhost:8080")
+        servers = @Server(url = "http://localhost:8081")
 )
 public class SwaggerConfig {
 }
