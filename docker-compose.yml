@@ -196,3 +196,10 @@ services:
     restart: unless-stopped
     links:
       - controller
+
+  agent3:
+    image: ngrinder/agent:latest
+    container_name: ngrinder_agent3
+    restart: unless-stopped
+    links:
+      - controller

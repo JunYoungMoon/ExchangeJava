@@ -64,7 +64,7 @@ public class PendingOrderMatcherService {
     }
 
     // 체결 로직
-    public synchronized void matchOrders(String key) {
+    public void matchOrders(String key) {
         BigDecimal executionPrice;
 
         PriorityQueue<CoinOrderDTO> buyOrders = buyOrderQueues.get(key);

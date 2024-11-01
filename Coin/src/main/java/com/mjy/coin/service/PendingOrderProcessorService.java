@@ -29,7 +29,7 @@ public class PendingOrderProcessorService {
         this.redisService = redisService;
     }
 
-    public void processOrder(CoinOrderDTO order) {
+    public synchronized void processOrder(CoinOrderDTO order) {
         String key = order.getCoinName() + "-" + order.getMarketName();
 
         CoinOrder orderEntity = CoinOrderMapper.toEntity(order);
