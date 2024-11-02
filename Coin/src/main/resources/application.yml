@@ -8,6 +8,8 @@ spring:
   batch:
     jdbc:
       initialize-schema: always
+    job:
+      name: coinOrderJob
 
   profiles:
     active: dev

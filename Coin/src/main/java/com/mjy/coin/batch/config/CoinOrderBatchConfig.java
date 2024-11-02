@@ -1,6 +1,5 @@
 package com.mjy.coin.batch.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mjy.coin.batch.CoinOrderProcessor;
 import com.mjy.coin.batch.CoinOrderReader;
 import com.mjy.coin.batch.CoinOrderWriter;
@@ -8,7 +7,6 @@ import com.mjy.coin.dto.CoinOrderDTO;
 import com.mjy.coin.dto.CoinOrderDayHistoryDTO;
 import com.mjy.coin.dto.CoinOrderDayHistoryMapper;
 import com.mjy.coin.dto.CoinOrderSimpleDTO;
-import com.mjy.coin.entity.coin.CoinOrderDayHistory;
 import com.mjy.coin.repository.coin.master.MasterCoinOrderDayHistoryRepository;
 import com.mjy.coin.service.CoinInfoService;
 import com.mjy.coin.service.CoinOrderService;
@@ -16,27 +14,18 @@ import com.mjy.coin.service.RedisService;
 import org.springframework.batch.core.*;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.partition.support.Partitioner;
-import org.springframework.batch.core.repository.ExecutionContextSerializer;
 import org.springframework.batch.core.repository.JobRepository;
-import org.springframework.batch.core.repository.dao.DefaultExecutionContextSerializer;
-import org.springframework.batch.core.repository.support.JobRepositoryFactoryBean;
 import org.springframework.batch.core.scope.context.StepSynchronizationManager;
 import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.ExecutionContext;
-import org.springframework.batch.item.database.support.DefaultDataFieldMaxValueIncrementerFactory;
 import org.springframework.batch.repeat.RepeatStatus;
-import org.springframework.batch.support.DatabaseType;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.convert.support.ConfigurableConversionService;
-import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 
-import javax.sql.DataSource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
@@ -48,47 +37,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @Configuration
 public class CoinOrderBatchConfig {
-
-    @Bean(name = "CoinOrderJobRepository")
-    public JobRepository jobRepository(@Qualifier("coinMasterTransactionManager") PlatformTransactionManager transactionManager,
-                                       @Qualifier("coinMasterDataSource") DataSource dataSource) throws Exception {
-        JobRepositoryFactoryBean factory = new JobRepositoryFactoryBean();
-
-        // JdbcOperations 설정
-        JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-        factory.setJdbcOperations(jdbcTemplate);
-
-        // ConversionService 설정
-        ConfigurableConversionService conversionService = new DefaultConversionService();
-        factory.setConversionService(conversionService);
-
-        // Serializer 설정
-        ExecutionContextSerializer serializer = new DefaultExecutionContextSerializer();
-        factory.setSerializer(serializer);
-
-        // incrementerFactory 설정
-        DefaultDataFieldMaxValueIncrementerFactory incrementerFactory =
-                new DefaultDataFieldMaxValueIncrementerFactory(dataSource);
-        factory.setIncrementerFactory(incrementerFactory);
-
-
-        // jobKeyGenerator 설정
-        factory.setJobKeyGenerator(new DefaultJobKeyGenerator());
-
-        // Database 유형 설정
-        factory.setDatabaseType(DatabaseType.fromMetaData(dataSource).name());
-
-        factory.setDataSource(dataSource);
-        factory.setTransactionManager(transactionManager);
-        factory.setIsolationLevelForCreate("ISOLATION_SERIALIZABLE");
-        factory.setMaxVarCharLength(500);
-        factory.setTablePrefix("BATCH_");
-
-        return factory.getObject();
-    }
-
     @Bean
-    public Job coinOrderJob(@Qualifier("CoinOrderJobRepository") JobRepository jobRepository,
+    public Job coinOrderJob(@Qualifier("JobRepository") JobRepository jobRepository,
                             Step checkDataStep,
                             Step partitionStep,
                             Step mergeStep) {
@@ -102,7 +52,7 @@ public class CoinOrderBatchConfig {
     }
 
     @Bean
-    public Step partitionStep(@Qualifier("CoinOrderJobRepository") JobRepository jobRepository,
+    public Step partitionStep(@Qualifier("JobRepository") JobRepository jobRepository,
                               @Qualifier("CoinOrderPartitioner") Partitioner partitioner,
                               Step coinOrderStep) {
         return new StepBuilder("partitionStep", jobRepository)

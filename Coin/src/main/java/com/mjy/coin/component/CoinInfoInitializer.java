@@ -3,10 +3,7 @@ package com.mjy.coin.component;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.mjy.coin.enums.OrderType;
 import com.mjy.coin.dto.CoinOrderDTO;
-import com.mjy.coin.service.CoinInfoService;
-import com.mjy.coin.service.OrderBookService;
-import com.mjy.coin.service.PendingOrderMatcherService;
-import com.mjy.coin.service.RedisService;
+import com.mjy.coin.service.*;
 import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Component;
 
@@ -19,12 +16,18 @@ public class CoinInfoInitializer {
     private final OrderBookService orderBookService;
     private final CoinInfoService coinInfoService;
     private final RedisService redisService;
+    private final ConvertService convertService;
 
-    public CoinInfoInitializer(PendingOrderMatcherService priorityQueueManager, OrderBookService orderBookService, CoinInfoService coinInfoService, RedisService redisService) {
+    public CoinInfoInitializer(PendingOrderMatcherService priorityQueueManager,
+                               OrderBookService orderBookService,
+                               CoinInfoService coinInfoService,
+                               RedisService redisService,
+                               ConvertService convertService) {
         this.priorityQueueManager = priorityQueueManager;
         this.orderBookService = orderBookService;
         this.coinInfoService = coinInfoService;
         this.redisService = redisService;
+        this.convertService = convertService;
     }
 
     @PostConstruct
@@ -52,7 +55,7 @@ public class CoinInfoInitializer {
             // Redis에서 가져온 데이터를 CoinOrderDTO로 변환 후 처리
             for (String orderData : redisOrders.values()) {
                 // JSON 문자열을 CoinOrderDTO 객체로 변환
-                CoinOrderDTO orderDTO = redisService.convertStringToObject(orderData, CoinOrderDTO.class);
+                CoinOrderDTO orderDTO = convertService.convertStringToObject(orderData, CoinOrderDTO.class);
 
                 // 매수 주문일 경우
                 if (orderDTO.getOrderType() == OrderType.BUY) {

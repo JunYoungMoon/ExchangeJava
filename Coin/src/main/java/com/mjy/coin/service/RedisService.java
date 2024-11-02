@@ -1,9 +1,7 @@
 package com.mjy.coin.service;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.mjy.coin.dto.CoinOrderDTO;
+import com.mjy.coin.enums.OrderStatus;
 import org.springframework.data.redis.core.*;
 import org.springframework.stereotype.Component;
 
@@ -14,14 +12,17 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import static com.mjy.coin.enums.OrderStatus.COMPLETED;
+import static com.mjy.coin.enums.OrderStatus.PENDING;
+
 @Component
 public class RedisService {
     private final RedisTemplate<String, Object> redisTemplate;
-    private final ObjectMapper objectMapper;
+    private final ConvertService convertService;
 
-    public RedisService(RedisTemplate<String, Object> redisTemplate, ObjectMapper objectMapper) {
+    public RedisService(RedisTemplate<String, Object> redisTemplate, ConvertService convertService) {
         this.redisTemplate = redisTemplate;
-        this.objectMapper = objectMapper;
+        this.convertService = convertService;
     }
 
     public void setValues(String key, String data) {
@@ -99,39 +100,13 @@ public class RedisService {
         return hashOps.scan(key, ScanOptions.NONE);
     }
 
-    public Map<String, String> convertStringToMap(String json) {
-        try {
-            return objectMapper.readValue(json, new TypeReference<>() {
-            });
-        } catch (Exception e) {
-            System.err.println("Failed to convert string to map: " + e.getMessage());
-            return null;
-        }
-    }
-
-    public <T> T convertStringToObject(String json, Class<T> type) {
-        try {
-            return objectMapper.readValue(json, type);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to convert JSON to " + type.getSimpleName(), e);
-        }
-    }
-
-    public String convertMapToString(Map<String, String> map) {
-        try {
-            return objectMapper.writeValueAsString(map);
-        } catch (Exception e) {
-            throw new RuntimeException("Error converting Map to String", e);
-        }
-    }
-
     public void updateOrderInRedis(CoinOrderDTO order) {
         try {
             // 1. Redis에서 기존 데이터 가져오기
             String orderData = getHashOps("PENDING:ORDER:" + order.getCoinName() + "-" + order.getMarketName(), order.getUuid());
 
             // 2. String 데이터를 Map으로 변환
-            Map<String, String> orderDataMap = convertStringToMap(orderData);
+            Map<String, String> orderDataMap = convertService.convertStringToMap(orderData);
 
             // 3. 필요한 데이터 업데이트
             orderDataMap.put("orderStatus", String.valueOf(order.getOrderStatus()));
@@ -141,7 +116,7 @@ public class RedisService {
             orderDataMap.put("executionPrice", String.valueOf(order.getExecutionPrice()));
 
             // 4. Map 데이터를 다시 String으로 직렬화
-            String updatedOrderData = convertMapToString(orderDataMap);
+            String updatedOrderData = convertService.convertMapToString(orderDataMap);
 
             // 5. 수정된 데이터를 Redis에 다시 저장 (Hash 구조 사용)
             setHashOps("PENDING:ORDER:" + order.getCoinName() + "-" + order.getMarketName(), Map.of(order.getUuid(), updatedOrderData));
@@ -151,11 +126,10 @@ public class RedisService {
         }
     }
 
-    public void insertOrderInRedis(CoinOrderDTO order) {
+    public void insertOrderInRedis(String key, OrderStatus orderStatus, CoinOrderDTO order) {
         try {
             // Redis에 저장할 주문 데이터를 HashMap으로 저장
             Map<String, String> orderDataMap = new HashMap<>();
-
             // 기본 데이터 추가
             orderDataMap.put("uuid", String.valueOf(order.getUuid()));
             orderDataMap.put("coinName", String.valueOf(order.getCoinName()));
@@ -168,23 +142,27 @@ public class RedisService {
             orderDataMap.put("memberId", String.valueOf(order.getMemberId()));
             orderDataMap.put("orderStatus", String.valueOf(order.getOrderStatus()));
 
-            if (order.getMatchedAt() != null) {
+            if (orderStatus == PENDING) {
+                if (order.getMatchedAt() != null) {
+                    orderDataMap.put("matchedAt", String.valueOf(order.getMatchedAt()));
+                }
+                if (order.getMatchedAt() != null) {
+                    orderDataMap.put("matchIdx", String.valueOf(order.getMatchIdx()));
+                }
+                if (order.getMatchedAt() != null) {
+                    orderDataMap.put("executionPrice", String.valueOf(order.getExecutionPrice()));
+                }
+            } else if (orderStatus == COMPLETED) {
                 orderDataMap.put("matchedAt", String.valueOf(order.getMatchedAt()));
-            }
-
-            if (order.getMatchedAt() != null) {
                 orderDataMap.put("matchIdx", String.valueOf(order.getMatchIdx()));
-            }
-
-            if (order.getMatchedAt() != null) {
                 orderDataMap.put("executionPrice", String.valueOf(order.getExecutionPrice()));
             }
 
             // 주문 데이터를 JSON 문자열로 변환
-            String jsonOrderData = convertMapToString(orderDataMap);
+            String jsonOrderData = convertService.convertMapToString(orderDataMap);
 
             // Redis에 주문 데이터 저장 (Hash 구조 사용)
-            setHashOps("PENDING:ORDER:" + order.getCoinName() + "-" + order.getMarketName(), Map.of(order.getUuid(), jsonOrderData));
+            setHashOps(orderStatus + ":ORDER:" + key, Map.of(order.getUuid(), jsonOrderData));
 
         } catch (Exception e) {
             System.err.println("Failed to insert order in Redis: " + e.getMessage());

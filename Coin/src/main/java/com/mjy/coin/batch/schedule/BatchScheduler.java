@@ -15,18 +15,33 @@ public class BatchScheduler {
 
     private final JobLauncher jobLauncher;
     private final Job coinOrderJob;
+    private final Job redisToMysqlJob;
 
     @Autowired
-    public BatchScheduler(JobLauncher jobLauncher, @Qualifier("coinOrderJob") Job orderJob) {
+    public BatchScheduler(JobLauncher jobLauncher,
+                          @Qualifier("coinOrderJob") Job coinOrderJob,
+                          @Qualifier("redisToMysqlJob") Job redisToMysqlJob) {
         this.jobLauncher = jobLauncher;
-        this.coinOrderJob = orderJob;
+        this.coinOrderJob = coinOrderJob;
+        this.redisToMysqlJob = redisToMysqlJob;
     }
 
-    @Scheduled(fixedRate = 86400000) // 1일 단위
-    public void runOrderJob() {
+    @Scheduled(cron = "0 0 2 * * ?") // 매일 오전 2시에 실행
+    public void runCoinOrderJob() {
         try {
             jobLauncher.run(coinOrderJob, new JobParametersBuilder()
-                    .addLong("run.id", System.currentTimeMillis()) // 매번 새로운 파라미터 추가하여 job 재실행 가능하게 함
+                    .addLong("run.id", System.currentTimeMillis())
+                    .toJobParameters());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Scheduled(fixedRate = 60000) // 1분마다 실행
+    public void runRedisToMysqlJob() {
+        try {
+            jobLauncher.run(redisToMysqlJob, new JobParametersBuilder()
+                    .addLong("run.id", System.currentTimeMillis())
                     .toJobParameters());
         } catch (Exception e) {
             e.printStackTrace();
