@@ -1,0 +1,31 @@
+server:
+  port: 8082
+
+spring:
+  profiles:
+    active: dev
+
+  devtools:
+    livereload:
+      enabled: true
+    restart:
+      enabled: true
+
+  exchange:
+    slave:
+      datasource:
+        hikari:
+          jdbc-url: jdbc:mysql://localhost:14306/Exchange
+          username: root
+          password: 1234
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics, prometheus
