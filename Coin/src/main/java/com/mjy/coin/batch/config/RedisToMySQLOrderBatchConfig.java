@@ -22,7 +22,7 @@ import java.util.Map;
 
 @Configuration
 public class RedisToMySQLOrderBatchConfig {
-    @Bean
+    @Bean(name = "redisToMysqlJob")
     public Job redisToMysqlJob(@Qualifier("JobRepository") JobRepository jobRepository,
                                PlatformTransactionManager transactionManager,
                                RedisToMySQLOrderProcessor processor,

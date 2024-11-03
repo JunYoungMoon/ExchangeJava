@@ -9,7 +9,8 @@ spring:
     jdbc:
       initialize-schema: always
     job:
-      name: coinOrderJob
+      enabled: false
+  #      name: coinOrderJob
 
   profiles:
     active: dev

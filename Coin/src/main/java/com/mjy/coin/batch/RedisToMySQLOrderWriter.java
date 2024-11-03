@@ -37,10 +37,10 @@ public class RedisToMySQLOrderWriter implements ItemWriter<CoinOrderDTO> {
             itemList.add(item);
         }
 
-//        masterCoinOrderRepository.saveAll(CoinOrderMapper.toEntityList(itemList));
+        masterCoinOrderRepository.saveAll(CoinOrderMapper.toEntityList(itemList));
 
-//        for (CoinOrderDTO item : items) {
-//            redisService.deleteHashOps("COMPLETED:ORDER:" + redisKey, item.getUuid());
-//        }
+        for (CoinOrderDTO item : items) {
+            redisService.deleteHashOps("COMPLETED:ORDER:" + redisKey, item.getUuid());
+        }
     }
 }

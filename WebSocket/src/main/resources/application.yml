@@ -29,3 +29,10 @@ management:
     web:
       exposure:
         include: health, info, metrics, prometheus
+
+
+jwt:
+  secret: yVKaYUnumwN8sALxPE7Hkae9F/OOJqRZqlaBBcW9vvw= # 32바이트 Base64 인코딩 비밀 키
+  expiration:
+    access: 43200000 #1000 * 60 * 60 * 12(12시간)
+    refresh: 172800000 #1000 * 60 * 60 * 48(48시간)

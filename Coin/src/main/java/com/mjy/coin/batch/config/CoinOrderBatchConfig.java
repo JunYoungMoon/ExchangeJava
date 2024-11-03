@@ -37,7 +37,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @Configuration
 public class CoinOrderBatchConfig {
-    @Bean
+    @Bean(name = "coinOrderJob")
     public Job coinOrderJob(@Qualifier("JobRepository") JobRepository jobRepository,
                             Step checkDataStep,
                             Step partitionStep,

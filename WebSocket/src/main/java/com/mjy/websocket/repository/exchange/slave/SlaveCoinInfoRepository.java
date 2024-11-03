@@ -1,6 +1,6 @@
 package com.mjy.websocket.repository.exchange.slave;
 
-import com.mjy.coin.entity.exchange.CoinInfo;
+import com.mjy.websocket.entity.exchange.CoinInfo;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
