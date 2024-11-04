@@ -5,13 +5,23 @@ import io.jsonwebtoken.Claims;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
+import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import java.security.Principal;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Component
 public class OrderPreHandler implements ChannelInterceptor {
@@ -26,7 +36,7 @@ public class OrderPreHandler implements ChannelInterceptor {
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(message);
 
-        // 예: 특정 주제에 대해서만 동작
+//         예: 특정 주제에 대해서만 동작
         if (headerAccessor.getDestination() != null && headerAccessor.getDestination().startsWith("/topic/coin/BTC-KRW/order")) {
             List<String> authorizationHeaders = headerAccessor.getNativeHeader("Authorization");
 

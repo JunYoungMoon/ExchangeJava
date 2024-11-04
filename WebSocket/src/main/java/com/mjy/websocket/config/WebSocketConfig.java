@@ -19,7 +19,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
-        config.enableSimpleBroker("/topic"); // 클라이언트에게 브로드캐스트할 주제
+        config.enableSimpleBroker("/topic","/user"); // 클라이언트에게 브로드캐스트할 주제
         config.setApplicationDestinationPrefixes("/app"); // 클라이언트가 메시지를 발행하는 접두사
     }
 
