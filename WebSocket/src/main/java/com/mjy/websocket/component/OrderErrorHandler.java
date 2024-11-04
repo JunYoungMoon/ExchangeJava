@@ -9,16 +9,6 @@ import org.springframework.web.socket.messaging.StompSubProtocolErrorHandler;
 public class OrderErrorHandler extends StompSubProtocolErrorHandler {
 
     @Override
-    protected Message<byte[]> handleInternal(StompHeaderAccessor errorHeaderAccessor, byte[] errorPayload, Throwable cause, StompHeaderAccessor clientHeaderAccessor) {
-        return super.handleInternal(errorHeaderAccessor, errorPayload, cause, clientHeaderAccessor);
-    }
-
-    @Override
-    public Message<byte[]> handleErrorMessageToClient(Message<byte[]> errorMessage) {
-        return super.handleErrorMessageToClient(errorMessage);
-    }
-
-    @Override
     public Message<byte[]> handleClientMessageProcessingError(Message<byte[]> clientMessage, Throwable ex) {
         return super.handleClientMessageProcessingError(clientMessage, ex);
     }

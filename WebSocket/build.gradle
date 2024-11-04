@@ -30,6 +30,7 @@ dependencies {
 	implementation 'org.springframework.kafka:spring-kafka'
 	implementation 'org.apache.kafka:kafka-clients'
 	implementation 'com.bucket4j:bucket4j-redis:8.7.0'
+	runtimeOnly 'mysql:mysql-connector-java:8.0.30'
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'

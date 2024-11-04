@@ -9,6 +9,10 @@ import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.stereotype.Component;
 
+import java.security.Principal;
+import java.util.List;
+import java.util.Objects;
+
 @Component
 public class OrderPreHandler implements ChannelInterceptor {
 
@@ -22,19 +26,30 @@ public class OrderPreHandler implements ChannelInterceptor {
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(message);
 
-        // 헤더 토큰 얻기
-        String authorizationHeader = String.valueOf(headerAccessor.getNativeHeader("Authorization"));
+        // 예: 특정 주제에 대해서만 동작
+        if (headerAccessor.getDestination() != null && headerAccessor.getDestination().startsWith("/topic/coin/BTC-KRW/order")) {
+            List<String> authorizationHeaders = headerAccessor.getNativeHeader("Authorization");
 
-        if(authorizationHeader == null || authorizationHeader.equals("null")){
-            throw new MessageDeliveryException("메세지 예외");
+            String authorizationHeader = Objects.requireNonNull(authorizationHeaders).get(0);
+
+            if(authorizationHeader == null || authorizationHeader.equals("null")){
+                throw new MessageDeliveryException("메세지 예외");
+            }
+
+            String token = authorizationHeader.substring(BEARER_PREFIX.length());
+
+            jwtTokenService.validateToken(token);
+            Claims claims = jwtTokenService.parseClaims(token);
+            String tokenType = claims.get("tokenType", String.class);
+
+            // 세션에 사용자 ID나 필요한 정보를 저장
+            // 또는 사용자 ID
+            headerAccessor.setUser(claims::getSubject);
+
+            return ChannelInterceptor.super.preSend(message, channel);
         }
 
-        String token = authorizationHeader.substring(BEARER_PREFIX.length());
+        return message;
 
-        jwtTokenService.validateToken(token);
-        Claims claims = jwtTokenService.parseClaims(token);
-        String tokenType = claims.get("tokenType", String.class);
-
-        return ChannelInterceptor.super.preSend(message, channel);
     }
 }

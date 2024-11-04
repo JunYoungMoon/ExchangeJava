@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
+import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
@@ -24,9 +25,13 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
+        // 권한이 필요한 엔드포인트
         registry.addEndpoint("/ws")
                 .setAllowedOriginPatterns("*");
-//        registry.addEndpoint("/ws").setAllowedOrigins("*").withSockJS();
+
+        // 권한이 필요 없는 엔드포인트
+        registry.addEndpoint("/public-ws")
+                .setAllowedOriginPatterns("*");
     }
 
     @Override

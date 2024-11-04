@@ -36,7 +36,7 @@ public class ExchangeSlaveDataSourceConfig {
             @Qualifier("exchangeSlaveDataSource") DataSource dataSource) {
         return builder
                 .dataSource(dataSource)
-                .packages("com.mjy.coin.entity.exchange")
+                .packages("com.mjy.websocket.entity.exchange")
                 .persistenceUnit("slave")
                 .build();
     }
