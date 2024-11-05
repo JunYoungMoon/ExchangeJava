@@ -80,7 +80,10 @@ public class InitialDataController {
         Random random = new Random();
 
         CoinOrderDTO coinOrderDto = new CoinOrderDTO();
-        coinOrderDto.setMemberId(random.nextBoolean() ? 1L : 2L);
+
+        boolean nextBoolean = random.nextBoolean();
+        coinOrderDto.setMemberIdx(nextBoolean ? 1L : 2L);
+        coinOrderDto.setMemberUuid(nextBoolean ? "2b005552-ee2b-4851-8857-6e595800395d" : "cfccbb28-f07d-4e7c-8bd2-4cbd720aceab");
         coinOrderDto.setMarketName("KRW");
 
 //            String randomCoinName = random.nextBoolean() ? "BTC" : "ETH";

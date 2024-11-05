@@ -14,7 +14,8 @@ public class CoinOrderMapper {
             entity.setIdx(dto.getIdx());
         }
 
-        entity.setMemberId(dto.getMemberId());
+        entity.setMemberIdx(dto.getMemberIdx());
+        entity.setMemberUuid(dto.getMemberUuid());
         entity.setCoinName(dto.getCoinName());
         entity.setMarketName(dto.getMarketName());
         entity.setOrderType(dto.getOrderType());
@@ -33,7 +34,8 @@ public class CoinOrderMapper {
     public static CoinOrderDTO fromEntity(CoinOrder entity) {
         return new CoinOrderDTO(
                 entity.getIdx(),
-                entity.getMemberId(),
+                entity.getMemberIdx(),
+                entity.getMemberUuid(),
                 entity.getMarketName(),
                 entity.getCoinName(),
                 entity.getCoinAmount(),

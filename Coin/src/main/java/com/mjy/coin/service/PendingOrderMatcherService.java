@@ -8,7 +8,6 @@ import com.mjy.coin.repository.coin.master.MasterCoinOrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -24,19 +23,19 @@ public class PendingOrderMatcherService {
     private final MasterCoinOrderRepository masterCoinOrderRepository;
     private final OrderBookService orderBookService;
     private final RedisService redisService;
-    private final KafkaTemplate<String, List<CoinOrderDTO>> coinOrderListKafkaTemplate;
+    private final KafkaTemplate<String, List<CoinOrderDTO>> matchListKafkaTemplate;
     private final KafkaTemplate<String, Map<String, List<PriceVolumeDTO>>> priceVolumeMapKafkaTemplate;
 
     @Autowired
     public PendingOrderMatcherService(MasterCoinOrderRepository masterCoinOrderRepository,
                                       OrderBookService orderBookService,
                                       RedisService redisService,
-                                      @Qualifier("coinOrderListKafkaTemplate") KafkaTemplate<String, List<CoinOrderDTO>> coinOrderListKafkaTemplate,
+                                      @Qualifier("matchListKafkaTemplate") KafkaTemplate<String, List<CoinOrderDTO>> matchListKafkaTemplate,
                                       @Qualifier("priceVolumeMapKafkaTemplate") KafkaTemplate<String, Map<String, List<PriceVolumeDTO>>> priceVolumeMapKafkaTemplate) {
         this.masterCoinOrderRepository = masterCoinOrderRepository;
         this.orderBookService = orderBookService;
         this.redisService = redisService;
-        this.coinOrderListKafkaTemplate = coinOrderListKafkaTemplate;
+        this.matchListKafkaTemplate = matchListKafkaTemplate;
         this.priceVolumeMapKafkaTemplate = priceVolumeMapKafkaTemplate;
     }
 
@@ -75,8 +74,8 @@ public class PendingOrderMatcherService {
         PriorityQueue<CoinOrderDTO> sellOrders = sellOrderQueues.get(key);
 
         if (buyOrders != null && sellOrders != null) {
-//            List<CoinOrderDTO> matchList = new ArrayList<>();
-//            List<PriceVolumeDTO> priceVolumeList = new ArrayList<>();
+            List<CoinOrderDTO> matchList = new ArrayList<>();
+            List<PriceVolumeDTO> priceVolumeList = new ArrayList<>();
 
             while (!buyOrders.isEmpty() && !sellOrders.isEmpty()) {
                 CoinOrderDTO buyOrder = buyOrders.peek();
@@ -135,10 +134,10 @@ public class PendingOrderMatcherService {
                         orderBookService.updateOrderBook(key, buyOrder, true, false);
                         orderBookService.updateOrderBook(key, sellOrder, false, false);
 
-//                        //체결 완료 된 데이터를 쌓아서 kafka로 전달할 list
-//                        priceVolumeList.add(new PriceVolumeDTO(buyOrder));
-//                        matchList.add(new CoinOrderDTO(buyOrder));
-//                        matchList.add(new CoinOrderDTO(sellOrder));
+                        //체결 완료 된 데이터를 쌓아서 kafka로 전달할 list
+                        priceVolumeList.add(new PriceVolumeDTO(buyOrder));
+                        matchList.add(new CoinOrderDTO(buyOrder));
+                        matchList.add(new CoinOrderDTO(sellOrder));
                     } else if (remainingQuantity.compareTo(BigDecimal.ZERO) > 0) {
                         // 매수량이 매도량을 초과
                         // 매수는 일부 남고 매도는 모두 체결
@@ -197,11 +196,11 @@ public class PendingOrderMatcherService {
                         buyOrder.setMatchIdx(previousUUID + "|" + sellOrder.getUuid());
                         redisService.deleteHashOps(PENDING + ":ORDER:" + key, buyOrder.getUuid());
                         redisService.insertOrderInRedis(key, COMPLETED, buyOrder);
-//
-//                        //체결 완료 된 데이터를 쌓아서 kafka로 전달할 list
-//                        priceVolumeList.add(new PriceVolumeDTO(sellOrder));
-//                        matchList.add(new CoinOrderDTO(buyOrder));
-//                        matchList.add(new CoinOrderDTO(sellOrder));
+
+                        //체결 완료 된 데이터를 쌓아서 kafka로 전달할 list
+                        priceVolumeList.add(new PriceVolumeDTO(sellOrder));
+                        matchList.add(new CoinOrderDTO(buyOrder));
+                        matchList.add(new CoinOrderDTO(sellOrder));
                         //////////////////////////////////끝////////////////////////////////////
 
                         // 이미 미체결을 넣어줬기 때문에 체결 되었으니 호가 리스트 제거(가격만 구분하고 수량 차감은 같이 한다.)
@@ -279,16 +278,16 @@ public class PendingOrderMatcherService {
                         String previousUUID = sellOrder.getUuid();
 
                         // 2. 새로운 BuyOrder 생성
-                        String uuid = sellOrder.getMatchIdx() + "_" + UUID.randomUUID();
+                        String uuid = sellOrder.getMemberIdx() + "_" + UUID.randomUUID();
                         sellOrder.setUuid(uuid);
                         sellOrder.setMatchIdx(previousUUID + "|" + sellOrder.getUuid());
                         redisService.deleteHashOps(PENDING + ":ORDER:" + key, sellOrder.getUuid());
                         redisService.insertOrderInRedis(key, COMPLETED, sellOrder);
 
                         //체결 완료 된 데이터를 쌓아서 kafka로 전달할 list
-//                        priceVolumeList.add(new PriceVolumeDTO(buyOrder));
-//                        matchList.add(new CoinOrderDTO(buyOrder));
-//                        matchList.add(new CoinOrderDTO(sellOrder));
+                        priceVolumeList.add(new PriceVolumeDTO(buyOrder));
+                        matchList.add(new CoinOrderDTO(buyOrder));
+                        matchList.add(new CoinOrderDTO(sellOrder));
                         //////////////////////////////////끝////////////////////////////////////
 
                         // 이미 미체결을 넣어줬기 때문에 체결 되었으니 호가 리스트 제거(가격만 구분하고 수량 차감은 같이 한다.)
@@ -319,17 +318,17 @@ public class PendingOrderMatcherService {
                 }
             }
 
-//            //반복하는 동안 쌓인 가격과 볼륨 리스트 kafka로 전달(실시간 차트에서 사용)
-//            if (!priceVolumeList.isEmpty()) {
-//                Map<String, List<PriceVolumeDTO>> priceVolumeMap = new HashMap<>();
-//                priceVolumeMap.put(key, priceVolumeList);
-//                priceVolumeMapKafkaTemplate.send("Price-Volume", priceVolumeMap);
-//            }
-//
-//            //반복하는 동안 쌓인 완료 주문 리스트 kafka로 전달(redis에서 mysql로 이동하기 위해 사용)
-//            if (!matchList.isEmpty()) {
-//                coinOrderListKafkaTemplate.send("Order-Completed", matchList);
-//            }
+            //반복하는 동안 쌓인 가격과 볼륨 리스트 kafka로 전달(실시간 차트에서 사용)
+            if (!priceVolumeList.isEmpty()) {
+                Map<String, List<PriceVolumeDTO>> priceVolumeMap = new HashMap<>();
+                priceVolumeMap.put(key, priceVolumeList);
+                priceVolumeMapKafkaTemplate.send("Price-Volume", priceVolumeMap);
+            }
+
+            //반복하는 동안 쌓인 완료 주문 리스트 kafka로 전달(웹소켓을 통해 완료 리스트를 사용자에게 전달하기 위함)
+            if (!matchList.isEmpty()) {
+                matchListKafkaTemplate.send("Match-List", matchList);
+            }
         }
     }
 }

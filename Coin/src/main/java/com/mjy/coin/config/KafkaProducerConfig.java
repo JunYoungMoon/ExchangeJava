@@ -27,7 +27,7 @@ public class KafkaProducerConfig {
     }
 
     @Bean
-    public ProducerFactory<String, List<CoinOrderDTO>> coinOrderListProducerFactory() {
+    public ProducerFactory<String, List<CoinOrderDTO>> matchListProducerFactory() {
         Map<String, Object> config = new HashMap<>();
         config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
 
@@ -44,9 +44,9 @@ public class KafkaProducerConfig {
 //        return new DefaultKafkaProducerFactory<>(config);
     }
 
-    @Bean(name = "coinOrderListKafkaTemplate")
-    public KafkaTemplate<String, List<CoinOrderDTO>> coinOrderListKafkaTemplate() {
-        return new KafkaTemplate<>(coinOrderListProducerFactory());
+    @Bean(name = "matchListKafkaTemplate")
+    public KafkaTemplate<String, List<CoinOrderDTO>> matchListKafkaTemplate() {
+        return new KafkaTemplate<>(matchListProducerFactory());
     }
 
 

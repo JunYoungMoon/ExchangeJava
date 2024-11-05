@@ -25,7 +25,7 @@ public class CoinOrder {
     private Long memberIdx; // 주문 등록인, member_idx
 
     @Column(nullable = false)
-    private Long memberUuid; // 주문 등록인, member_uuid
+    private String memberUuid; // 주문 등록인, member_uuid
 
     @Column(nullable = false)
     private String marketName; // 예: KRW

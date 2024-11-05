@@ -88,4 +88,25 @@ public class CoinOrderDTO {
         this.matchIdx = order.matchIdx;
         this.uuid = order.uuid;
     }
+
+    @Override
+    public String toString() {
+        return "CoinOrderDTO{" +
+                "idx=" + idx +
+                ", memberIdx=" + memberIdx +
+                ", memberUuid='" + memberUuid + '\'' +
+                ", marketName='" + marketName + '\'' +
+                ", coinName='" + coinName + '\'' +
+                ", coinAmount=" + coinAmount +
+                ", orderPrice=" + orderPrice +
+                ", executionPrice=" + executionPrice +
+                ", orderType=" + orderType +
+                ", orderStatus=" + orderStatus +
+                ", fee=" + fee +
+                ", createdAt=" + createdAt +
+                ", matchedAt=" + matchedAt +
+                ", matchIdx='" + matchIdx + '\'' +
+                ", uuid='" + uuid + '\'' +
+                '}';
+    }
 }

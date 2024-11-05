@@ -1,6 +1,5 @@
 package com.mjy.coin.component;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.mjy.coin.enums.OrderType;
 import com.mjy.coin.dto.CoinOrderDTO;
 import com.mjy.coin.service.*;
