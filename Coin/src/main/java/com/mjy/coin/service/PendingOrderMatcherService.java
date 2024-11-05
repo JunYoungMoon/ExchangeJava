@@ -192,7 +192,7 @@ public class PendingOrderMatcherService {
                         String previousUUID = buyOrder.getUuid();
 
                         // 2. 새로운 BuyOrder 생성
-                        String uuid = buyOrder.getMemberId() + "_" + UUID.randomUUID();
+                        String uuid = buyOrder.getMemberIdx() + "_" + UUID.randomUUID();
                         buyOrder.setUuid(uuid);
                         buyOrder.setMatchIdx(previousUUID + "|" + sellOrder.getUuid());
                         redisService.deleteHashOps(PENDING + ":ORDER:" + key, buyOrder.getUuid());
@@ -279,7 +279,7 @@ public class PendingOrderMatcherService {
                         String previousUUID = sellOrder.getUuid();
 
                         // 2. 새로운 BuyOrder 생성
-                        String uuid = sellOrder.getMemberId() + "_" + UUID.randomUUID();
+                        String uuid = sellOrder.getMatchIdx() + "_" + UUID.randomUUID();
                         sellOrder.setUuid(uuid);
                         sellOrder.setMatchIdx(previousUUID + "|" + sellOrder.getUuid());
                         redisService.deleteHashOps(PENDING + ":ORDER:" + key, sellOrder.getUuid());

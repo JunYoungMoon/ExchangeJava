@@ -97,7 +97,11 @@ public class CoinOrderProducerIntegrationTest {
         for (int i = 0; i < orderCount; i++) {
             // BTC 주문 생성
             CoinOrder coinOrder4 = new CoinOrder();
-            coinOrder4.setMemberId(random.nextBoolean() ? 1L : 2L);
+
+
+            boolean nextBoolean = random.nextBoolean();
+            coinOrder4.setMemberIdx(nextBoolean ? 1L : 2L);
+            coinOrder4.setMemberUuid(nextBoolean ? "2b005552-ee2b-4851-8857-6e595800395d" : "cfccbb28-f07d-4e7c-8bd2-4cbd720aceab");
             coinOrder4.setMarketName("KRW");
 
 //            String randomCoinName = random.nextBoolean() ? "BTC" : "ETH";

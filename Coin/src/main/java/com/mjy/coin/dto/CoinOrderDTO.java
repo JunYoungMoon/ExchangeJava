@@ -15,7 +15,8 @@ import java.time.LocalDateTime;
 @Setter
 public class CoinOrderDTO {
     private Long idx; // 주문 ID
-    private Long memberId; // 주문 등록인, member_id
+    private Long memberIdx; // 주문 등록인, member_idx
+    private String memberUuid; // 주문 등록인, member_uuid
     private String marketName; // 예: KRW
     private String coinName; // 예: BTC
     private BigDecimal coinAmount; // 매수/매도 코인 개수
@@ -37,7 +38,8 @@ public class CoinOrderDTO {
     @JsonCreator // JSON 역직렬화를 위한 생성자
     public CoinOrderDTO(
             @JsonProperty("idx") Long idx,
-            @JsonProperty("memberId") Long memberId,
+            @JsonProperty("memberIdx") Long memberIdx,
+            @JsonProperty("memberUuid") String memberUuid,
             @JsonProperty("marketName") String marketName,
             @JsonProperty("coinName") String coinName,
             @JsonProperty("coinAmount") BigDecimal coinAmount,
@@ -52,7 +54,8 @@ public class CoinOrderDTO {
             @JsonProperty("uuid") String uuid
     ) {
         this.idx = idx;
-        this.memberId = memberId;
+        this.memberIdx = memberIdx;
+        this.memberUuid = memberUuid;
         this.marketName = marketName;
         this.coinName = coinName;
         this.coinAmount = coinAmount;
@@ -70,7 +73,8 @@ public class CoinOrderDTO {
     // 복사 생성자
     public CoinOrderDTO(CoinOrderDTO order) {
         this.idx = order.idx;
-        this.memberId = order.memberId;
+        this.memberIdx = order.memberIdx;
+        this.memberUuid = order.memberUuid;
         this.marketName = order.marketName;
         this.coinName = order.coinName;
         this.coinAmount = order.coinAmount;
@@ -83,25 +87,5 @@ public class CoinOrderDTO {
         this.matchedAt = order.matchedAt;
         this.matchIdx = order.matchIdx;
         this.uuid = order.uuid;
-    }
-
-    @Override
-    public String toString() {
-        return "CoinOrderDTO{" +
-                "idx=" + idx +
-                ", memberId=" + memberId +
-                ", marketName='" + marketName + '\'' +
-                ", coinName='" + coinName + '\'' +
-                ", coinAmount=" + coinAmount +
-                ", orderPrice=" + orderPrice +
-                ", orderType=" + orderType +
-                ", orderStatus=" + orderStatus +
-                ", fee=" + fee +
-                ", createdAt=" + createdAt +
-                ", matchedAt=" + matchedAt +
-                ", matchedOrderIdx=" + matchIdx +
-                ", executionPrice=" + executionPrice +
-                ", uuid=" + uuid +
-                '}';
     }
 }

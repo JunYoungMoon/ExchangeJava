@@ -37,7 +37,7 @@ public class PendingOrderProcessorService {
         String key = order.getCoinName() + "-" + order.getMarketName();
 
         // Order ID 생성: UUID를 사용하여 고유한 주문 ID 생성
-        String uuid = order.getMemberId() + "_" + UUID.randomUUID();
+        String uuid = order.getMatchIdx() + "_" + UUID.randomUUID();
 
         order.setUuid(uuid);
 

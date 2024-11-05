@@ -11,7 +11,8 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 public class CoinOrder {
-    private Long memberId; // 주문 등록인, member_id
+    private Long memberIdx; // 주문 등록인, memberIdx
+    private String memberUuid; // 주문 등록인, memberUuid
     private String marketName; // 예: KRW
     private String coinName; // 예: BTC
     private BigDecimal coinAmount; // 매수/매도 코인 개수

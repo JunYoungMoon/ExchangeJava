@@ -22,7 +22,10 @@ public class CoinOrder {
     private Long idx; // 주문 ID
 
     @Column(nullable = false)
-    private Long memberId; // 주문 등록인, member_id
+    private Long memberIdx; // 주문 등록인, member_idx
+
+    @Column(nullable = false)
+    private Long memberUuid; // 주문 등록인, member_uuid
 
     @Column(nullable = false)
     private String marketName; // 예: KRW
@@ -60,22 +63,4 @@ public class CoinOrder {
 
     @Column
     private LocalDateTime matchedAt; // 체결일자
-
-    @Override
-    public String toString() {
-        return "CoinOrder{" +
-                "idx=" + idx +
-                ", memberId=" + memberId +
-                ", marketName='" + marketName + '\'' +
-                ", coinName='" + coinName + '\'' +
-                ", orderType=" + orderType +
-                ", coinAmount=" + coinAmount +
-                ", orderPrice=" + orderPrice +
-                ", orderStatus=" + orderStatus +
-                ", fee=" + fee +
-                ", matchedOrderIdx=" + matchIdx +
-                ", createdAt=" + createdAt +
-                ", matchedAt=" + matchedAt +
-                '}';
-    }
 }

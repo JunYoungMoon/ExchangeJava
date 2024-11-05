@@ -139,7 +139,8 @@ public class RedisService {
             orderDataMap.put("orderType", String.valueOf(order.getOrderType()));
             orderDataMap.put("fee", String.valueOf(order.getFee()));
             orderDataMap.put("createdAt", String.valueOf(LocalDateTime.now()));
-            orderDataMap.put("memberId", String.valueOf(order.getMemberId()));
+            orderDataMap.put("memberIdx", String.valueOf(order.getMemberIdx()));
+            orderDataMap.put("memberUuid", String.valueOf(order.getMemberUuid()));
             orderDataMap.put("orderStatus", String.valueOf(order.getOrderStatus()));
 
             if (orderStatus == PENDING) {
