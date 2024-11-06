@@ -5,6 +5,7 @@ services:
   shard1-krw-major-master:
     image: mysql:8.0.30
     restart: unless-stopped
+    container_name: shard1-krw-major-master
     command: --server-id=3 --log-bin=mysql-bin --gtid-mode=ON --enforce-gtid-consistency=true
     environment:
       MYSQL_ROOT_PASSWORD: 1234
@@ -23,6 +24,7 @@ services:
   shard1-krw-major-slave:
     image: mysql:8.0.30
     restart: unless-stopped
+    container_name: shard1-krw-major-slave
     command: --server-id=4 --log-bin=mysql-bin --gtid-mode=ON --enforce-gtid-consistency=true
     environment:
       MYSQL_ROOT_PASSWORD: 1234
@@ -40,6 +42,7 @@ services:
   shard2-krw-minor-master:
     image: mysql:8.0.30
     restart: unless-stopped
+    container_name: shard2-krw-minor-master
     command: --server-id=5 --log-bin=mysql-bin --gtid-mode=ON --enforce-gtid-consistency=true
     environment:
       MYSQL_ROOT_PASSWORD: 1234
@@ -58,6 +61,7 @@ services:
   shard2-krw-minor-slave:
     image: mysql:8.0.30
     restart: unless-stopped
+    container_name: shard2-krw-minor-slave
     command: --server-id=6 --log-bin=mysql-bin --gtid-mode=ON --enforce-gtid-consistency=true
     environment:
       MYSQL_ROOT_PASSWORD: 1234
@@ -75,6 +79,7 @@ services:
   exchange-master:
     image: mysql:8.0.30
     restart: unless-stopped
+    container_name: exchange-master
     command: --server-id=1 --log-bin=mysql-bin --gtid-mode=ON --enforce-gtid-consistency=true
     environment:
       MYSQL_ROOT_PASSWORD: 1234
@@ -93,6 +98,7 @@ services:
   exchange-slave:
     image: mysql:8.0.30
     restart: unless-stopped
+    container_name: exchange-slave
     command: --server-id=2 --log-bin=mysql-bin --gtid-mode=ON --enforce-gtid-consistency=true
     environment:
       MYSQL_ROOT_PASSWORD: 1234
@@ -109,6 +115,7 @@ services:
   redis:
     image: redis:latest
     restart: unless-stopped
+    container_name: redis
     volumes:
       - ./db/redis-data:/data
       - ./config/redis/redis.conf:/etc/redis/redis.conf
@@ -118,6 +125,7 @@ services:
 
   zookeeper:
     image: wurstmeister/zookeeper:latest
+    container_name: zookeeper
     restart: unless-stopped
     ports:
       - "2181:2181"
@@ -125,6 +133,7 @@ services:
   kafka:
     image: wurstmeister/kafka:latest
     restart: unless-stopped
+    container_name: kafka
     ports:
       - "9092:9092"
     environment:
@@ -143,7 +152,7 @@ services:
     ports:
       - "9090:9090"
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./config/yml/prometheus.yml:/etc/prometheus/prometheus.yml
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
@@ -160,7 +169,7 @@ services:
     container_name: promtail
     volumes:
       - ./logs:/logs
-      - ./promtail-config.yml:/etc/promtail/config.yml
+      - ./config/yml/promtail.yml:/etc/promtail/config.yml
 
   grafana:
     image: grafana/grafana:latest
@@ -171,6 +180,8 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=admin
     ports:
       - "3000:3000"
+    volumes:
+      - ./db/grafana-data:/var/lib/grafana
 
   controller:
     image: ngrinder/controller:latest

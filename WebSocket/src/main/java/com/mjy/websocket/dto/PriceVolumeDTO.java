@@ -26,4 +26,12 @@ public class PriceVolumeDTO {
         this.price = order.getExecutionPrice();
         this.volume = order.getCoinAmount();
     }
+
+    @Override
+    public String toString() {
+        return "PriceVolumeDTO{" +
+                "price=" + price +
+                ", volume=" + volume +
+                '}';
+    }
 }

@@ -23,14 +23,14 @@ public class PendingOrderMatcherService {
     private final MasterCoinOrderRepository masterCoinOrderRepository;
     private final OrderBookService orderBookService;
     private final RedisService redisService;
-    private final KafkaTemplate<String, List<CoinOrderDTO>> matchListKafkaTemplate;
+    private final KafkaTemplate<String, Map<String, List<CoinOrderDTO>>> matchListKafkaTemplate;
     private final KafkaTemplate<String, Map<String, List<PriceVolumeDTO>>> priceVolumeMapKafkaTemplate;
 
     @Autowired
     public PendingOrderMatcherService(MasterCoinOrderRepository masterCoinOrderRepository,
                                       OrderBookService orderBookService,
                                       RedisService redisService,
-                                      @Qualifier("matchListKafkaTemplate") KafkaTemplate<String, List<CoinOrderDTO>> matchListKafkaTemplate,
+                                      @Qualifier("matchListKafkaTemplate") KafkaTemplate<String, Map<String, List<CoinOrderDTO>>> matchListKafkaTemplate,
                                       @Qualifier("priceVolumeMapKafkaTemplate") KafkaTemplate<String, Map<String, List<PriceVolumeDTO>>> priceVolumeMapKafkaTemplate) {
         this.masterCoinOrderRepository = masterCoinOrderRepository;
         this.orderBookService = orderBookService;
@@ -327,7 +327,9 @@ public class PendingOrderMatcherService {
 
             //반복하는 동안 쌓인 완료 주문 리스트 kafka로 전달(웹소켓을 통해 완료 리스트를 사용자에게 전달하기 위함)
             if (!matchList.isEmpty()) {
-                matchListKafkaTemplate.send("Match-List", matchList);
+                Map<String, List<CoinOrderDTO>> matchListeMap = new HashMap<>();
+                matchListeMap.put(key, matchList);
+                matchListKafkaTemplate.send("Match-List", matchListeMap);
             }
         }
     }

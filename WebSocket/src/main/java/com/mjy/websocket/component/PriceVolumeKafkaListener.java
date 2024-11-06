@@ -18,9 +18,14 @@ public class PriceVolumeKafkaListener {
 
     @KafkaListener(topics = "Price-Volume", groupId = "coinOrderGroup", containerFactory = "priceVolumeMapKafkaListenerContainerFactory")
     public void listen(Map<String, List<PriceVolumeDTO>> priceVolumeMap) {
-        String key = "BTC-KRW"; //임시로 지정 전달받는 값으로 설정필요
+        for (Map.Entry<String, List<PriceVolumeDTO>> entry : priceVolumeMap.entrySet()) {
+            String key = entry.getKey();
+            List<PriceVolumeDTO> priceVolumeList = entry.getValue();
 
-        System.out.println(priceVolumeMap);
-        messagingTemplate.convertAndSend("/topic/coin/" + key + "/chart", priceVolumeMap);
+            for (PriceVolumeDTO priceVolumeDTO : priceVolumeList) {
+                System.out.println("Sending data for key: " + key + " - " + priceVolumeDTO);
+                messagingTemplate.convertAndSend("/topic/coin/" + key + "/chart", priceVolumeDTO);
+            }
+        }
     }
 }

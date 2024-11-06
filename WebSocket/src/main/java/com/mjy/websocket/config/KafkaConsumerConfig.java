@@ -27,7 +27,7 @@ public class KafkaConsumerConfig {
     }
 
     @Bean
-    public ConsumerFactory<String, List<CoinOrderDTO>> matchListConsumerFactory() {
+    public ConsumerFactory<String, Map<String, List<CoinOrderDTO>>> matchListConsumerFactory() {
         Map<String, Object> config = new HashMap<>();
         config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
         config.put(ConsumerConfig.GROUP_ID_CONFIG, "coinOrderGroup");
@@ -39,8 +39,8 @@ public class KafkaConsumerConfig {
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, List<CoinOrderDTO>> matchListKafkaListenerContainerFactory() {
-        ConcurrentKafkaListenerContainerFactory<String, List<CoinOrderDTO>> factory = new ConcurrentKafkaListenerContainerFactory<>();
+    public ConcurrentKafkaListenerContainerFactory<String, Map<String, List<CoinOrderDTO>>> matchListKafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, Map<String, List<CoinOrderDTO>>> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(matchListConsumerFactory());
         return factory;
     }
