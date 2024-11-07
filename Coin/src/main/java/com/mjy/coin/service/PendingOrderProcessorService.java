@@ -63,7 +63,7 @@ public class PendingOrderProcessorService {
                 priorityQueueManager.matchOrders(key);
 
             }
-
+//
 //            CoinOrder orderEntity = CoinOrderMapper.toEntity(order);
 //
 //            // DB에 이미 존재하는 주문인지 확인

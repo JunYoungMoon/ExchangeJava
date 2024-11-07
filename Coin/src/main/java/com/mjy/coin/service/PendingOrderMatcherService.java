@@ -115,13 +115,11 @@ public class PendingOrderMatcherService {
                         //////////////////////////////////시작////////////////////////////////////
                         // 1. BuyOrder 업데이트
                         buyOrder.setMatchIdx(buyOrder.getUuid() + "|" + sellOrder.getUuid());
-//                        redisService.updateOrderInRedis(buyOrder);
                         redisService.deleteHashOps(PENDING + ":ORDER:" + key, buyOrder.getUuid());
                         redisService.insertOrderInRedis(key, COMPLETED, buyOrder);
 
                         // 2. SellOrder 업데이트
                         sellOrder.setMatchIdx(buyOrder.getUuid() + "|" + sellOrder.getUuid());
-//                        redisService.updateOrderInRedis(sellOrder);
                         redisService.deleteHashOps(PENDING + ":ORDER:" + key, sellOrder.getUuid());
                         redisService.insertOrderInRedis(key, COMPLETED, sellOrder);
                         //////////////////////////////////끝////////////////////////////////////
@@ -162,7 +160,6 @@ public class PendingOrderMatcherService {
                         // 1. SellOrder 업데이트
                         sellOrder.setMatchIdx(buyOrder.getUuid() + "|" + sellOrder.getUuid());
 
-//                        redisService.updateOrderInRedis(sellOrder);
                         redisService.deleteHashOps(PENDING + ":ORDER:" + key, sellOrder.getUuid());
                         redisService.insertOrderInRedis(key, COMPLETED, sellOrder);
                         //////////////////////////////////끝////////////////////////////////////
@@ -249,7 +246,6 @@ public class PendingOrderMatcherService {
                         // 1. SellOrder 업데이트
                         buyOrder.setMatchIdx(buyOrder.getUuid() + "|" + sellOrder.getUuid());
 
-//                        redisService.updateOrderInRedis(buyOrder);
                         redisService.deleteHashOps(PENDING + ":ORDER:" + key, buyOrder.getUuid());
                         redisService.insertOrderInRedis(key, COMPLETED, buyOrder);
                         //////////////////////////////////끝////////////////////////////////////
@@ -303,9 +299,9 @@ public class PendingOrderMatcherService {
 //                        masterCoinOrderRepository.save(CoinOrderMapper.toEntity(sellOrder)); // 상태 업데이트
 
                         //////////////////////////////////시작////////////////////////////////////
-//                        // 3. BuyOrder 업데이트
+                        // 3. BuyOrder 업데이트
                         sellOrder.setUuid(previousUUID);
-//
+
                         redisService.updateOrderInRedis(sellOrder);
                         //////////////////////////////////끝////////////////////////////////////
 

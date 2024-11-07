@@ -39,41 +39,41 @@ services:
       - "16306:3306"
 
   # 샤드 2: KRW 마켓 기타 코인 체결 정보 (마스터)
-  shard2-krw-minor-master:
-    image: mysql:8.0.30
-    restart: unless-stopped
-    container_name: shard2-krw-minor-master
-    command: --server-id=5 --log-bin=mysql-bin --gtid-mode=ON --enforce-gtid-consistency=true
-    environment:
-      MYSQL_ROOT_PASSWORD: 1234
-    volumes:
-      - ./db/shard2-krw-minor-master-data:/var/lib/mysql
-      - ./config/mysql/shard2-krw-minor-master-my.cnf:/etc/mysql/conf.d/shard2-krw-minor-master-my.cnf
-      - ./scripts/mysql/shard2-krw-minor-master-init.sql:/docker-entrypoint-initdb.d/shard2-krw-minor-master-init.sql
-    ports:
-      - "17306:3306"
-    healthcheck:
-      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+#  shard2-krw-minor-master:
+#    image: mysql:8.0.30
+#    restart: unless-stopped
+#    container_name: shard2-krw-minor-master
+#    command: --server-id=5 --log-bin=mysql-bin --gtid-mode=ON --enforce-gtid-consistency=true
+#    environment:
+#      MYSQL_ROOT_PASSWORD: 1234
+#    volumes:
+#      - ./db/shard2-krw-minor-master-data:/var/lib/mysql
+#      - ./config/mysql/shard2-krw-minor-master-my.cnf:/etc/mysql/conf.d/shard2-krw-minor-master-my.cnf
+#      - ./scripts/mysql/shard2-krw-minor-master-init.sql:/docker-entrypoint-initdb.d/shard2-krw-minor-master-init.sql
+#    ports:
+#      - "17306:3306"
+#    healthcheck:
+#      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+#      interval: 10s
+#      timeout: 5s
+#      retries: 5
 
-  shard2-krw-minor-slave:
-    image: mysql:8.0.30
-    restart: unless-stopped
-    container_name: shard2-krw-minor-slave
-    command: --server-id=6 --log-bin=mysql-bin --gtid-mode=ON --enforce-gtid-consistency=true
-    environment:
-      MYSQL_ROOT_PASSWORD: 1234
-    depends_on:
-      shard2-krw-minor-master:
-        condition: service_healthy
-    volumes:
-      - ./db/shard2-krw-minor-slave-data:/var/lib/mysql
-      - ./config/mysql/shard2-krw-minor-slave-my.cnf:/etc/mysql/conf.d/shard2-krw-minor-slave-my.cnf
-      - ./scripts/mysql/shard2-krw-minor-slave-init.sql:/docker-entrypoint-initdb.d/shard2-krw-minor-slave-init.sql
-    ports:
-      - "18306:3306"
+#  shard2-krw-minor-slave:
+#    image: mysql:8.0.30
+#    restart: unless-stopped
+#    container_name: shard2-krw-minor-slave
+#    command: --server-id=6 --log-bin=mysql-bin --gtid-mode=ON --enforce-gtid-consistency=true
+#    environment:
+#      MYSQL_ROOT_PASSWORD: 1234
+#    depends_on:
+#      shard2-krw-minor-master:
+#        condition: service_healthy
+#    volumes:
+#      - ./db/shard2-krw-minor-slave-data:/var/lib/mysql
+#      - ./config/mysql/shard2-krw-minor-slave-my.cnf:/etc/mysql/conf.d/shard2-krw-minor-slave-my.cnf
+#      - ./scripts/mysql/shard2-krw-minor-slave-init.sql:/docker-entrypoint-initdb.d/shard2-krw-minor-slave-init.sql
+#    ports:
+#      - "18306:3306"
 
   # 회원 및 기타 정보 저장 DB
   exchange-master:
@@ -145,43 +145,43 @@ services:
     depends_on:
       - zookeeper
 
-  prometheus:
-    image: prom/prometheus:latest
-    restart: unless-stopped
-    container_name: prometheus
-    ports:
-      - "9090:9090"
-    volumes:
-      - ./config/yml/prometheus.yml:/etc/prometheus/prometheus.yml
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+#  prometheus:
+#    image: prom/prometheus:latest
+#    restart: unless-stopped
+#    container_name: prometheus
+#    ports:
+#      - "9090:9090"
+#    volumes:
+#      - ./config/yml/prometheus.yml:/etc/prometheus/prometheus.yml
+#    extra_hosts:
+#      - "host.docker.internal:host-gateway"
 
-  loki:
-    image: grafana/loki:latest
-    restart: unless-stopped
-    container_name: loki
-    ports:
-      - "3100:3100"
+#  loki:
+#    image: grafana/loki:latest
+#    restart: unless-stopped
+#    container_name: loki
+#    ports:
+#      - "3100:3100"
 
-  promtail:
-    image: grafana/promtail:latest
-    restart: unless-stopped
-    container_name: promtail
-    volumes:
-      - ./logs:/logs
-      - ./config/yml/promtail.yml:/etc/promtail/config.yml
+#  promtail:
+#    image: grafana/promtail:latest
+#    restart: unless-stopped
+#    container_name: promtail
+#    volumes:
+#      - ./logs:/logs
+#      - ./config/yml/promtail.yml:/etc/promtail/config.yml
 
-  grafana:
-    image: grafana/grafana:latest
-    restart: unless-stopped
-    container_name: grafana
-    environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-    ports:
-      - "3000:3000"
-    volumes:
-      - ./db/grafana-data:/var/lib/grafana
+#  grafana:
+#    image: grafana/grafana:latest
+#    restart: unless-stopped
+#    container_name: grafana
+#    environment:
+#      - GF_SECURITY_ADMIN_USER=admin
+#      - GF_SECURITY_ADMIN_PASSWORD=admin
+#    ports:
+#      - "3000:3000"
+#    volumes:
+#      - ./db/grafana-data:/var/lib/grafana
 
   controller:
     image: ngrinder/controller:latest
