@@ -4,6 +4,7 @@ import com.mjy.coin.batch.*;
 import com.mjy.coin.dto.CoinOrderDTO;
 import com.mjy.coin.repository.coin.master.MasterCoinOrderRepository;
 import com.mjy.coin.service.CoinInfoService;
+import com.mjy.coin.service.ConvertService;
 import com.mjy.coin.service.RedisService;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -25,10 +26,10 @@ public class RedisToMySQLOrderBatchConfig {
     @Bean(name = "redisToMysqlJob")
     public Job redisToMysqlJob(@Qualifier("JobRepository") JobRepository jobRepository,
                                PlatformTransactionManager transactionManager,
-                               RedisToMySQLOrderProcessor processor,
                                CoinInfoService coinInfoService,
                                RedisService redisService,
-                               MasterCoinOrderRepository masterCoinOrderRepository){
+                               MasterCoinOrderRepository masterCoinOrderRepository,
+                               ConvertService convertService){
 
         List<String> keys = coinInfoService.getCoinMarketKeys();
 
@@ -41,7 +42,7 @@ public class RedisToMySQLOrderBatchConfig {
             Step step = new StepBuilder("redisToMysqlStep" + key, jobRepository)
                     .<Map.Entry<String, String>, CoinOrderDTO>chunk(1000, transactionManager)
                     .reader(new RedisToMySQLOrderReader(redisService, key))
-                    .processor(processor)
+                    .processor(new RedisToMySQLOrderProcessor(convertService))
                     .writer(new RedisToMySQLOrderWriter(redisService, masterCoinOrderRepository, key))
                     .build();
 

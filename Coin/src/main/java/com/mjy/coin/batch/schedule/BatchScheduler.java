@@ -37,14 +37,14 @@ public class BatchScheduler {
         }
     }
 
-    @Scheduled(fixedRate = 60000) // 1분마다 실행
-    public void runRedisToMysqlJob() {
-        try {
-            jobLauncher.run(redisToMysqlJob, new JobParametersBuilder()
-                    .addLong("run.id", System.currentTimeMillis())
-                    .toJobParameters());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+//    @Scheduled(fixedRate = 60000 * 5) // 5분마다 실행
+//    public void runRedisToMysqlJob() {
+//        try {
+//            jobLauncher.run(redisToMysqlJob, new JobParametersBuilder()
+//                    .addLong("run.id", System.currentTimeMillis())
+//                    .toJobParameters());
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//    }
 }
