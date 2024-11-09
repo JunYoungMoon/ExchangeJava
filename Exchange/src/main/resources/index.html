@@ -31,8 +31,9 @@
     };
 
     function connect() {
-        const socket1 = new WebSocket('ws://172.29.92.233:8082/ws'); // WebSocket 서버에 연결
-        const socket2 = new WebSocket('ws://172.29.92.233:8082/ws'); // WebSocket 서버에 연결
+        const socket1 = new WebSocket('ws://172.29.92.233:8082/ws');
+        const socket2 = new WebSocket('ws://172.29.92.233:8082/public');
+
         stompClient1 = Stomp.over(socket1);
         stompClient2 = Stomp.over(socket2);
 
@@ -42,17 +43,19 @@
 
     // 연결 성공 시 호출되는 함수
     function onConnected1() {
+        const symbol = 'BTC-KRW';
+
         chatPage.classList.remove('hidden'); // 채팅 페이지 표시
 
         // STOMP 서버에 연결 (헤더 포함)
         const headers = {
-            Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJjZmNjYmIyOC1mMDdkLTRlN2MtOGJkMi00Y2JkNzIwYWNlYWIiLCJ0b2tlblR5cGUiOiJhY2Nlc3MiLCJhdXRoIjoic3RyaW5nIiwiZXhwIjoxNzMwOTMwODIyfQ.FYLNIniffnS-20z2e1WnVr1qFThIWV4n4HK1ZG6y9_s' // JWT 토큰을 헤더에 추가
+            Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJjZmNjYmIyOC1mMDdkLTRlN2MtOGJkMi00Y2JkNzIwYWNlYWIiLCJ0b2tlblR5cGUiOiJhY2Nlc3MiLCJhdXRoIjoic3RyaW5nIiwiZXhwIjoxNzMxMTk2ODYxfQ.VJ52FBFqrdZjPcJkNzgprjtB-3gyettA6Bnwj2WZ6uc' // JWT 토큰을 헤더에 추가
         };
 
         const userId = 'cfccbb28-f07d-4e7c-8bd2-4cbd720aceab'; // 실제 사용자 ID
 
         // 주제 구독
-        stompClient1.subscribe(`/user/${userId}/topic/coin/BTC-KRW/order`, function (message) {
+        stompClient1.subscribe(`/user/${userId}/topic/coin/${symbol}/order`, function (message) {
             const response = JSON.parse(message.body);
             displayMessage(response.message); // 메시지 표시
         }, headers);
@@ -62,9 +65,11 @@
 
     // 연결 성공 시 호출되는 함수
     function onConnected2() {
+        const symbol = 'BTC-KRW';
+
         chatPage.classList.remove('hidden'); // 채팅 페이지 표시
         // 주제 구독
-        stompClient2.subscribe(`/topic/coin/BTC-KRW/chart`, function (message) {
+        stompClient2.subscribe(`/topic/coin/${symbol}/chart`, function (message) {
             const response = JSON.parse(message.body);
             displayMessage(response.message); // 메시지 표시
         });

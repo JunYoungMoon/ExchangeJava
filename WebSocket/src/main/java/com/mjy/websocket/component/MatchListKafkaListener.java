@@ -1,6 +1,7 @@
 package com.mjy.websocket.component;
 
 import com.mjy.websocket.dto.CoinOrderDTO;
+import com.mjy.websocket.dto.MatchOrderDTO;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
@@ -25,8 +26,18 @@ public class MatchListKafkaListener {
             List<CoinOrderDTO> matchList = entry.getValue();
 
             for (CoinOrderDTO coinOrderDTO : matchList) {
-                System.out.println("Match-List : " + coinOrderDTO);
-                messagingTemplate.convertAndSendToUser(coinOrderDTO.getMemberUuid(), "/topic/coin/" + key + "/order", coinOrderDTO);
+                MatchOrderDTO matchOrderDTO = new MatchOrderDTO();
+
+                matchOrderDTO.setMarketName(coinOrderDTO.getMarketName());
+                matchOrderDTO.setCoinName(coinOrderDTO.getCoinName());
+                matchOrderDTO.setCoinAmount(coinOrderDTO.getCoinAmount());
+                matchOrderDTO.setExecutionPrice(coinOrderDTO.getExecutionPrice());
+                matchOrderDTO.setOrderPrice(coinOrderDTO.getOrderPrice());
+                matchOrderDTO.setOrderType(coinOrderDTO.getOrderType());
+                matchOrderDTO.setCreatedAt(coinOrderDTO.getCreatedAt());
+                matchOrderDTO.setMatchedAt(coinOrderDTO.getMatchedAt());
+
+                messagingTemplate.convertAndSendToUser(coinOrderDTO.getMemberUuid(), "/topic/coin/" + key + "/order", matchOrderDTO);
             }
         }
     }

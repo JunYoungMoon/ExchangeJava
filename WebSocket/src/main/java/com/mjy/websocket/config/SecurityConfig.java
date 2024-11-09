@@ -19,12 +19,12 @@ public class SecurityConfig {
     //사용자 인증을 허용할 패턴
     List<String> authPatterns = Arrays.asList(
             "/ws/**",
+            "/public/**",
             "/test/**"
     );
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests((authorize) -> authorize
