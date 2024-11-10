@@ -5,6 +5,8 @@ import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.ApplicationRunner;
+import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -35,6 +37,11 @@ public class BatchScheduler {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    @Bean
+    public ApplicationRunner runAtStartup() {
+        return args -> runCoinOrderJob();
     }
 
 //    @Scheduled(fixedRate = 60000 * 5) // 5분마다 실행

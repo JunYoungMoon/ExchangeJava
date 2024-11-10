@@ -84,7 +84,9 @@ public class CoinOrderBatchConfig {
         return new StepBuilder("checkDataStep", jobRepository)
                 .tasklet((contribution, chunkContext) -> {
 //                    LocalDate date = LocalDate.now(); // 오늘 일자 기준
-                    LocalDate date = LocalDate.now().minusDays(1); //어제 일자 기준
+//                    LocalDate date = LocalDate.now().minusDays(1); //어제 일자 기준
+//                    LocalDate date = LocalDate.parse("2024-11-07");
+                    LocalDate date = LocalDate.parse("2024-10-27");
 
                     List<String> keys = coinInfoService.getCoinMarketKeys();
 
@@ -217,7 +219,7 @@ public class CoinOrderBatchConfig {
     @Bean
     public TaskExecutor taskExecutor() {
         ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
-        taskExecutor.setCorePoolSize(4);
+        taskExecutor.setCorePoolSize(1);
         taskExecutor.setMaxPoolSize(20);
         taskExecutor.setQueueCapacity(500);
         return taskExecutor;
