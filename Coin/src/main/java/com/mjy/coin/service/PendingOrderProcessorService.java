@@ -1,16 +1,12 @@
 package com.mjy.coin.service;
 
 import com.mjy.coin.dto.CoinOrderDTO;
-import com.mjy.coin.dto.CoinOrderMapper;
-import com.mjy.coin.entity.coin.CoinOrder;
-import com.mjy.coin.enums.OrderStatus;
 import com.mjy.coin.enums.OrderType;
 import com.mjy.coin.repository.coin.master.MasterCoinOrderRepository;
 import com.mjy.coin.repository.coin.slave.SlaveCoinOrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Optional;
 import java.util.UUID;
 
 import static com.mjy.coin.enums.OrderStatus.PENDING;
@@ -20,15 +16,22 @@ public class PendingOrderProcessorService {
 
     private final PendingOrderMatcherService priorityQueueManager;
     private final OrderBookService orderBookService;
+    private final OrderService orderService;
     private final MasterCoinOrderRepository masterCoinOrderRepository;
     private final SlaveCoinOrderRepository slaveCoinOrderRepository;
     private final RedisService redisService;
 
     @Autowired
-    public PendingOrderProcessorService(PendingOrderMatcherService priorityQueueManager, MasterCoinOrderRepository masterCoinOrderRepository, SlaveCoinOrderRepository slaveCoinOrderRepository, OrderBookService orderBookService, RedisService redisService) {
+    public PendingOrderProcessorService(PendingOrderMatcherService priorityQueueManager,
+                                        MasterCoinOrderRepository masterCoinOrderRepository,
+                                        SlaveCoinOrderRepository slaveCoinOrderRepository,
+                                        OrderService orderService,
+                                        OrderBookService orderBookService,
+                                        RedisService redisService) {
         this.priorityQueueManager = priorityQueueManager;
         this.masterCoinOrderRepository = masterCoinOrderRepository;
         this.orderBookService = orderBookService;
+        this.orderService = orderService;
         this.slaveCoinOrderRepository = slaveCoinOrderRepository;
         this.redisService = redisService;
     }
@@ -51,11 +54,11 @@ public class PendingOrderProcessorService {
 
                 if (order.getOrderType() == OrderType.BUY) {
                     System.out.println("Adding buy order to queue: " + order);
-                    priorityQueueManager.addBuyOrder(key, order);
+                    orderService.addBuyOrder(key, order);
                     orderBookService.updateOrderBook(key, order, true, true);
                 } else if (order.getOrderType() == OrderType.SELL) {
                     System.out.println("Adding sell order to queue: " + order);
-                    priorityQueueManager.addSellOrder(key, order);
+                    orderService.addSellOrder(key, order);
                     orderBookService.updateOrderBook(key, order, false, true);
                 }
 

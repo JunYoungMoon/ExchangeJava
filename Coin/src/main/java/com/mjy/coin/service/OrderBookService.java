@@ -1,45 +1,39 @@
 package com.mjy.coin.service;
 
 import com.mjy.coin.dto.CoinOrderDTO;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Component
+@Service
 public class OrderBookService {
-
-    // 코인-마켓별로 독립적인 매수/매도 호가 리스트를 관리하는 맵
     private final Map<String, TreeMap<BigDecimal, BigDecimal>> buyOrderBooks = new HashMap<>();  // 매수: 높은 가격 우선
     private final Map<String, TreeMap<BigDecimal, BigDecimal>> sellOrderBooks = new HashMap<>(); // 매도: 낮은 가격 우선
 
-    // 최초에 전체 호가 리스트를 초기화하는 메서드
-    public void initializeOrderBook(Map<String, PriorityQueue<CoinOrderDTO>> buyOrderQueues,
-                                    Map<String, PriorityQueue<CoinOrderDTO>> sellOrderQueues) {
-        // 매수 주문 초기화
-        for (Map.Entry<String, PriorityQueue<CoinOrderDTO>> entry : buyOrderQueues.entrySet()) {
-            String key = entry.getKey();
-            PriorityQueue<CoinOrderDTO> buyOrders = entry.getValue();
-            buyOrderBooks.putIfAbsent(key, new TreeMap<>(Comparator.reverseOrder()));
-            for (CoinOrderDTO buyOrder : buyOrders) {
-                BigDecimal price = processBigDecimal(buyOrder.getOrderPrice());
-                BigDecimal amount = processBigDecimal(buyOrder.getCoinAmount());
-                addOrderToBook(buyOrderBooks.get(key), price, amount);
-            }
-        }
+    // 초기 매수 주문 호가 트리 생성 메서드
+    public void initializeBuyOrderBook(String key) {
+        buyOrderBooks.putIfAbsent(key, new TreeMap<>(Comparator.reverseOrder()));
+    }
 
-        // 매도 주문 초기화
-        for (Map.Entry<String, PriorityQueue<CoinOrderDTO>> entry : sellOrderQueues.entrySet()) {
-            String key = entry.getKey();
-            PriorityQueue<CoinOrderDTO> sellOrders = entry.getValue();
-            sellOrderBooks.putIfAbsent(key, new TreeMap<>());
-            for (CoinOrderDTO sellOrder : sellOrders) {
-                BigDecimal price = processBigDecimal(sellOrder.getOrderPrice());
-                BigDecimal amount = processBigDecimal(sellOrder.getCoinAmount());
-                addOrderToBook(sellOrderBooks.get(key), price, amount);
-            }
-        }
+    // 초기 매도 주문 호가 트리 생성 메서드
+    public void initializeSellOrderBook(String key) {
+        sellOrderBooks.putIfAbsent(key, new TreeMap<>());
+    }
+
+    // 초기 매수 주문 호가 추가
+    public void addBuyOrderBook(String key, CoinOrderDTO order){
+        BigDecimal price = processBigDecimal(order.getOrderPrice());
+        BigDecimal amount = processBigDecimal(order.getCoinAmount());
+        addOrderToBook(buyOrderBooks.get(key), price, amount);
+    }
+
+    // 초기 매도 주문 호가 추가
+    public void addSellOrderBook(String key, CoinOrderDTO order){
+        BigDecimal price = processBigDecimal(order.getOrderPrice());
+        BigDecimal amount = processBigDecimal(order.getCoinAmount());
+        addOrderToBook(sellOrderBooks.get(key), price, amount);
     }
 
     // 주문을 추가/업데이트하는 메서드

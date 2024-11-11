@@ -39,10 +39,10 @@ public class BatchScheduler {
         }
     }
 
-    @Bean
-    public ApplicationRunner runAtStartup() {
-        return args -> runCoinOrderJob();
-    }
+//    @Bean
+//    public ApplicationRunner runAtStartup() {
+//        return args -> runCoinOrderJob();
+//    }
 
 //    @Scheduled(fixedRate = 60000 * 5) // 5분마다 실행
 //    public void runRedisToMysqlJob() {

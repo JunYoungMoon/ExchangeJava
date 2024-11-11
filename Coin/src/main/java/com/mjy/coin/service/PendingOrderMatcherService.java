@@ -1,7 +1,6 @@
 package com.mjy.coin.service;
 
 import com.mjy.coin.dto.CoinOrderDTO;
-import com.mjy.coin.dto.CoinOrderMapper;
 import com.mjy.coin.dto.PriceVolumeDTO;
 import com.mjy.coin.enums.OrderStatus;
 import com.mjy.coin.repository.coin.master.MasterCoinOrderRepository;
@@ -22,56 +21,32 @@ import static com.mjy.coin.enums.OrderStatus.PENDING;
 public class PendingOrderMatcherService {
     private final MasterCoinOrderRepository masterCoinOrderRepository;
     private final OrderBookService orderBookService;
+    private final OrderService orderService;
     private final RedisService redisService;
     private final KafkaTemplate<String, Map<String, List<CoinOrderDTO>>> matchListKafkaTemplate;
     private final KafkaTemplate<String, Map<String, List<PriceVolumeDTO>>> priceVolumeMapKafkaTemplate;
 
     @Autowired
     public PendingOrderMatcherService(MasterCoinOrderRepository masterCoinOrderRepository,
+                                      OrderService orderService,
                                       OrderBookService orderBookService,
                                       RedisService redisService,
                                       @Qualifier("matchListKafkaTemplate") KafkaTemplate<String, Map<String, List<CoinOrderDTO>>> matchListKafkaTemplate,
                                       @Qualifier("priceVolumeMapKafkaTemplate") KafkaTemplate<String, Map<String, List<PriceVolumeDTO>>> priceVolumeMapKafkaTemplate) {
         this.masterCoinOrderRepository = masterCoinOrderRepository;
         this.orderBookService = orderBookService;
+        this.orderService = orderService;
         this.redisService = redisService;
         this.matchListKafkaTemplate = matchListKafkaTemplate;
         this.priceVolumeMapKafkaTemplate = priceVolumeMapKafkaTemplate;
-    }
-
-    private Map<String, PriorityQueue<CoinOrderDTO>> buyOrderQueues = new HashMap<>();
-    private Map<String, PriorityQueue<CoinOrderDTO>> sellOrderQueues = new HashMap<>();
-
-    // 큐 초기화
-    public void initializeQueues(Map<String, PriorityQueue<CoinOrderDTO>> buyQueues, Map<String, PriorityQueue<CoinOrderDTO>> sellQueues) {
-        this.buyOrderQueues = buyQueues;
-        this.sellOrderQueues = sellQueues;
-    }
-
-    // 매수 주문 추가
-    public void addBuyOrder(String key, CoinOrderDTO order) {
-        buyOrderQueues.putIfAbsent(key, new PriorityQueue<>(
-                Comparator.comparing(CoinOrderDTO::getOrderPrice).reversed()
-                        .thenComparing(CoinOrderDTO::getCreatedAt)
-        ));
-        buyOrderQueues.get(key).add(order);
-    }
-
-    // 매도 주문 추가
-    public void addSellOrder(String key, CoinOrderDTO order) {
-        sellOrderQueues.putIfAbsent(key, new PriorityQueue<>(
-                Comparator.comparing(CoinOrderDTO::getOrderPrice)
-                        .thenComparing(CoinOrderDTO::getCreatedAt)
-        ));
-        sellOrderQueues.get(key).add(order);
     }
 
     // 체결 로직
     public void matchOrders(String key) {
         BigDecimal executionPrice;
 
-        PriorityQueue<CoinOrderDTO> buyOrders = buyOrderQueues.get(key);
-        PriorityQueue<CoinOrderDTO> sellOrders = sellOrderQueues.get(key);
+        PriorityQueue<CoinOrderDTO> buyOrders = orderService.getBuyOrderQueue(key);
+        PriorityQueue<CoinOrderDTO> sellOrders = orderService.getSellOrderQueue(key);
 
         if (buyOrders != null && sellOrders != null) {
             List<CoinOrderDTO> matchList = new ArrayList<>();
