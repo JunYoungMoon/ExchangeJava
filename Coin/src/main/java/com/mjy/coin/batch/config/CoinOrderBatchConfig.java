@@ -85,8 +85,8 @@ public class CoinOrderBatchConfig {
                 .tasklet((contribution, chunkContext) -> {
 //                    LocalDate date = LocalDate.now(); // 오늘 일자 기준
 //                    LocalDate date = LocalDate.now().minusDays(1); //어제 일자 기준
-//                    LocalDate date = LocalDate.parse("2024-11-07");
-                    LocalDate date = LocalDate.parse("2024-10-27");
+                    LocalDate date = LocalDate.parse("2024-11-07");
+//                    LocalDate date = LocalDate.parse("2024-10-27");
 
                     List<String> keys = coinInfoService.getCoinMarketKeys();
 
@@ -220,7 +220,7 @@ public class CoinOrderBatchConfig {
     public TaskExecutor taskExecutor() {
         ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
         taskExecutor.setCorePoolSize(1);
-        taskExecutor.setMaxPoolSize(20);
+        taskExecutor.setMaxPoolSize(10);
         taskExecutor.setQueueCapacity(500);
         return taskExecutor;
     }

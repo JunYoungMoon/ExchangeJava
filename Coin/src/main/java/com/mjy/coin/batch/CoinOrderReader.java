@@ -12,6 +12,7 @@ import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -45,37 +46,44 @@ public class CoinOrderReader implements ItemReader<CoinOrderDTO> {
 
     @Override
     public CoinOrderDTO read() throws SQLException {
-        if (!initialized) {
-            String sql = """
-                SELECT * FROM CoinOrder
-                WHERE coinName = ?
-                  AND idx >= ?
-                  AND DATE(matchedAt) = ?
-            """;
+//        if (!initialized) {
+//            String sql = """
+//                SELECT * FROM CoinOrder
+//                WHERE coinName = ?
+//                  AND idx >= ?
+//                  AND DATE(matchedAt) = ?
+//            """;
+//
+//            Connection connection = jdbcTemplate.getDataSource().getConnection();
+//            preparedStatement = connection.prepareStatement(sql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+//
+//            preparedStatement.setString(1, coinName);
+//            preparedStatement.setLong(2, chunkIdx);
+//            preparedStatement.setObject(3, yesterday);
+//
+//            resultSet = preparedStatement.executeQuery();
+//            initialized = true;
+//        }
+//
+//        // 결과를 순차적으로 읽어옴
+//        if (resultSet.next()) {
+//            return mapRow(resultSet); // 매번 새 객체로 반환
+//        } else {
+//            resultSet.close();
+//            preparedStatement.close();
+//            return null;
+//        }
 
-            Connection connection = jdbcTemplate.getDataSource().getConnection();
-            preparedStatement = connection.prepareStatement(sql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+        CoinOrderDTO coinOrderDTO = new CoinOrderDTO();  // 매번 새 객체를 생성하여 반환
 
-            preparedStatement.setString(1, coinName);
-            preparedStatement.setLong(2, chunkIdx);
-            preparedStatement.setObject(3, yesterday);
+        coinOrderDTO.setExecutionPrice(BigDecimal.valueOf(5000));
+        coinOrderDTO.setCoinAmount(BigDecimal.valueOf(10));
 
-            resultSet = preparedStatement.executeQuery();
-            initialized = true;
-        }
-
-        // 결과를 순차적으로 읽어옴
-        if (resultSet.next()) {
-            return mapRow(resultSet);
-        } else {
-            resultSet.close();
-            preparedStatement.close();
-            return null;
-        }
+        return coinOrderDTO;
     }
 
     private CoinOrderDTO mapRow(ResultSet rs) throws SQLException {
-        CoinOrderDTO coinOrderDTO = new CoinOrderDTO();
+        CoinOrderDTO coinOrderDTO = new CoinOrderDTO();  // 매번 새 객체를 생성하여 반환
 
         coinOrderDTO.setIdx(rs.getLong("idx"));
         coinOrderDTO.setMemberIdx(rs.getLong("memberIdx"));
@@ -95,5 +103,4 @@ public class CoinOrderReader implements ItemReader<CoinOrderDTO> {
 
         return coinOrderDTO;
     }
-
 }
