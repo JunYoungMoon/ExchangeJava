@@ -7,12 +7,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 @Component
 @EnableScheduling
+@Profile("dev")
 public class BatchScheduler {
 
     private final JobLauncher jobLauncher;
@@ -39,19 +41,19 @@ public class BatchScheduler {
         }
     }
 
-//    @Bean
-//    public ApplicationRunner runAtStartup() {
-//        return args -> runCoinOrderJob();
-//    }
+    @Bean
+    public ApplicationRunner runAtStartup() {
+        return args -> runCoinOrderJob();
+    }
 
-//    @Scheduled(fixedRate = 60000 * 5) // 5분마다 실행
-//    public void runRedisToMysqlJob() {
-//        try {
-//            jobLauncher.run(redisToMysqlJob, new JobParametersBuilder()
-//                    .addLong("run.id", System.currentTimeMillis())
-//                    .toJobParameters());
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//    }
+    @Scheduled(fixedRate = 60000 * 5) // 5분마다 실행
+    public void runRedisToMysqlJob() {
+        try {
+            jobLauncher.run(redisToMysqlJob, new JobParametersBuilder()
+                    .addLong("run.id", System.currentTimeMillis())
+                    .toJobParameters());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }

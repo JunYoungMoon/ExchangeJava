@@ -4,7 +4,6 @@ import com.mjy.coin.dto.CoinOrderDTO;
 import com.mjy.coin.dto.PriceVolumeDTO;
 import com.mjy.coin.enums.OrderStatus;
 import com.mjy.coin.repository.coin.master.MasterCoinOrderRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
@@ -26,7 +25,6 @@ public class PendingOrderMatcherService {
     private final KafkaTemplate<String, Map<String, List<CoinOrderDTO>>> matchListKafkaTemplate;
     private final KafkaTemplate<String, Map<String, List<PriceVolumeDTO>>> priceVolumeMapKafkaTemplate;
 
-    @Autowired
     public PendingOrderMatcherService(MasterCoinOrderRepository masterCoinOrderRepository,
                                       OrderService orderService,
                                       OrderBookService orderBookService,
@@ -48,6 +46,8 @@ public class PendingOrderMatcherService {
         PriorityQueue<CoinOrderDTO> buyOrders = orderService.getBuyOrderQueue(key);
         PriorityQueue<CoinOrderDTO> sellOrders = orderService.getSellOrderQueue(key);
 
+        System.out.println(buyOrders);
+        System.out.println(sellOrders);
         if (buyOrders != null && sellOrders != null) {
             List<CoinOrderDTO> matchList = new ArrayList<>();
             List<PriceVolumeDTO> priceVolumeList = new ArrayList<>();
