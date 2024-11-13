@@ -33,7 +33,7 @@ public class OrderService {
     private final SlaveCoinHoldingRepository slaveCoinHoldingRepository;
     private final MessageSourceAccessor messageSourceAccessor;
 
-    public void orderService() {
+    public void processOrder() {
 
         //1. 잔액확인
 

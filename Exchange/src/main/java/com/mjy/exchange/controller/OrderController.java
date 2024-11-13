@@ -3,6 +3,7 @@ package com.mjy.exchange.controller;
 import com.mjy.exchange.dto.ApiResponse;
 import com.mjy.exchange.dto.MemberRequest;
 import com.mjy.exchange.dto.OrderRequest;
+import com.mjy.exchange.security.SecurityMember;
 import com.mjy.exchange.service.MemberService;
 import com.mjy.exchange.service.OrderService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -36,7 +37,10 @@ public class OrderController {
     @PostMapping
     public ApiResponse order(HttpServletRequest servletRequest,
                              @RequestBody @Valid OrderRequest orderRequest,
-                             @AuthenticationPrincipal UserDetails userDetails) {
+                             @AuthenticationPrincipal SecurityMember securityMember) {
+
+        // SecurityMember 객체를 통해 인증된 사용자 정보 접근
+        Long memberIdx = securityMember.getIdx(); // 사용자 고유 ID
 
 
 
