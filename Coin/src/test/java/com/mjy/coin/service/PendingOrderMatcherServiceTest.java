@@ -90,5 +90,6 @@ class PendingOrderMatcherServiceTest {
         assertEquals(OrderStatus.COMPLETED, buyOrder.getOrderStatus());
         assertEquals(OrderStatus.COMPLETED, sellOrder.getOrderStatus());
 
+        verify(matchListKafkaTemplate, times(2)).send(anyString(), anyMap());
     }
 }

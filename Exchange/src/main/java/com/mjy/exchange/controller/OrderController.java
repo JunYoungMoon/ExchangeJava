@@ -42,7 +42,7 @@ public class OrderController {
         // SecurityMember 객체를 통해 인증된 사용자 정보 접근
         Long memberIdx = securityMember.getIdx(); // 사용자 고유 ID
 
-
+        orderService.processOrder(orderRequest, memberIdx);
 
         return ApiResponse.builder()
                 .status("success")

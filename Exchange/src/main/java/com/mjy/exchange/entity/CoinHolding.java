@@ -1,16 +1,13 @@
 package com.mjy.exchange.entity;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.math.BigDecimal;
 
 @Getter
+@Setter
 @Entity
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class CoinHolding {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -42,5 +39,9 @@ public class CoinHolding {
         this.availableAmount = availableAmount;
         this.walletAddress = walletAddress;
         this.isFavorited = isFavorited;
+    }
+
+    public CoinHolding() {
+
     }
 }
