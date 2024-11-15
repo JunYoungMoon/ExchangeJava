@@ -32,9 +32,9 @@ public class OrderService {
         this.coinOrderKafkaTemplate = coinOrderKafkaTemplate;
     }
 
-    public void processOrder(OrderRequest orderRequest, Long memberIdx) {
+    public void processOrder(OrderRequest orderRequest, String memberUuid) {
         //1.지갑 여부 확인
-        CoinHolding coinHolding = slaveCoinHoldingRepository.findByMemberIdxAndCoinType(memberIdx, orderRequest.getCoinName())
+        CoinHolding coinHolding = slaveCoinHoldingRepository.findByMemberUuidAndCoinType(memberUuid, orderRequest.getCoinName())
                 .orElseThrow(() -> new IllegalArgumentException("지갑이 생성되지 않았습니다."));
 
         //2.주문 금액과 수수료 확인
@@ -55,7 +55,7 @@ public class OrderService {
 
         //4.CoinOrderDTO 입력
         CoinOrder coinOrder = new CoinOrder();
-        coinOrder.setMemberIdx(memberIdx);
+        coinOrder.setMemberUuid(memberUuid);
         coinOrder.setMarketName(orderRequest.getMarketName());
         coinOrder.setCoinName(orderRequest.getCoinName());
         coinOrder.setCoinAmount(new BigDecimal(String.valueOf(orderRequest.getCoinAmount())));

@@ -12,7 +12,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.MessageSourceAccessor;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -36,13 +38,15 @@ public class OrderController {
     @Operation(summary = "코인 주문", description = "코인을 주문합니다.", security = {@SecurityRequirement(name = "csrfToken"), @SecurityRequirement(name = "bearerAuth")})
     @PostMapping
     public ApiResponse order(HttpServletRequest servletRequest,
-                             @RequestBody @Valid OrderRequest orderRequest,
-                             @AuthenticationPrincipal SecurityMember securityMember) {
+                             @RequestBody @Valid OrderRequest orderRequest) {
+        // 현재 사용자의 인증 객체 가져오기
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        // SecurityMember 객체를 통해 인증된 사용자 정보 접근
-        Long memberIdx = securityMember.getIdx(); // 사용자 고유 ID
+        // 인증 객체에서 사용자 정보 가져오기
+        Object principal = authentication.getPrincipal();
+        String uuid = ((UserDetails) principal).getUsername();
 
-        orderService.processOrder(orderRequest, memberIdx);
+        orderService.processOrder(orderRequest, uuid);
 
         return ApiResponse.builder()
                 .status("success")

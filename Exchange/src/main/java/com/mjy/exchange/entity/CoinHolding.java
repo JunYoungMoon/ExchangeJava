@@ -14,7 +14,7 @@ public class CoinHolding {
     private Long idx;
 
     @Column(nullable = false)
-    private Long memberIdx;
+    private String memberUuid;
 
     @Column(length = 10, nullable = false)
     private String coinType;
@@ -32,8 +32,8 @@ public class CoinHolding {
     private Boolean isFavorited = false;
 
     @Builder
-    public CoinHolding(Long memberIdx, String coinType, BigDecimal usingAmount, BigDecimal availableAmount, String walletAddress, Boolean isFavorited) {
-        this.memberIdx = memberIdx;
+    public CoinHolding(String memberUuid, String coinType, BigDecimal usingAmount, BigDecimal availableAmount, String walletAddress, Boolean isFavorited) {
+        this.memberUuid = memberUuid;
         this.coinType = coinType;
         this.usingAmount = usingAmount;
         this.availableAmount = availableAmount;

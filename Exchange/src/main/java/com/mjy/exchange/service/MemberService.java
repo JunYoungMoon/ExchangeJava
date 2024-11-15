@@ -13,6 +13,7 @@ import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -82,11 +83,11 @@ public class MemberService {
                 .build();
 
         member = masterMemberRepository.save(member); // 저장된 Member 객체
-        Long memberIdx = member.getIdx(); // 자동 생성된 memberIdx 가져오기
+        String memberUuid = member.getUuid(); // 자동 생성된 memberIdx 가져오기
 
         // 임시 지갑 생성
         CoinHolding coinHolding1 = CoinHolding.builder()
-                .memberIdx(memberIdx)
+                .memberUuid(memberUuid)
                 .coinType("BTC")
                 .usingAmount(BigDecimal.valueOf(100000000))
                 .availableAmount(BigDecimal.valueOf(100000000))
@@ -95,7 +96,7 @@ public class MemberService {
                 .build();
 
         CoinHolding coinHolding2 = CoinHolding.builder()
-                .memberIdx(memberIdx)
+                .memberUuid(memberUuid)
                 .coinType("ETH")
                 .usingAmount(BigDecimal.valueOf(100000000))
                 .availableAmount(BigDecimal.valueOf(100000000))

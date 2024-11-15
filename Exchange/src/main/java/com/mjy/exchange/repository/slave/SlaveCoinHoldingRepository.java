@@ -8,5 +8,5 @@ import java.util.Optional;
 
 @Repository
 public interface SlaveCoinHoldingRepository extends JpaRepository<CoinHolding, Long> {
-    Optional<CoinHolding> findByMemberIdxAndCoinType(Long memberIdx, String coinType);
+    Optional<CoinHolding> findByMemberUuidAndCoinType(String memberUuid, String coinType);
 }
