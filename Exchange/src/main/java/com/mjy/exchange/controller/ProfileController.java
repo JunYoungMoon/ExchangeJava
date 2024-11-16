@@ -1,6 +1,7 @@
 package com.mjy.exchange.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,7 +38,8 @@ public class ProfileController {
 
     @Operation(summary = "프로필 이미지 제공", description = "url로 접근할때 프로필 이미지를 제공합니다.", security = {@SecurityRequirement(name = "csrfToken")})
     @GetMapping("/{fileName:.+}")
-    public ResponseEntity<Resource> serveFile(@PathVariable String fileName) {
+    public ResponseEntity<Resource> serveFile(@PathVariable @Schema(description = "파일명")
+                                              String fileName) {
         // 외부 디렉터리 경로 설정
         Path filePath = Paths.get(Paths.get("").toAbsolutePath().normalize() + uploadPath).resolve(fileName).normalize();
 

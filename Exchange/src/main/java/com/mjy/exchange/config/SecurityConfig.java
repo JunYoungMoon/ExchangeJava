@@ -1,5 +1,6 @@
 package com.mjy.exchange.config;
 
+import com.mjy.exchange.exception.CustomAccessDeniedHandler;
 import com.mjy.exchange.exception.CustomAuthenticationEntryPoint;
 import com.mjy.exchange.handler.OAuth2LoginFailureHandler;
 import com.mjy.exchange.handler.OAuth2LoginSuccessHandler;
@@ -14,6 +15,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
@@ -33,6 +35,8 @@ public class SecurityConfig {
     private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
     private final OAuth2LoginFailureHandler oAuth2LoginFailureHandler;
     private final CorsConfigurationSource corsConfigurationSource;
+    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+    private final CustomAccessDeniedHandler customAccessDeniedHandler;
 
     //csrf를 허용할 패턴
     String[] csrfPatterns = new String[]{
@@ -69,11 +73,6 @@ public class SecurityConfig {
     @Bean
     public CsrfTokenRepository csrfTokenRepository() {
         return CookieCsrfTokenRepository.withHttpOnlyFalse();
-    }
-
-    @Bean
-    public CustomAuthenticationEntryPoint customAuthenticationEntryPoint() {
-        return new CustomAuthenticationEntryPoint();
     }
 
     @Bean
@@ -117,7 +116,8 @@ public class SecurityConfig {
         //인증 실패시 예외 처리 재정의
         http
                 .exceptionHandling((exceptionHandling) -> exceptionHandling
-                        .authenticationEntryPoint(customAuthenticationEntryPoint()));
+                        .authenticationEntryPoint(customAuthenticationEntryPoint)
+                        .accessDeniedHandler(customAccessDeniedHandler));
 //                .exceptionHandling()
 //                .authenticationEntryPoint(customAuthenticationEntryPoint());
         //OAuth 2.0 로그인 설정 시작
