@@ -117,7 +117,7 @@ public class MemberService {
                 .build();
     }
 
-    public TokenInfo login(MemberRequest request) {
+    public TokenInfo login(LoginRequest request) {
         //아이디 값으로 사용자 정보를 가져와 uuid로 아이디값을 저장한다.
         //소셜 로그인일때 id 값을 jwt로 노출시키기에는 보안적인 부분을 우려.
         Optional<Member> user = slaveMemberRepository.findByEmail(request.getEmail());

@@ -1,6 +1,7 @@
 package com.mjy.exchange.controller;
 
 import com.mjy.exchange.dto.ApiResponse;
+import com.mjy.exchange.dto.LoginRequest;
 import com.mjy.exchange.dto.MemberRequest;
 import com.mjy.exchange.service.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -58,14 +59,14 @@ public class MemberController {
 
     @Operation(summary = "회원 로그인", description = "회원 로그인을 처리합니다.", security = {@SecurityRequirement(name = "csrfToken")})
     @PostMapping("/login")
-    public ApiResponse login(HttpServletRequest servletRequest, @RequestBody MemberRequest memberRequest) {
+    public ApiResponse login(HttpServletRequest servletRequest, @RequestBody LoginRequest loginRequest) {
         String successMessage = messageSourceAccessor.getMessage("member.login.success.message");
 
         return ApiResponse.builder()
                 .status("success")
                 .csrfToken(((CsrfToken) servletRequest.getAttribute(CsrfToken.class.getName())).getToken())
                 .msg(successMessage)
-                .data(memberService.login(memberRequest))
+                .data(memberService.login(loginRequest))
                 .build();
     }
 
@@ -137,22 +138,6 @@ public class MemberController {
                 .csrfToken(((CsrfToken) servletRequest.getAttribute(CsrfToken.class.getName())).getToken())
                 .msg(successMessage)
                 .data(responseData)
-                .build();
-    }
-
-    @Operation(summary = "테스트 엔드포인트", description = "테스트용 엔드포인트입니다.", security = {@SecurityRequirement(name = "csrfToken")})
-    @PostMapping("/test")
-    public ApiResponse test(HttpServletRequest servletRequest) {
-        String successMessage = messageSourceAccessor.getMessage("member.test.message");
-
-        Map<String, Object> data = new HashMap<>();
-        data.put("auth", true);
-
-        return ApiResponse.builder()
-                .status("success")
-                .csrfToken(((CsrfToken) servletRequest.getAttribute(CsrfToken.class.getName())).getToken())
-                .msg(successMessage)
-                .data(data)
                 .build();
     }
 }
