@@ -11,29 +11,14 @@ import java.math.BigDecimal;
 
 @Service
 public class BalanceService {
+    private final OrderProcessorFactory orderProcessorFactory;
 
-    private final MasterCoinHoldingRepository masterCoinHoldingRepository;
-    private final SlaveCoinHoldingRepository slaveCoinHoldingRepository;
-
-    public BalanceService(MasterCoinHoldingRepository masterCoinHoldingRepository, SlaveCoinHoldingRepository slaveCoinHoldingRepository) {
-        this.masterCoinHoldingRepository = masterCoinHoldingRepository;
-        this.slaveCoinHoldingRepository = slaveCoinHoldingRepository;
+    public BalanceService(OrderProcessorFactory orderProcessorFactory) {
+        this.orderProcessorFactory = orderProcessorFactory;
     }
 
-    public CoinHolding checkAndUpdateBalance(String memberUuid, OrderRequest orderRequest, CoinInfo coinInfo) {
-        CoinHolding coinHolding = slaveCoinHoldingRepository.findByMemberUuidAndCoinType(memberUuid, orderRequest.getCoinName())
-                .orElseThrow(() -> new IllegalArgumentException("지갑이 생성되지 않았습니다."));
-
-        BigDecimal totalOrderAmount = orderRequest.getCoinAmount().multiply(orderRequest.getOrderPrice());
-        BigDecimal fee = totalOrderAmount.multiply(coinInfo.getFeeRate());
-
-        if (coinHolding.getAvailableAmount().compareTo(totalOrderAmount.add(fee)) < 0) {
-            throw new IllegalArgumentException("잔액이 부족합니다.");
-        }
-
-        coinHolding.setAvailableAmount(coinHolding.getAvailableAmount().subtract(totalOrderAmount.add(fee)));
-        masterCoinHoldingRepository.save(coinHolding);
-
-        return coinHolding;
+    public void checkAndUpdateBalance(String memberUuid, OrderRequest orderRequest, CoinInfo coinInfo) {
+        OrderProcessor processor = orderProcessorFactory.getProcessor(orderRequest.getOrderType());
+        processor.process(memberUuid, orderRequest, coinInfo);
     }
 }
