@@ -3,11 +3,14 @@ package com.mjy.exchange.service;
 import com.mjy.exchange.dto.OrderRequest;
 import com.mjy.exchange.entity.CoinHolding;
 import com.mjy.exchange.entity.CoinInfo;
+import com.mjy.exchange.enums.OrderType;
 import com.mjy.exchange.repository.master.MasterCoinHoldingRepository;
 import com.mjy.exchange.repository.slave.SlaveCoinHoldingRepository;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+
+import static com.mjy.exchange.enums.OrderType.BUY;
 
 @Service
 public class BuyOrderProcessor implements OrderProcessor {
@@ -20,8 +23,8 @@ public class BuyOrderProcessor implements OrderProcessor {
     }
 
     @Override
-    public String getOrderType() {
-        return "BUY";
+    public OrderType getOrderType() {
+        return BUY;
     }
 
     @Override

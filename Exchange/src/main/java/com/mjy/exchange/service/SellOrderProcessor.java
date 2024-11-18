@@ -3,12 +3,15 @@ package com.mjy.exchange.service;
 import com.mjy.exchange.dto.OrderRequest;
 import com.mjy.exchange.entity.CoinHolding;
 import com.mjy.exchange.entity.CoinInfo;
+import com.mjy.exchange.enums.OrderType;
 import com.mjy.exchange.repository.master.MasterCoinHoldingRepository;
 import com.mjy.exchange.repository.slave.SlaveCoinHoldingRepository;
 import org.springframework.stereotype.Service;
 
+import static com.mjy.exchange.enums.OrderType.SELL;
+
 @Service
-public class SellOrderProcessor implements OrderProcessor{
+public class SellOrderProcessor implements OrderProcessor {
     private final MasterCoinHoldingRepository masterCoinHoldingRepository;
     private final SlaveCoinHoldingRepository slaveCoinHoldingRepository;
 
@@ -18,8 +21,8 @@ public class SellOrderProcessor implements OrderProcessor{
     }
 
     @Override
-    public String getOrderType() {
-        return "SELL";
+    public OrderType getOrderType() {
+        return SELL;
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.mjy.exchange.service;
 
+import com.mjy.exchange.enums.OrderType;
 import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Component;
 
@@ -11,7 +12,7 @@ import java.util.Map;
 public class OrderProcessorFactory {
 
     private final List<OrderProcessor> orderProcessors;
-    private final Map<String, OrderProcessor> processorMap = new HashMap<>();
+    private final Map<OrderType, OrderProcessor> processorMap = new HashMap<>();
 
     public OrderProcessorFactory(List<OrderProcessor> orderProcessors) {
         this.orderProcessors = orderProcessors;
@@ -21,12 +22,12 @@ public class OrderProcessorFactory {
     public void init() {
         // OrderProcessor 구현체를 주문 타입별로 매핑
         for (OrderProcessor processor : orderProcessors) {
-            processorMap.put(processor.getOrderType().toUpperCase(), processor);
+            processorMap.put(processor.getOrderType(), processor);
         }
     }
 
-    public OrderProcessor getProcessor(String orderType) {
-        OrderProcessor processor = processorMap.get(orderType.toUpperCase());
+    public OrderProcessor getProcessor(OrderType orderType) {
+        OrderProcessor processor = processorMap.get(orderType);
         if (processor == null) {
             throw new IllegalArgumentException("유효하지 않은 주문 타입입니다: " + orderType);
         }
