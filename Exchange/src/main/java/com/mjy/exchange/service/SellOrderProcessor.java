@@ -29,7 +29,7 @@ public class SellOrderProcessor implements OrderProcessor {
     public void process(String memberUuid, OrderRequest orderRequest, CoinInfo coinInfo) {
         // 코인 잔액 검증 및 차감
         CoinHolding coinHolding = slaveCoinHoldingRepository.findByMemberUuidAndCoinType(memberUuid, orderRequest.getCoinName())
-                .orElseThrow(() -> new IllegalArgumentException("판매할 코인이 부족합니다."));
+                .orElseThrow(() -> new IllegalArgumentException("지갑이 존재하지 않습니다."));
 
         if (coinHolding.getAvailableAmount().compareTo(orderRequest.getCoinAmount()) < 0) {
             throw new IllegalArgumentException("판매할 코인이 부족합니다.");

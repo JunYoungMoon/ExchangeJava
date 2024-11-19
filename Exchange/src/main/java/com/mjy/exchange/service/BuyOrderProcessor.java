@@ -34,13 +34,10 @@ public class BuyOrderProcessor implements OrderProcessor {
 
         // 마켓 잔액 검증 및 차감
         CoinHolding marketHolding = slaveCoinHoldingRepository.findByMemberUuidAndCoinType(memberUuid, orderRequest.getMarketName())
-                .orElseThrow(() -> new IllegalArgumentException("마켓 잔액이 부족합니다."));
+                .orElseThrow(() -> new IllegalArgumentException("지갑이 존재 하지 않습니다."));
 
         if (marketHolding.getAvailableAmount().compareTo(totalOrderAmount.add(fee)) < 0) {
-            throw new IllegalArgumentException("마켓 잔액이 부족합니다.");
+            throw new IllegalArgumentException("잔액이 부족합니다.");
         }
-
-        marketHolding.setAvailableAmount(marketHolding.getAvailableAmount().subtract(totalOrderAmount.add(fee)));
-        masterCoinHoldingRepository.save(marketHolding);
     }
 }
