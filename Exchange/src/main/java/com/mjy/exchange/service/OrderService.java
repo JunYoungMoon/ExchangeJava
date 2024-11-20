@@ -27,7 +27,7 @@ public class OrderService {
                 .orElseThrow(() -> new IllegalArgumentException("잘못된 심볼 정보입니다."));
 
         //1. 지갑 정보 조회 및 주문 검증
-        balanceService.checkAndUpdateBalance(memberUuid, orderRequest, coinInfo);
+        balanceService.checkBalance(memberUuid, orderRequest, coinInfo);
 
         //2. 주문 생성
         CoinOrder coinOrder = CoinOrderFactory.createCoinOrder(orderRequest, coinInfo, memberUuid);
