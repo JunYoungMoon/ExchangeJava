@@ -3,6 +3,7 @@ package com.mjy.coin.service;
 import com.mjy.coin.dto.CoinOrderDTO;
 import com.mjy.coin.dto.PriceVolumeDTO;
 import com.mjy.coin.enums.OrderStatus;
+import com.mjy.coin.enums.OrderType;
 import com.mjy.coin.repository.coin.master.MasterCoinOrderRepository;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -15,6 +16,8 @@ import java.util.*;
 
 import static com.mjy.coin.enums.OrderStatus.COMPLETED;
 import static com.mjy.coin.enums.OrderStatus.PENDING;
+import static com.mjy.coin.enums.OrderType.BUY;
+import static com.mjy.coin.enums.OrderType.SELL;
 
 @Component
 public class PendingOrderMatcherService {
@@ -46,8 +49,6 @@ public class PendingOrderMatcherService {
         PriorityQueue<CoinOrderDTO> buyOrders = orderService.getBuyOrderQueue(key);
         PriorityQueue<CoinOrderDTO> sellOrders = orderService.getSellOrderQueue(key);
 
-        System.out.println(buyOrders);
-        System.out.println(sellOrders);
         if (buyOrders != null && sellOrders != null) {
             List<CoinOrderDTO> matchList = new ArrayList<>();
             List<PriceVolumeDTO> priceVolumeList = new ArrayList<>();
@@ -302,6 +303,52 @@ public class PendingOrderMatcherService {
                 matchListeMap.put(key, matchList);
                 matchListKafkaTemplate.send("Match-List", matchListeMap);
             }
+        }
+    }
+
+    // 체결 로직2
+    public void matchOrders2(CoinOrderDTO order) {
+        String key = order.getCoinName() + "-" + order.getMarketName();
+
+        // 매수 주문이면 매도 큐를, 매도 주문이면 매수 큐를 가져온다.
+        PriorityQueue<CoinOrderDTO> oppositeOrdersQueue =
+                (order.getOrderType() == BUY)
+                        ? orderService.getSellOrderQueue(key)
+                        : orderService.getBuyOrderQueue(key);
+
+        if (oppositeOrdersQueue != null) {
+            // 체결 처리 로직
+            while (!oppositeOrdersQueue.isEmpty()) {
+                CoinOrderDTO oppositeOrder = oppositeOrdersQueue.peek(); // 반대 주문 큐의 최상위 주문
+
+                // 매칭 조건 확인: 매수자의 가격이 매도자의 가격보다 같거나 높은 경우
+                if ((order.getOrderType() == BUY && order.getOrderPrice().compareTo(oppositeOrder.getOrderPrice()) >= 0) ||
+                    (order.getOrderType() == SELL && order.getOrderPrice().compareTo(oppositeOrder.getOrderPrice()) <= 0)) {
+
+                    BigDecimal buyQuantity = order.getCoinAmount(); // 매수 주문 수량
+                    BigDecimal sellQuantity = oppositeOrder.getCoinAmount(); // 매도 주문 수량
+
+                    // 체결 수량 계산
+                    BigDecimal remainingQuantity = buyQuantity.subtract(sellQuantity)
+                            .setScale(8, RoundingMode.DOWN)
+                            .stripTrailingZeros();
+
+                    // 완전 체결: 매수와 매도 주문이 동일한 수량으로 체결된 경우
+                    if (remainingQuantity.compareTo(BigDecimal.ZERO) == 0) {
+                        // 체결된 주문 Redis에 저장..
+                        break; // 체결이 완료되었으므로 반복 종료
+                    } else if (remainingQuantity.compareTo(BigDecimal.ZERO) > 0) {
+                        // 부분 체결: 매수 주문 수량이 매도 주문 수량보다 많을 경우
+
+                    } else {
+                        // 부분 체결: 매도 주문 수량이 매수 주문 수량보다 많을 경우
+                    }
+                } else {
+                    break; // 매칭되지 않으면 더 이상 체결할 수 없으므로 종료
+                }
+            }
+        } else {
+            //미체결 주문 등록
         }
     }
 }
