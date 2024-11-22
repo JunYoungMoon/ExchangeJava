@@ -335,11 +335,9 @@ public class PendingOrderMatcherService {
 
                     // 완전 체결: 매수와 매도 주문이 동일한 수량으로 체결된 경우
                     if (remainingQuantity.compareTo(BigDecimal.ZERO) == 0) {
-                        // 체결된 주문 Redis에 저장..
-                        break; // 체결이 완료되었으므로 반복 종료
+                        // 완전 체결: 매수와 매도 주문이 동일한 수량으로 체결된 경우
                     } else if (remainingQuantity.compareTo(BigDecimal.ZERO) > 0) {
                         // 부분 체결: 매수 주문 수량이 매도 주문 수량보다 많을 경우
-
                     } else {
                         // 부분 체결: 매도 주문 수량이 매수 주문 수량보다 많을 경우
                     }

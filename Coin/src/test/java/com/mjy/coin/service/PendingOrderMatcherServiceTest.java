@@ -3,6 +3,7 @@ package com.mjy.coin.service;
 import com.mjy.coin.dto.CoinOrderDTO;
 import com.mjy.coin.dto.PriceVolumeDTO;
 import com.mjy.coin.enums.OrderStatus;
+import com.mjy.coin.enums.OrderType;
 import com.mjy.coin.repository.coin.master.MasterCoinOrderRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -91,5 +92,52 @@ class PendingOrderMatcherServiceTest {
         assertEquals(OrderStatus.COMPLETED, sellOrder.getOrderStatus());
 
         verify(matchListKafkaTemplate, times(2)).send(anyString(), anyMap());
+    }
+
+    @Test
+    public void testMatchOrders2() {
+        // 1. BuyOrders와 SellOrders 설정
+        CoinOrderDTO buyOrder = new CoinOrderDTO();
+        buyOrder.setCoinAmount(BigDecimal.valueOf(1));
+        buyOrder.setOrderPrice(BigDecimal.valueOf(50000));
+        buyOrder.setOrderStatus(OrderStatus.PENDING);
+        buyOrder.setOrderType(OrderType.BUY);
+        buyOrder.setCoinName("BTC");
+        buyOrder.setMarketName("KRW");
+
+        CoinOrderDTO sellOrder = new CoinOrderDTO();
+        sellOrder.setCoinAmount(BigDecimal.valueOf(0.2));
+        sellOrder.setOrderPrice(BigDecimal.valueOf(50000));
+        sellOrder.setOrderStatus(OrderStatus.PENDING);
+        sellOrder.setOrderType(OrderType.SELL);
+        sellOrder.setCoinName("BTC");
+        sellOrder.setMarketName("KRW");
+
+
+        // Comparator 설정 (OrderService에서 사용한 것과 동일)
+        Comparator<CoinOrderDTO> buyOrderComparator =
+                Comparator.comparing(CoinOrderDTO::getOrderPrice).reversed()
+                        .thenComparing(CoinOrderDTO::getCreatedAt);
+
+        Comparator<CoinOrderDTO> sellOrderComparator =
+                Comparator.comparing(CoinOrderDTO::getOrderPrice)
+                        .thenComparing(CoinOrderDTO::getCreatedAt);
+
+        // PriorityQueue 초기화
+        PriorityQueue<CoinOrderDTO> buyOrders = new PriorityQueue<>(buyOrderComparator);
+        PriorityQueue<CoinOrderDTO> sellOrders = new PriorityQueue<>(sellOrderComparator);
+
+        // 주문 추가
+        buyOrders.add(buyOrder);
+        sellOrders.add(sellOrder);
+
+        // Mockito에서 PriorityQueue 반환하도록 설정
+        when(orderService.getBuyOrderQueue(buyOrder.getCoinName() + "-" + buyOrder.getMarketName())).thenReturn(buyOrders);
+        when(orderService.getSellOrderQueue(sellOrder.getCoinName() + "-" + sellOrder.getMarketName())).thenReturn(sellOrders);
+
+        // 2. 주문 매칭 실행
+        pendingOrderMatcherService.matchOrders2(sellOrder);
+
+        // 3. 검증
     }
 }
