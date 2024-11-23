@@ -183,7 +183,7 @@ public class PendingOrderMatcherService {
                         // 기존의 idx를 가져와 기존 매수 update
                         buyOrder.setIdx(previousIdx);
                         buyOrder.setCoinAmount(remainingQuantity);
-                        buyOrder.setOrderStatus(OrderStatus.PENDING);
+                        buyOrder.setOrderStatus(PENDING);
 
                         // 미체결 수량 업데이트
 //                        masterCoinOrderRepository.save(CoinOrderMapper.toEntity(buyOrder)); // 상태 업데이트
@@ -269,7 +269,7 @@ public class PendingOrderMatcherService {
                         // 기존의 idx를 가져와 update 필요
                         sellOrder.setIdx(previousIdx);
                         sellOrder.setCoinAmount(remainingQuantity.negate());
-                        sellOrder.setOrderStatus(OrderStatus.PENDING);
+                        sellOrder.setOrderStatus(PENDING);
 
                         // 미체결 수량 업데이트
 //                        masterCoinOrderRepository.save(CoinOrderMapper.toEntity(sellOrder)); // 상태 업데이트
@@ -308,6 +308,8 @@ public class PendingOrderMatcherService {
 
     // 체결 로직2
     public void matchOrders2(CoinOrderDTO order) {
+        BigDecimal executionPrice;
+
         String key = order.getCoinName() + "-" + order.getMarketName();
 
         // 매수 주문이면 매도 큐를, 매도 주문이면 매수 큐를 가져온다.
@@ -325,19 +327,51 @@ public class PendingOrderMatcherService {
                 if ((order.getOrderType() == BUY && order.getOrderPrice().compareTo(oppositeOrder.getOrderPrice()) >= 0) ||
                     (order.getOrderType() == SELL && order.getOrderPrice().compareTo(oppositeOrder.getOrderPrice()) <= 0)) {
 
-                    BigDecimal buyQuantity = order.getCoinAmount(); // 매수 주문 수량
-                    BigDecimal sellQuantity = oppositeOrder.getCoinAmount(); // 매도 주문 수량
+                    // 현재 주문의 타입과 반대 주문의 타입에 따라 설정
+                    CoinOrderDTO buyOrder = order.getOrderType() == BUY ? order : oppositeOrder;
+                    CoinOrderDTO sellOrder =  order.getOrderType() == SELL ? order : oppositeOrder;
 
                     // 체결 수량 계산
-                    BigDecimal remainingQuantity = buyQuantity.subtract(sellQuantity)
+                    BigDecimal remainingQuantity = buyOrder.getCoinAmount().subtract(sellOrder.getCoinAmount())
                             .setScale(8, RoundingMode.DOWN)
                             .stripTrailingZeros();
 
                     // 완전 체결: 매수와 매도 주문이 동일한 수량으로 체결된 경우
                     if (remainingQuantity.compareTo(BigDecimal.ZERO) == 0) {
                         // 완전 체결: 매수와 매도 주문이 동일한 수량으로 체결된 경우
+                        // 매수와 매도 모두 체결로 처리
+
+                        //실제 체결 되는 가격은 매수자의 가격으로 체결
+                        executionPrice = buyOrder.getOrderPrice();
+
+                        buyOrder.setOrderStatus(COMPLETED);
+                        buyOrder.setMatchedAt(LocalDateTime.now());
+                        buyOrder.setExecutionPrice(executionPrice);
+                        sellOrder.setOrderStatus(COMPLETED);
+                        sellOrder.setMatchedAt(LocalDateTime.now());
+                        sellOrder.setExecutionPrice(executionPrice);
+
+                        //반대 주문만 큐에서 제거
+                        oppositeOrdersQueue.poll();
                     } else if (remainingQuantity.compareTo(BigDecimal.ZERO) > 0) {
                         // 부분 체결: 매수 주문 수량이 매도 주문 수량보다 많을 경우
+                        // 매도 모두 체결 처리
+
+                        // 주문 생성 시간 비교하여 오래된 주문의 가격을 체결가로 설정
+                        if (buyOrder.getCreatedAt().isAfter(sellOrder.getCreatedAt())) {
+                            executionPrice = sellOrder.getOrderPrice(); // 매도 주문이 먼저 생성된 경우
+                        } else {
+                            executionPrice = buyOrder.getOrderPrice(); // 매수 주문이 먼저 생성된 경우
+                        }
+
+                        sellOrder.setOrderStatus(COMPLETED);
+                        sellOrder.setMatchedAt(LocalDateTime.now());
+                        sellOrder.setExecutionPrice(executionPrice);
+
+                        buyOrder.setOrderStatus(COMPLETED);
+                        buyOrder.setMatchedAt(LocalDateTime.now());
+                        buyOrder.setExecutionPrice(executionPrice);
+
                     } else {
                         // 부분 체결: 매도 주문 수량이 매수 주문 수량보다 많을 경우
                     }

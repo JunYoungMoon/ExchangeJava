@@ -12,6 +12,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.kafka.core.KafkaTemplate;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -100,14 +102,16 @@ class PendingOrderMatcherServiceTest {
         CoinOrderDTO buyOrder = new CoinOrderDTO();
         buyOrder.setCoinAmount(BigDecimal.valueOf(1));
         buyOrder.setOrderPrice(BigDecimal.valueOf(50000));
+        buyOrder.setCreatedAt(LocalDateTime.now());
         buyOrder.setOrderStatus(OrderStatus.PENDING);
         buyOrder.setOrderType(OrderType.BUY);
         buyOrder.setCoinName("BTC");
         buyOrder.setMarketName("KRW");
 
         CoinOrderDTO sellOrder = new CoinOrderDTO();
-        sellOrder.setCoinAmount(BigDecimal.valueOf(0.2));
+        sellOrder.setCoinAmount(BigDecimal.valueOf(1));
         sellOrder.setOrderPrice(BigDecimal.valueOf(50000));
+        sellOrder.setCreatedAt(LocalDateTime.now());
         sellOrder.setOrderStatus(OrderStatus.PENDING);
         sellOrder.setOrderType(OrderType.SELL);
         sellOrder.setCoinName("BTC");
@@ -136,7 +140,7 @@ class PendingOrderMatcherServiceTest {
         when(orderService.getSellOrderQueue(sellOrder.getCoinName() + "-" + sellOrder.getMarketName())).thenReturn(sellOrders);
 
         // 2. 주문 매칭 실행
-        pendingOrderMatcherService.matchOrders2(sellOrder);
+        pendingOrderMatcherService.matchOrders2(buyOrder);
 
         // 3. 검증
     }
