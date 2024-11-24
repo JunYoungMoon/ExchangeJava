@@ -341,46 +341,20 @@ public class PendingOrderMatcherService {
                         // 완전 체결: 매수와 매도 주문이 동일한 수량으로 체결된 경우
                         // 매수와 매도 모두 체결로 처리
 
-                        //실제 체결 되는 가격은 매수자의 가격으로 체결
-                        executionPrice = buyOrder.getOrderPrice();
-
-                        buyOrder.setOrderStatus(COMPLETED);
-                        buyOrder.setMatchedAt(LocalDateTime.now());
-                        buyOrder.setExecutionPrice(executionPrice);
-                        sellOrder.setOrderStatus(COMPLETED);
-                        sellOrder.setMatchedAt(LocalDateTime.now());
-                        sellOrder.setExecutionPrice(executionPrice);
-
-                        //반대 주문만 큐에서 제거
-                        oppositeOrdersQueue.poll();
+                        // 미체결DTO로 들어갈 데이터는 없다.
                     } else if (remainingQuantity.compareTo(BigDecimal.ZERO) > 0) {
                         // 부분 체결: 매수 주문 수량이 매도 주문 수량보다 많을 경우
-                        // 매도 모두 체결 처리
-
-                        // 주문 생성 시간 비교하여 오래된 주문의 가격을 체결가로 설정
-                        if (buyOrder.getCreatedAt().isAfter(sellOrder.getCreatedAt())) {
-                            executionPrice = sellOrder.getOrderPrice(); // 매도 주문이 먼저 생성된 경우
-                        } else {
-                            executionPrice = buyOrder.getOrderPrice(); // 매수 주문이 먼저 생성된 경우
-                        }
-
-                        sellOrder.setOrderStatus(COMPLETED);
-                        sellOrder.setMatchedAt(LocalDateTime.now());
-                        sellOrder.setExecutionPrice(executionPrice);
-
-                        buyOrder.setOrderStatus(COMPLETED);
-                        buyOrder.setMatchedAt(LocalDateTime.now());
-                        buyOrder.setExecutionPrice(executionPrice);
-
+                        // [매수 남은 수량]이 미체결DTO로 들어간다.
                     } else {
                         // 부분 체결: 매도 주문 수량이 매수 주문 수량보다 많을 경우
+                        // [매도 남은 수량]이 미체결DTO로 들어간다.
                     }
                 } else {
                     break; // 매칭되지 않으면 더 이상 체결할 수 없으므로 종료
                 }
             }
         } else {
-            //미체결 주문 등록
+            // 주문 정보 그대로 미체결DTO로 들어간다.
         }
     }
 }
