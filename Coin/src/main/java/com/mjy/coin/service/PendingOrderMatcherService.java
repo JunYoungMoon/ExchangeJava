@@ -324,30 +324,35 @@ public class PendingOrderMatcherService {
                 CoinOrderDTO oppositeOrder = oppositeOrdersQueue.peek(); // 반대 주문 큐의 최상위 주문
 
                 // 매칭 조건 확인: 매수자의 가격이 매도자의 가격보다 같거나 높은 경우
-                if ((order.getOrderType() == BUY && order.getOrderPrice().compareTo(oppositeOrder.getOrderPrice()) >= 0) ||
+                // 주문 가격이 0보다 작거나 반대 주문과 가격이 맞지 않을떄
+                if ((order.getCoinAmount().compareTo(BigDecimal.ZERO) <= 0) ||
+                    (order.getOrderType() == BUY && order.getOrderPrice().compareTo(oppositeOrder.getOrderPrice()) >= 0) ||
                     (order.getOrderType() == SELL && order.getOrderPrice().compareTo(oppositeOrder.getOrderPrice()) <= 0)) {
 
-                    // 현재 주문의 타입과 반대 주문의 타입에 따라 설정
-                    CoinOrderDTO buyOrder = order.getOrderType() == BUY ? order : oppositeOrder;
-                    CoinOrderDTO sellOrder =  order.getOrderType() == SELL ? order : oppositeOrder;
-
-                    // 체결 수량 계산
-                    BigDecimal remainingQuantity = buyOrder.getCoinAmount().subtract(sellOrder.getCoinAmount())
-                            .setScale(8, RoundingMode.DOWN)
-                            .stripTrailingZeros();
-
-                    // 완전 체결: 매수와 매도 주문이 동일한 수량으로 체결된 경우
-                    if (remainingQuantity.compareTo(BigDecimal.ZERO) == 0) {
+                    if (order.getCoinAmount().compareTo(oppositeOrder.getCoinAmount()) == 0) {
                         // 완전 체결: 매수와 매도 주문이 동일한 수량으로 체결된 경우
-                        // 매수와 매도 모두 체결로 처리
-
                         // 미체결DTO로 들어갈 데이터는 없다.
-                    } else if (remainingQuantity.compareTo(BigDecimal.ZERO) > 0) {
-                        // 부분 체결: 매수 주문 수량이 매도 주문 수량보다 많을 경우
-                        // [매수 남은 수량]이 미체결DTO로 들어간다.
+                        
+                        // 나는 수량을 0으로
+                        order.setCoinAmount(BigDecimal.valueOf(0));
+                        // 상대는 우선순위큐 poll
+                        oppositeOrdersQueue.poll();
+                    } else if (order.getCoinAmount().compareTo(oppositeOrder.getCoinAmount()) > 0) {
+                        // 부분 체결: 나의 주문수량이 상대의 주문수량 보다 클경우
+                        // [나의 남은 수량]이 미체결DTO로 들어간다.
+
+                        // 나는 수량을 잔여 수량으로
+                        order.setCoinAmount(order.getOrderPrice().subtract(oppositeOrder.getCoinAmount()));
+                        // 상대는 우선순위큐 poll
+                        oppositeOrdersQueue.poll();
                     } else {
-                        // 부분 체결: 매도 주문 수량이 매수 주문 수량보다 많을 경우
-                        // [매도 남은 수량]이 미체결DTO로 들어간다.
+                        // 부분 체결: 상대의 주문수량이 나의 주문수량 보다 클경우
+                        // [상대 남은 수량]이 미체결DTO로 들어간다.
+
+                        // 나는 수량을 0으로
+                        order.setCoinAmount(BigDecimal.valueOf(0));
+                        // 상대는 원래 수량 - 남은 수량 만큼 poll
+                        oppositeOrder.setCoinAmount(oppositeOrder.getCoinAmount().subtract(order.getCoinAmount()));
                     }
                 } else {
                     break; // 매칭되지 않으면 더 이상 체결할 수 없으므로 종료
