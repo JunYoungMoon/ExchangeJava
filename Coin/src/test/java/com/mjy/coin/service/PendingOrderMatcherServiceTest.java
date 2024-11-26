@@ -100,7 +100,7 @@ class PendingOrderMatcherServiceTest {
     public void testMatchOrders2_fullMatch() {
         // 1. BuyOrders와 SellOrders 설정
         CoinOrderDTO buyOrder = new CoinOrderDTO();
-        buyOrder.setCoinAmount(BigDecimal.valueOf(1));
+        buyOrder.setCoinAmount(BigDecimal.valueOf(0.2));
         buyOrder.setOrderPrice(BigDecimal.valueOf(50000));
         buyOrder.setCreatedAt(LocalDateTime.now());
         buyOrder.setOrderStatus(OrderStatus.PENDING);
@@ -143,7 +143,6 @@ class PendingOrderMatcherServiceTest {
         pendingOrderMatcherService.matchOrders2(buyOrder);
 
         // 3. 검증
-
 
     }
 }

@@ -323,9 +323,8 @@ public class PendingOrderMatcherService {
             while (!oppositeOrdersQueue.isEmpty()) {
                 CoinOrderDTO oppositeOrder = oppositeOrdersQueue.peek(); // 반대 주문 큐의 최상위 주문
 
-                // 매칭 조건 확인: 매수자의 가격이 매도자의 가격보다 같거나 높은 경우
-                // 주문 가격이 0보다 작거나 반대 주문과 가격이 맞지 않을떄
-                if ((order.getCoinAmount().compareTo(BigDecimal.ZERO) <= 0) ||
+                // 주문 가격이 0보다 작거나 같고 반대 주문과 가격이 맞지 않을때 벗어난다.
+                if ((order.getCoinAmount().compareTo(BigDecimal.ZERO) > 0) &&
                     (order.getOrderType() == BUY && order.getOrderPrice().compareTo(oppositeOrder.getOrderPrice()) >= 0) ||
                     (order.getOrderType() == SELL && order.getOrderPrice().compareTo(oppositeOrder.getOrderPrice()) <= 0)) {
 
@@ -342,7 +341,7 @@ public class PendingOrderMatcherService {
                         // [나의 남은 수량]이 미체결DTO로 들어간다.
 
                         // 나는 수량을 잔여 수량으로
-                        order.setCoinAmount(order.getOrderPrice().subtract(oppositeOrder.getCoinAmount()));
+                        order.setCoinAmount(order.getCoinAmount().subtract(oppositeOrder.getCoinAmount()));
                         // 상대는 우선순위큐 poll
                         oppositeOrdersQueue.poll();
                     } else {
