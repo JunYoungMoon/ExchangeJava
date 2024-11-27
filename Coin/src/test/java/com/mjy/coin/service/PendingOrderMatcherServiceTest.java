@@ -143,6 +143,18 @@ class PendingOrderMatcherServiceTest {
         pendingOrderMatcherService.matchOrders2(buyOrder);
 
         // 3. 검증
+        // BuyOrder의 coinAmount가 0인지 확인
+        assertEquals(BigDecimal.ZERO, buyOrder.getCoinAmount());
 
+        // SellOrder의 coinAmount가 남은 금액만큼 감소했는지 확인
+        assertEquals(BigDecimal.valueOf(0.8), sellOrder.getCoinAmount());
+
+        // BuyOrder와 SellOrder의 상태가 COMPLETED로 변경되었는지 확인
+        assertEquals(OrderStatus.COMPLETED, buyOrder.getOrderStatus());
+        assertEquals(OrderStatus.COMPLETED, sellOrder.getOrderStatus());
+
+        // 반대 주문 큐에서 주문이 poll 되었는지 확인
+        verify(orderService).getBuyOrderQueue(buyOrder.getCoinName() + "-" + buyOrder.getMarketName());
+        verify(orderService).getSellOrderQueue(sellOrder.getCoinName() + "-" + sellOrder.getMarketName());
     }
 }
