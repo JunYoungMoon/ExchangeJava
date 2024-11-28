@@ -136,8 +136,8 @@ class PendingOrderMatcherServiceTest {
         sellOrders.add(sellOrder);
 
         // Mockito에서 PriorityQueue 반환하도록 설정
-        when(orderService.getBuyOrderQueue(buyOrder.getCoinName() + "-" + buyOrder.getMarketName())).thenReturn(buyOrders);
-        when(orderService.getSellOrderQueue(sellOrder.getCoinName() + "-" + sellOrder.getMarketName())).thenReturn(sellOrders);
+        lenient().when(orderService.getBuyOrderQueue(buyOrder.getCoinName() + "-" + buyOrder.getMarketName())).thenReturn(buyOrders);
+        lenient().when(orderService.getSellOrderQueue(sellOrder.getCoinName() + "-" + sellOrder.getMarketName())).thenReturn(sellOrders);
 
         // 2. 주문 매칭 실행
         pendingOrderMatcherService.matchOrders2(buyOrder);
@@ -149,7 +149,6 @@ class PendingOrderMatcherServiceTest {
         // When: 메서드 호출
         Queue<CoinOrderDTO> returnedSellOrders = orderService.getSellOrderQueue(sellOrder.getCoinName() + "-" + sellOrder.getMarketName());
 
-
-        assertTrue(returnedSellOrders.isEmpty()); // 큐가 비어 있어야 테스트가 통과
+        assertTrue(returnedSellOrders.isEmpty()); // 큐가 비어 있는지 확인
     }
 }
