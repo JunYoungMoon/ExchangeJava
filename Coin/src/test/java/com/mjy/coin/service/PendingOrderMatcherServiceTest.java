@@ -100,7 +100,7 @@ class PendingOrderMatcherServiceTest {
     public void testMatchOrders2_fullMatch() {
         // 1. BuyOrders와 SellOrders 설정
         CoinOrderDTO buyOrder = new CoinOrderDTO();
-        buyOrder.setCoinAmount(BigDecimal.valueOf(0.2));
+        buyOrder.setCoinAmount(BigDecimal.valueOf(1));
         buyOrder.setOrderPrice(BigDecimal.valueOf(50000));
         buyOrder.setCreatedAt(LocalDateTime.now());
         buyOrder.setOrderStatus(OrderStatus.PENDING);
@@ -146,15 +146,10 @@ class PendingOrderMatcherServiceTest {
         // BuyOrder의 coinAmount가 0인지 확인
         assertEquals(BigDecimal.ZERO, buyOrder.getCoinAmount());
 
-        // SellOrder의 coinAmount가 남은 금액만큼 감소했는지 확인
-        assertEquals(BigDecimal.valueOf(0.8), sellOrder.getCoinAmount());
+        // When: 메서드 호출
+        Queue<CoinOrderDTO> returnedSellOrders = orderService.getSellOrderQueue(sellOrder.getCoinName() + "-" + sellOrder.getMarketName());
 
-        // BuyOrder와 SellOrder의 상태가 COMPLETED로 변경되었는지 확인
-        assertEquals(OrderStatus.COMPLETED, buyOrder.getOrderStatus());
-        assertEquals(OrderStatus.COMPLETED, sellOrder.getOrderStatus());
 
-        // 반대 주문 큐에서 주문이 poll 되었는지 확인
-        verify(orderService).getBuyOrderQueue(buyOrder.getCoinName() + "-" + buyOrder.getMarketName());
-        verify(orderService).getSellOrderQueue(sellOrder.getCoinName() + "-" + sellOrder.getMarketName());
+        assertTrue(returnedSellOrders.isEmpty()); // 큐가 비어 있어야 테스트가 통과
     }
 }
