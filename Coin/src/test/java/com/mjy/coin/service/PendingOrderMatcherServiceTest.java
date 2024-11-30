@@ -143,12 +143,66 @@ class PendingOrderMatcherServiceTest {
         pendingOrderMatcherService.matchOrders2(buyOrder);
 
         // 3. 검증
-        // BuyOrder의 coinAmount가 0인지 확인
+        // 3.1. 매수 주문의 수량이 0이 되었는지 확인
         assertEquals(BigDecimal.ZERO, buyOrder.getCoinAmount());
 
-        // When: 메서드 호출
-        Queue<CoinOrderDTO> returnedSellOrders = orderService.getSellOrderQueue(sellOrder.getCoinName() + "-" + sellOrder.getMarketName());
+        // 3.2. 매도 주문이 큐에서 제거되었는지 확인
+        assertTrue(sellOrders.isEmpty());
+    }
 
-        assertTrue(returnedSellOrders.isEmpty()); // 큐가 비어 있는지 확인
+    @Test
+    public void testMatchOrders2_partialMatch() {
+        // 1. BuyOrders와 SellOrders 설정
+        CoinOrderDTO buyOrder = new CoinOrderDTO();
+        buyOrder.setCoinAmount(BigDecimal.valueOf(3)); // 매수 수량 3
+        buyOrder.setOrderPrice(BigDecimal.valueOf(50000));
+        buyOrder.setCreatedAt(LocalDateTime.now());
+        buyOrder.setOrderStatus(OrderStatus.PENDING);
+        buyOrder.setOrderType(OrderType.BUY);
+        buyOrder.setCoinName("BTC");
+        buyOrder.setMarketName("KRW");
+
+        CoinOrderDTO sellOrder = new CoinOrderDTO();
+        sellOrder.setCoinAmount(BigDecimal.valueOf(2)); // 매도 수량 2
+        sellOrder.setOrderPrice(BigDecimal.valueOf(50000));
+        sellOrder.setCreatedAt(LocalDateTime.now());
+        sellOrder.setOrderStatus(OrderStatus.PENDING);
+        sellOrder.setOrderType(OrderType.SELL);
+        sellOrder.setCoinName("BTC");
+        sellOrder.setMarketName("KRW");
+
+        // PriorityQueue 초기화
+        PriorityQueue<CoinOrderDTO> buyOrders = new PriorityQueue<>(
+                Comparator.comparing(CoinOrderDTO::getOrderPrice).reversed()
+                        .thenComparing(CoinOrderDTO::getCreatedAt));
+        PriorityQueue<CoinOrderDTO> sellOrders = new PriorityQueue<>(
+                Comparator.comparing(CoinOrderDTO::getOrderPrice)
+                        .thenComparing(CoinOrderDTO::getCreatedAt));
+
+        // 주문 추가
+        buyOrders.add(buyOrder);
+        sellOrders.add(sellOrder);
+
+        // Mockito에서 PriorityQueue 반환하도록 설정
+        lenient().when(orderService.getBuyOrderQueue(buyOrder.getCoinName() + "-" + buyOrder.getMarketName())).thenReturn(buyOrders);
+        lenient().when(orderService.getSellOrderQueue(sellOrder.getCoinName() + "-" + sellOrder.getMarketName())).thenReturn(sellOrders);
+
+        // 2. 주문 매칭 실행
+        pendingOrderMatcherService.matchOrders2(buyOrder);
+
+        // 3. 검증
+        // 3.1. 매수 주문의 수량이 남아 있는지 확인 (3 - 2 = 1)
+        assertEquals(BigDecimal.valueOf(1), buyOrder.getCoinAmount());
+
+        // 3.2. 매도 주문이 큐에서 제거되었는지 확인
+        assertTrue(sellOrders.isEmpty());
+
+        // 3.3. 매수 주문이 여전히 존재하는지 확인
+        assertFalse(buyOrders.isEmpty());
+
+        // 3.4. 매수 큐에서 매수 주문이 여전히 남아 있는지 확인
+        CoinOrderDTO remainingBuyOrder = buyOrders.peek();
+        assertNotNull(remainingBuyOrder);
+        assertEquals(BigDecimal.valueOf(1), remainingBuyOrder.getCoinAmount());
     }
 }
