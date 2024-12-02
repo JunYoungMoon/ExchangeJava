@@ -331,11 +331,38 @@ public class PendingOrderMatcherService {
                     if (order.getCoinAmount().compareTo(oppositeOrder.getCoinAmount()) == 0) {
                         // 완전 체결: 매수와 매도 주문이 동일한 수량으로 체결된 경우
                         // 미체결DTO로 들어갈 데이터는 없다.
-                        
+
+                        // 완전체결
+                        // 매수와 매도 모두 체결
+                        System.out.println("Matched completely: Order: " + order + " with OppositeOrder: " + oppositeOrder);
+
+                        executionPrice = oppositeOrder.getOrderPrice(); //실제 체결 되는 가격은 반대 주문 가격 설정
+
+                        // 주문과 반대주문 모두 체결로 처리
+                        // 주문건은 redis에 바로 넣으면 되고 반대 주문은 redis에서 미체결 제거후 체결 데이터로 전환
+                        order.setOrderStatus(COMPLETED);
+                        order.setMatchedAt(LocalDateTime.now());
+                        order.setExecutionPrice(executionPrice);
+                        order.setMatchIdx(order.getUuid() + "|" + oppositeOrder.getUuid());
+                        redisService.insertOrderInRedis(key, COMPLETED, order);
+
+                        oppositeOrder.setOrderStatus(COMPLETED);
+                        oppositeOrder.setMatchedAt(LocalDateTime.now());
+                        oppositeOrder.setExecutionPrice(executionPrice);
+                        oppositeOrder.setMatchIdx(oppositeOrder.getUuid() + "|" + order.getUuid());
+                        redisService.deleteHashOps(PENDING + ":ORDER:" + key, oppositeOrder.getUuid());
+                        redisService.insertOrderInRedis(key, COMPLETED, oppositeOrder);
+
                         // 나는 수량을 0으로
                         order.setCoinAmount(BigDecimal.valueOf(0));
                         // 상대는 우선순위큐 poll
                         oppositeOrdersQueue.poll();
+
+                        // 체결 되었으니 반대 주문 호가 리스트 제거
+                        orderBookService.updateOrderBook(key, oppositeOrder, oppositeOrder.getOrderType() == BUY, false);
+
+
+
                     } else if (order.getCoinAmount().compareTo(oppositeOrder.getCoinAmount()) > 0) {
                         // 부분 체결: 나의 주문수량이 상대의 주문수량 보다 클경우
                         // [나의 남은 수량]이 미체결DTO로 들어간다.
