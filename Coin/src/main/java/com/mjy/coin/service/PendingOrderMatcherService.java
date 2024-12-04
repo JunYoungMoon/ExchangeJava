@@ -319,16 +319,23 @@ public class PendingOrderMatcherService {
                         : orderService.getBuyOrderQueue(key);
 
         if (oppositeOrdersQueue != null) {
+            List<CoinOrderDTO> matchList = new ArrayList<>();
+            List<PriceVolumeDTO> priceVolumeList = new ArrayList<>();
             // 체결 처리 로직
             while (!oppositeOrdersQueue.isEmpty()) {
                 CoinOrderDTO oppositeOrder = oppositeOrdersQueue.peek(); // 반대 주문 큐의 최상위 주문
 
-                // 주문 가격이 0보다 작거나 같고 반대 주문과 가격이 맞지 않을때 벗어난다.
-                if ((order.getCoinAmount().compareTo(BigDecimal.ZERO) > 0) &&
-                    (order.getOrderType() == BUY && order.getOrderPrice().compareTo(oppositeOrder.getOrderPrice()) >= 0) ||
-                    (order.getOrderType() == SELL && order.getOrderPrice().compareTo(oppositeOrder.getOrderPrice()) <= 0)) {
+                BigDecimal orderPrice = order.getOrderPrice();
+                BigDecimal oppositePrice = oppositeOrder.getOrderPrice();
+                BigDecimal remainingQuantity = order.getCoinAmount().subtract(oppositeOrder.getCoinAmount());
 
-                    if (order.getCoinAmount().compareTo(oppositeOrder.getCoinAmount()) == 0) {
+                // 조건에 따라 벗어나는 로직
+                boolean isPriceValid = (order.getOrderType() == BUY && orderPrice.compareTo(oppositePrice) >= 0) ||
+                                        (order.getOrderType() == SELL && orderPrice.compareTo(oppositePrice) <= 0);
+
+                // 주문 가격이 0보다 작거나 같고 반대 주문과 가격이 맞지 않을때 벗어난다.
+                if (order.getCoinAmount().compareTo(BigDecimal.ZERO) > 0 && isPriceValid) {
+                    if (remainingQuantity.compareTo(BigDecimal.ZERO) == 0) {
                         // 완전 체결: 매수와 매도 주문이 동일한 수량으로 체결된 경우
                         // 미체결DTO로 들어갈 데이터는 없다.
 
@@ -361,11 +368,25 @@ public class PendingOrderMatcherService {
                         // 체결 되었으니 반대 주문 호가 리스트 제거
                         orderBookService.updateOrderBook(key, oppositeOrder, oppositeOrder.getOrderType() == BUY, false);
 
-
-
-                    } else if (order.getCoinAmount().compareTo(oppositeOrder.getCoinAmount()) > 0) {
+                        //체결 완료 된 데이터를 쌓아서 kafka로 전달할 list
+                        priceVolumeList.add(new PriceVolumeDTO(order));
+                        matchList.add(order);
+                        matchList.add(oppositeOrder);
+                    } else if (remainingQuantity.compareTo(BigDecimal.ZERO) > 0) {
                         // 부분 체결: 나의 주문수량이 상대의 주문수량 보다 클경우
-                        // [나의 남은 수량]이 미체결DTO로 들어간다.
+
+                        executionPrice = oppositeOrder.getOrderPrice(); // 반대 주문을 체결가로 지정
+
+                        // 반대 주문 모두 체결 처리
+                        oppositeOrder.setOrderStatus(COMPLETED);
+                        oppositeOrder.setMatchedAt(LocalDateTime.now());
+                        oppositeOrder.setMatchIdx(oppositeOrder.getUuid() + "|" + order.getUuid());
+                        oppositeOrder.setExecutionPrice(executionPrice);
+
+                        redisService.deleteHashOps(PENDING + ":ORDER:" + key, oppositeOrder.getUuid());
+                        redisService.insertOrderInRedis(key, COMPLETED, oppositeOrder);
+
+                        //나의 주문 부분 체결 처리
 
                         // 나는 수량을 잔여 수량으로
                         order.setCoinAmount(order.getCoinAmount().subtract(oppositeOrder.getCoinAmount()));
