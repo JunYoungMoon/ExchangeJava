@@ -374,8 +374,7 @@ public class PendingOrderMatcherService {
                         matchList.add(oppositeOrder);
                     } else if (remainingQuantity.compareTo(BigDecimal.ZERO) > 0) {
                         // 부분 체결: 나의 주문수량이 상대의 주문수량 보다 클경우
-
-                        executionPrice = oppositeOrder.getOrderPrice(); // 반대 주문을 체결가로 지정
+                        executionPrice = oppositeOrder.getOrderPrice(); // 반대 주문 체결가로 지정
 
                         // 반대 주문 모두 체결 처리
                         oppositeOrder.setOrderStatus(COMPLETED);
@@ -387,19 +386,59 @@ public class PendingOrderMatcherService {
                         redisService.insertOrderInRedis(key, COMPLETED, oppositeOrder);
 
                         //나의 주문 부분 체결 처리
+                        String previousUUID = order.getUuid();
+                        String uuid = order.getMemberIdx() + "_" + UUID.randomUUID();
+
+                        order.setUuid(uuid);
+                        order.setOrderStatus(COMPLETED);
+                        order.setMatchedAt(LocalDateTime.now());
+                        order.setExecutionPrice(executionPrice);
+                        order.setMatchIdx(order.getUuid() + "|" + oppositeOrder.getUuid());
+                        order.setCoinAmount(oppositeOrder.getCoinAmount());
+
+                        redisService.insertOrderInRedis(key, COMPLETED, order);
 
                         // 나는 수량을 잔여 수량으로
-                        order.setCoinAmount(order.getCoinAmount().subtract(oppositeOrder.getCoinAmount()));
+                        order.setOrderStatus(PENDING);
+                        order.setUuid(previousUUID);
+                        order.setCoinAmount(remainingQuantity);
+                        order.setExecutionPrice(null);
                         // 상대는 우선순위큐 poll
                         oppositeOrdersQueue.poll();
                     } else {
                         // 부분 체결: 상대의 주문수량이 나의 주문수량 보다 클경우
-                        // [상대 남은 수량]이 미체결DTO로 들어간다.
+                        executionPrice = oppositeOrder.getOrderPrice(); // 반대 주문을 체결가로 지정
 
-                        // 나는 수량을 0으로
-                        order.setCoinAmount(BigDecimal.valueOf(0));
-                        // 상대는 원래 수량 - 남은 수량 만큼 poll
-                        oppositeOrder.setCoinAmount(oppositeOrder.getCoinAmount().subtract(order.getCoinAmount()));
+                        // 나의 주문 모두 체결 처리
+                        order.setOrderStatus(COMPLETED);
+                        order.setMatchedAt(LocalDateTime.now());
+                        order.setMatchIdx(order.getUuid() + "|" + oppositeOrder.getUuid());
+                        order.setExecutionPrice(executionPrice);
+
+                        redisService.insertOrderInRedis(key, COMPLETED, order);
+
+                        // 상대 주문 부분 체결 처리
+                        String previousUUID = oppositeOrder.getUuid();
+                        String uuid = oppositeOrder.getMemberIdx() + "_" + UUID.randomUUID();
+
+                        oppositeOrder.setUuid(uuid);
+                        oppositeOrder.setOrderStatus(COMPLETED);
+                        oppositeOrder.setMatchedAt(LocalDateTime.now());
+                        oppositeOrder.setExecutionPrice(executionPrice);
+                        oppositeOrder.setMatchIdx(oppositeOrder.getUuid() + "|" + order.getUuid());
+                        oppositeOrder.setCoinAmount(order.getCoinAmount());
+
+                        redisService.insertOrderInRedis(key, COMPLETED, oppositeOrder);
+
+                        // 나는 수량을 잔여 수량으로
+                        oppositeOrder.setOrderStatus(PENDING);
+                        oppositeOrder.setUuid(previousUUID);
+                        oppositeOrder.setCoinAmount(remainingQuantity);
+                        oppositeOrder.setExecutionPrice(null);
+                        oppositeOrder.setMatchIdx("");
+
+                        redisService.deleteHashOps(PENDING + ":ORDER:" + key, previousUUID);
+                        redisService.insertOrderInRedis(key, PENDING, oppositeOrder);
                     }
                 } else {
                     break; // 매칭되지 않으면 더 이상 체결할 수 없으므로 종료
