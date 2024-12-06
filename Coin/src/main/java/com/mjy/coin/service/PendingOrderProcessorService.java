@@ -50,20 +50,21 @@ public class PendingOrderProcessorService {
 
             // 주문이 존재하지 않을 경우에만 저장
             if (existingOrder.isEmpty()) {
-                redisService.insertOrderInRedis(key, PENDING, order);
-
-                if (order.getOrderType() == OrderType.BUY) {
-                    System.out.println("Adding buy order to queue: " + order);
-                    orderService.addBuyOrder(key, order);
-                    orderBookService.updateOrderBook(key, order, true, true);
-                } else if (order.getOrderType() == OrderType.SELL) {
-                    System.out.println("Adding sell order to queue: " + order);
-                    orderService.addSellOrder(key, order);
-                    orderBookService.updateOrderBook(key, order, false, true);
-                }
+//                redisService.insertOrderInRedis(key, PENDING, order);
+//
+//                if (order.getOrderType() == OrderType.BUY) {
+//                    System.out.println("Adding buy order to queue: " + order);
+//                    orderService.addBuyOrder(key, order);
+//                    orderBookService.updateOrderBook(key, order, true, true);
+//                } else if (order.getOrderType() == OrderType.SELL) {
+//                    System.out.println("Adding sell order to queue: " + order);
+//                    orderService.addSellOrder(key, order);
+//                    orderBookService.updateOrderBook(key, order, false, true);
+//                }
 
                 // 주문 체결 시도
-                priorityQueueManager.matchOrders(key);
+//                priorityQueueManager.matchOrders(key);
+                priorityQueueManager.matchOrders2(order);
 
             }
 //

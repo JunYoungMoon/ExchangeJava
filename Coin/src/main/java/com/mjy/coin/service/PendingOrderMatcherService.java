@@ -319,8 +319,6 @@ public class PendingOrderMatcherService {
                         : orderService.getBuyOrderQueue(key);
 
         if (oppositeOrdersQueue != null) {
-            List<CoinOrderDTO> matchList = new ArrayList<>();
-            List<PriceVolumeDTO> priceVolumeList = new ArrayList<>();
             // 체결 처리 로직
             while (!oppositeOrdersQueue.isEmpty()) {
                 CoinOrderDTO oppositeOrder = oppositeOrdersQueue.peek(); // 반대 주문 큐의 최상위 주문
@@ -367,11 +365,6 @@ public class PendingOrderMatcherService {
 
                         // 체결 되었으니 반대 주문 호가 리스트 제거
                         orderBookService.updateOrderBook(key, oppositeOrder, oppositeOrder.getOrderType() == BUY, false);
-
-                        //체결 완료 된 데이터를 쌓아서 kafka로 전달할 list
-                        priceVolumeList.add(new PriceVolumeDTO(order));
-                        matchList.add(order);
-                        matchList.add(oppositeOrder);
                     } else if (remainingQuantity.compareTo(BigDecimal.ZERO) > 0) {
                         // 부분 체결: 나의 주문수량이 상대의 주문수량 보다 클경우
                         executionPrice = oppositeOrder.getOrderPrice(); // 반대 주문 체결가로 지정
@@ -385,7 +378,7 @@ public class PendingOrderMatcherService {
                         redisService.deleteHashOps(PENDING + ":ORDER:" + key, oppositeOrder.getUuid());
                         redisService.insertOrderInRedis(key, COMPLETED, oppositeOrder);
 
-                        //나의 주문 부분 체결 처리
+                        // 나의 주문 부분 체결 처리
                         String previousUUID = order.getUuid();
                         String uuid = order.getMemberIdx() + "_" + UUID.randomUUID();
 
@@ -398,7 +391,7 @@ public class PendingOrderMatcherService {
 
                         redisService.insertOrderInRedis(key, COMPLETED, order);
 
-                        // 나는 수량을 잔여 수량으로
+                        // 남은 수량을 잔여 수량으로 설정
                         order.setOrderStatus(PENDING);
                         order.setUuid(previousUUID);
                         order.setCoinAmount(remainingQuantity);
@@ -417,7 +410,7 @@ public class PendingOrderMatcherService {
 
                         redisService.insertOrderInRedis(key, COMPLETED, order);
 
-                        // 상대 주문 부분 체결 처리
+                        // 반대 주문 부분 체결 처리
                         String previousUUID = oppositeOrder.getUuid();
                         String uuid = oppositeOrder.getMemberIdx() + "_" + UUID.randomUUID();
 
@@ -430,7 +423,7 @@ public class PendingOrderMatcherService {
 
                         redisService.insertOrderInRedis(key, COMPLETED, oppositeOrder);
 
-                        // 나는 수량을 잔여 수량으로
+                        // 남은 수량을 잔여 수량으로 설정
                         oppositeOrder.setOrderStatus(PENDING);
                         oppositeOrder.setUuid(previousUUID);
                         oppositeOrder.setCoinAmount(remainingQuantity);
@@ -446,6 +439,17 @@ public class PendingOrderMatcherService {
             }
         } else {
             // 주문 정보 그대로 미체결DTO로 들어간다.
+            redisService.insertOrderInRedis(key, PENDING, order);
+
+            if (order.getOrderType() == OrderType.BUY) {
+                System.out.println("Adding buy order to queue: " + order);
+                orderService.addBuyOrder(key, order);
+                orderBookService.updateOrderBook(key, order, true, true);
+            } else if (order.getOrderType() == OrderType.SELL) {
+                System.out.println("Adding sell order to queue: " + order);
+                orderService.addSellOrder(key, order);
+                orderBookService.updateOrderBook(key, order, false, true);
+            }
         }
     }
 }

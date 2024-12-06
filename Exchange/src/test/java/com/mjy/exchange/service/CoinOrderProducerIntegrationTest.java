@@ -25,18 +25,18 @@ public class CoinOrderProducerIntegrationTest {
     @Test
     public void testSendCoinOrder() throws InterruptedException {
 
-//        CoinOrder coinOrder1 = new CoinOrder();
-//        coinOrder1.setMemberId(2L);
-//        coinOrder1.setMarketName("KRW");
-//        coinOrder1.setCoinName("BTC");
-//        coinOrder1.setCoinAmount(new BigDecimal("0.06")); // 랜덤 금액 추가
-//        coinOrder1.setOrderPrice(new BigDecimal("5300")); // 랜덤 가격 추가
-//        coinOrder1.setOrderType(SELL);
-//        coinOrder1.setOrderStatus(PENDING);
-//        coinOrder1.setFee(new BigDecimal("0.03"));   //수수료
-//        coinOrder1.setCreatedAt(LocalDateTime.now());
-//        kafkaTemplate.send("BTC-KRW", coinOrder1);
-//        System.out.println("Sent BTC order: " + coinOrder1);
+        CoinOrder coinOrder1 = new CoinOrder();
+        coinOrder1.setMemberUuid("cfccbb28-f07d-4e7c-8bd2-4cbd720aceab");
+        coinOrder1.setMarketName("KRW");
+        coinOrder1.setCoinName("BTC");
+        coinOrder1.setCoinAmount(new BigDecimal("0.06")); // 랜덤 금액 추가
+        coinOrder1.setOrderPrice(new BigDecimal("5300")); // 랜덤 가격 추가
+        coinOrder1.setOrderType(SELL);
+        coinOrder1.setOrderStatus(PENDING);
+        coinOrder1.setFee(new BigDecimal("0.03"));   //수수료
+        coinOrder1.setCreatedAt(LocalDateTime.now());
+        kafkaTemplate.send("BTC-KRW", coinOrder1);
+        System.out.println("Sent BTC order: " + coinOrder1);
 //
 //        CoinOrder coinOrder2 = new CoinOrder();
 //        coinOrder2.setMemberId(1L);
@@ -91,47 +91,47 @@ public class CoinOrderProducerIntegrationTest {
 //        kafkaTemplate.send("BTC-KRW", coinOrder5);
 //        System.out.println("Sent BTC order: " + coinOrder5);
 
-        Random random = new Random();
-        int orderCount = 5000; // 생성할 주문 수
-
-        for (int i = 0; i < orderCount; i++) {
-            // BTC 주문 생성
-            CoinOrder coinOrder4 = new CoinOrder();
-
-
-            boolean nextBoolean = random.nextBoolean();
-            coinOrder4.setMemberIdx(nextBoolean ? 1L : 2L);
-            coinOrder4.setMemberUuid(nextBoolean ? "2b005552-ee2b-4851-8857-6e595800395d" : "cfccbb28-f07d-4e7c-8bd2-4cbd720aceab");
-            coinOrder4.setMarketName("KRW");
-
-//            String randomCoinName = random.nextBoolean() ? "BTC" : "ETH";
-            String randomCoinName = "BTC";
-
-            coinOrder4.setCoinName(randomCoinName);
-
-            // 0.01 ~ 0.1 범위의 랜덤 금액
-            BigDecimal randomAmount = new BigDecimal(0.01 + (0.09 * random.nextDouble())).setScale(2, RoundingMode.DOWN);
-            coinOrder4.setCoinAmount(new BigDecimal(String.valueOf(randomAmount)));
-
-            // 5000 ~ 6000 범위에서 100원 단위로 랜덤 가격 생성
-            int randomPrice = 5000 + (random.nextInt(11) * 100); // 5000에서 6000까지 100원 단위 (5000 + 100*0~10)
-            coinOrder4.setOrderPrice(new BigDecimal(String.valueOf(randomPrice)));
-
-            // BUY 또는 SELL 중 랜덤 타입 선택
-            OrderType randomOrderType = random.nextBoolean() ? OrderType.BUY : OrderType.SELL;
-            coinOrder4.setOrderType(randomOrderType);
-
-            // 주문 상태는 PENDING으로 고정
-            coinOrder4.setOrderStatus(OrderStatus.PENDING);
-
-            // 수수료는 0.01로 고정
-            coinOrder4.setFee(new BigDecimal("0.01"));
-
-            // 생성 시간 설정
-            coinOrder4.setCreatedAt(LocalDateTime.now());
-
-            // Kafka로 전송
-            kafkaTemplate.send("BTC-KRW", coinOrder4);
-        }
+//        Random random = new Random();
+//        int orderCount = 5000; // 생성할 주문 수
+//
+//        for (int i = 0; i < orderCount; i++) {
+//            // BTC 주문 생성
+//            CoinOrder coinOrder4 = new CoinOrder();
+//
+//
+//            boolean nextBoolean = random.nextBoolean();
+//            coinOrder4.setMemberIdx(nextBoolean ? 1L : 2L);
+//            coinOrder4.setMemberUuid(nextBoolean ? "2b005552-ee2b-4851-8857-6e595800395d" : "cfccbb28-f07d-4e7c-8bd2-4cbd720aceab");
+//            coinOrder4.setMarketName("KRW");
+//
+////            String randomCoinName = random.nextBoolean() ? "BTC" : "ETH";
+//            String randomCoinName = "BTC";
+//
+//            coinOrder4.setCoinName(randomCoinName);
+//
+//            // 0.01 ~ 0.1 범위의 랜덤 금액
+//            BigDecimal randomAmount = new BigDecimal(0.01 + (0.09 * random.nextDouble())).setScale(2, RoundingMode.DOWN);
+//            coinOrder4.setCoinAmount(new BigDecimal(String.valueOf(randomAmount)));
+//
+//            // 5000 ~ 6000 범위에서 100원 단위로 랜덤 가격 생성
+//            int randomPrice = 5000 + (random.nextInt(11) * 100); // 5000에서 6000까지 100원 단위 (5000 + 100*0~10)
+//            coinOrder4.setOrderPrice(new BigDecimal(String.valueOf(randomPrice)));
+//
+//            // BUY 또는 SELL 중 랜덤 타입 선택
+//            OrderType randomOrderType = random.nextBoolean() ? OrderType.BUY : OrderType.SELL;
+//            coinOrder4.setOrderType(randomOrderType);
+//
+//            // 주문 상태는 PENDING으로 고정
+//            coinOrder4.setOrderStatus(OrderStatus.PENDING);
+//
+//            // 수수료는 0.01로 고정
+//            coinOrder4.setFee(new BigDecimal("0.01"));
+//
+//            // 생성 시간 설정
+//            coinOrder4.setCreatedAt(LocalDateTime.now());
+//
+//            // Kafka로 전송
+//            kafkaTemplate.send("BTC-KRW", coinOrder4);
+//        }
     }
 }
