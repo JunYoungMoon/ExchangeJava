@@ -8,6 +8,7 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -77,5 +78,13 @@ public class CoinOrderServiceTest {
         for (int i = 0; i < expectedPartitions.size(); i++) {
             assertEquals(expectedPartitions.get(i), actualPartitions.get(i), "Each partition should match expected");
         }
+    }
+
+    @Test
+    public void BigDecimalTest(){
+        BigDecimal a = BigDecimal.valueOf(3);
+        BigDecimal b = BigDecimal.valueOf(6);
+
+        System.out.println(a.subtract(b).compareTo(BigDecimal.ZERO) > 0);
     }
 }
