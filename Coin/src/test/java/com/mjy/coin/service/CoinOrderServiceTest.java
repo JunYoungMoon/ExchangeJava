@@ -1,5 +1,7 @@
 package com.mjy.coin.service;
 
+import com.mjy.coin.dto.CoinOrderDTO;
+import com.mjy.coin.enums.OrderType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -13,7 +15,13 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.PriorityQueue;
+import java.util.UUID;
 
+import static com.mjy.coin.enums.OrderStatus.COMPLETED;
+import static com.mjy.coin.enums.OrderStatus.PENDING;
+import static com.mjy.coin.enums.OrderType.BUY;
+import static com.mjy.coin.enums.OrderType.SELL;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;

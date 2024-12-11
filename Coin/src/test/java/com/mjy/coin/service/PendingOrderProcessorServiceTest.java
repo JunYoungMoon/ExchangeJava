@@ -4,21 +4,14 @@ import com.mjy.coin.dto.CoinOrderDTO;
 import com.mjy.coin.enums.OrderType;
 import com.mjy.coin.repository.coin.master.MasterCoinOrderRepository;
 import com.mjy.coin.repository.coin.slave.SlaveCoinOrderRepository;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import org.springframework.batch.core.Job;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -30,7 +23,7 @@ class PendingOrderProcessorServiceTest {
     private PendingOrderProcessorService pendingOrderProcessorService;
 
     @MockBean
-    private PendingOrderMatcherService priorityQueueManager;
+    private PendingOrderMatcherServiceV1 priorityQueueManager;
 
     @MockBean
     private OrderBookService orderBookService;
@@ -74,7 +67,7 @@ class PendingOrderProcessorServiceTest {
         verify(orderBookService, times(1)).updateOrderBook(anyString(), eq(order), eq(true), eq(true));
 
         // 체결 시도가 이루어졌는지 검증
-        verify(priorityQueueManager, times(1)).matchOrders(anyString());
+        verify(priorityQueueManager, times(1)).matchOrders(order);
     }
 
     @Test
@@ -93,7 +86,7 @@ class PendingOrderProcessorServiceTest {
         verify(orderBookService, times(0)).updateOrderBook(anyString(), eq(order), eq(true), eq(true));
 
         // 체결 시도도 이루어지지 않았는지 검증
-        verify(priorityQueueManager, times(0)).matchOrders(anyString());
+        verify(priorityQueueManager, times(0)).matchOrders(order);
     }
 
     @Test
@@ -113,6 +106,6 @@ class PendingOrderProcessorServiceTest {
         verify(orderBookService, times(1)).updateOrderBook(anyString(), eq(order), eq(false), eq(true));
 
         // 체결 시도가 이루어졌는지 검증
-        verify(priorityQueueManager, times(1)).matchOrders(anyString());
+        verify(priorityQueueManager, times(1)).matchOrders(order);
     }
 }

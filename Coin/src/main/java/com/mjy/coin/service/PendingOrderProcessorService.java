@@ -1,7 +1,6 @@
 package com.mjy.coin.service;
 
 import com.mjy.coin.dto.CoinOrderDTO;
-import com.mjy.coin.enums.OrderType;
 import com.mjy.coin.repository.coin.master.MasterCoinOrderRepository;
 import com.mjy.coin.repository.coin.slave.SlaveCoinOrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,12 +8,10 @@ import org.springframework.stereotype.Component;
 
 import java.util.UUID;
 
-import static com.mjy.coin.enums.OrderStatus.PENDING;
-
 @Component
 public class PendingOrderProcessorService {
 
-    private final PendingOrderMatcherService priorityQueueManager;
+    private final PendingOrderMatcherService pendingOrderMatcherService;
     private final OrderBookService orderBookService;
     private final OrderService orderService;
     private final MasterCoinOrderRepository masterCoinOrderRepository;
@@ -22,13 +19,13 @@ public class PendingOrderProcessorService {
     private final RedisService redisService;
 
     @Autowired
-    public PendingOrderProcessorService(PendingOrderMatcherService priorityQueueManager,
+    public PendingOrderProcessorService(PendingOrderMatcherService pendingOrderMatcherServiceV2,
                                         MasterCoinOrderRepository masterCoinOrderRepository,
                                         SlaveCoinOrderRepository slaveCoinOrderRepository,
                                         OrderService orderService,
                                         OrderBookService orderBookService,
                                         RedisService redisService) {
-        this.priorityQueueManager = priorityQueueManager;
+        this.pendingOrderMatcherService = pendingOrderMatcherServiceV2;
         this.masterCoinOrderRepository = masterCoinOrderRepository;
         this.orderBookService = orderBookService;
         this.orderService = orderService;
@@ -63,9 +60,7 @@ public class PendingOrderProcessorService {
 //                }
 
                 // 주문 체결 시도
-//                priorityQueueManager.matchOrders(key);
-                priorityQueueManager.matchOrders2(order);
-
+                pendingOrderMatcherService.matchOrders(order);
             }
 //
 //            CoinOrder orderEntity = CoinOrderMapper.toEntity(order);

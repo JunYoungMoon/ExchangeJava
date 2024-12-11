@@ -12,7 +12,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.kafka.core.KafkaTemplate;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -20,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class PendingOrderMatcherServiceTest {
+class PendingOrderMatcherServiceV1Test {
     @Mock
     private OrderBookService orderBookService;
 
@@ -40,7 +39,7 @@ class PendingOrderMatcherServiceTest {
     private MasterCoinOrderRepository masterCoinOrderRepository;
 
     @InjectMocks
-    private PendingOrderMatcherService pendingOrderMatcherService;
+    private PendingOrderMatcherServiceV1 pendingOrderMatcherService;
 
     private String testKey = "BTC-KRW";
 
@@ -83,7 +82,7 @@ class PendingOrderMatcherServiceTest {
         when(orderService.getSellOrderQueue(testKey)).thenReturn(sellOrders);
 
         // 2. 주문 매칭 실행
-        pendingOrderMatcherService.matchOrders(testKey);
+        pendingOrderMatcherService.matchOrders(buyOrder);
 
         // 3. 검증
         // 매칭된 주문이 COMPLETED 상태로 업데이트 되었는지 확인
@@ -140,7 +139,7 @@ class PendingOrderMatcherServiceTest {
         lenient().when(orderService.getSellOrderQueue(sellOrder.getCoinName() + "-" + sellOrder.getMarketName())).thenReturn(sellOrders);
 
         // 2. 주문 매칭 실행
-        pendingOrderMatcherService.matchOrders2(buyOrder);
+        pendingOrderMatcherService.matchOrders(buyOrder);
 
         // 3. 검증
         // 3.1. 매수 주문의 수량이 0이 되었는지 확인
@@ -188,7 +187,7 @@ class PendingOrderMatcherServiceTest {
         lenient().when(orderService.getSellOrderQueue(sellOrder.getCoinName() + "-" + sellOrder.getMarketName())).thenReturn(sellOrders);
 
         // 2. 주문 매칭 실행
-        pendingOrderMatcherService.matchOrders2(buyOrder);
+        pendingOrderMatcherService.matchOrders(buyOrder);
 
         // 3. 검증
         // 3.1. 매수 주문의 수량이 남아 있는지 확인 (3 - 2 = 1)

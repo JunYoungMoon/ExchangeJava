@@ -7,12 +7,14 @@ import com.mjy.coin.enums.OrderStatus;
 import com.mjy.coin.enums.OrderType;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Getter
 @Setter
+@ToString
 public class CoinOrderDTO {
     private Long idx; // 주문 ID
     private Long memberIdx; // 주문 등록인, member_idx
@@ -87,26 +89,5 @@ public class CoinOrderDTO {
         this.matchedAt = order.matchedAt;
         this.matchIdx = order.matchIdx;
         this.uuid = order.uuid;
-    }
-
-    @Override
-    public String toString() {
-        return "CoinOrderDTO{" +
-                "idx=" + idx +
-                ", memberIdx=" + memberIdx +
-                ", memberUuid='" + memberUuid + '\'' +
-                ", marketName='" + marketName + '\'' +
-                ", coinName='" + coinName + '\'' +
-                ", coinAmount=" + coinAmount +
-                ", orderPrice=" + orderPrice +
-                ", executionPrice=" + executionPrice +
-                ", orderType=" + orderType +
-                ", orderStatus=" + orderStatus +
-                ", fee=" + fee +
-                ", createdAt=" + createdAt +
-                ", matchedAt=" + matchedAt +
-                ", matchIdx='" + matchIdx + '\'' +
-                ", uuid='" + uuid + '\'' +
-                '}';
     }
 }
