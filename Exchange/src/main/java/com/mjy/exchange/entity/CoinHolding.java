@@ -13,7 +13,7 @@ public class CoinHolding {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idx;
 
-    @Column(nullable = false)
+    @Column(name = "memberUuid")
     private String memberUuid;
 
     @Column(length = 10, nullable = false)
@@ -41,7 +41,9 @@ public class CoinHolding {
         this.isFavorited = isFavorited;
     }
 
-    public CoinHolding() {
+    public CoinHolding() {}
 
-    }
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "memberUuid", referencedColumnName = "uuid", insertable = false, updatable = false)
+    private Member member;
 }

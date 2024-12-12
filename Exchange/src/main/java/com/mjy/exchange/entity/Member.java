@@ -2,6 +2,7 @@ package com.mjy.exchange.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.BatchSize;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -49,7 +50,7 @@ public class Member {
         this.nickname = nickname;
     }
 
-    @ElementCollection(fetch = FetchType.EAGER)
+    @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "MemberRoles")
     private List<String> roles = new ArrayList<>();
 
@@ -57,4 +58,8 @@ public class Member {
     public void prePersist() {
         this.registeredAt = LocalDateTime.now(ZoneOffset.UTC);
     }
+
+    @OneToMany(mappedBy = "member", fetch = FetchType.LAZY)
+//    @BatchSize(size = 2) N + 1 문제 "완화" 방법
+    private List<CoinHolding> coinHoldings = new ArrayList<>();
 }
