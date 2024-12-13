@@ -2,20 +2,20 @@ package com.mjy.exchange.config;
 
 import com.mjy.exchange.exception.CustomAccessDeniedHandler;
 import com.mjy.exchange.exception.CustomAuthenticationEntryPoint;
-import com.mjy.exchange.handler.OAuth2LoginFailureHandler;
-import com.mjy.exchange.handler.OAuth2LoginSuccessHandler;
+import com.mjy.exchange.oauth2.OAuth2LoginFailureHandler;
+import com.mjy.exchange.oauth2.OAuth2LoginSuccessHandler;
 import com.mjy.exchange.repository.slave.SlaveMemberRepository;
 import com.mjy.exchange.security.JwtAuthenticationFilter;
 import com.mjy.exchange.security.JwtTokenProvider;
 import com.mjy.exchange.service.CustomOAuth2UserService;
 import com.mjy.exchange.util.CommonUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
@@ -27,16 +27,35 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
-@RequiredArgsConstructor
 public class SecurityConfig {
     private final JwtTokenProvider jwtTokenProvider;
     private final CustomOAuth2UserService customOAuth2UserService;
     private final SlaveMemberRepository slaveMemberRepository;
     private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
     private final OAuth2LoginFailureHandler oAuth2LoginFailureHandler;
-    private final CorsConfigurationSource corsConfigurationSource;
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
+    private final CorsConfigurationSource corsConfigurationSource;
+
+    public SecurityConfig(
+            JwtTokenProvider jwtTokenProvider,
+            CustomOAuth2UserService customOAuth2UserService,
+            SlaveMemberRepository slaveMemberRepository,
+            OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler,
+            OAuth2LoginFailureHandler oAuth2LoginFailureHandler,
+            CustomAuthenticationEntryPoint customAuthenticationEntryPoint,
+            CustomAccessDeniedHandler customAccessDeniedHandler,
+            @Qualifier("corsConfigurationSource") CorsConfigurationSource corsConfigurationSource
+    ) {
+        this.jwtTokenProvider = jwtTokenProvider;
+        this.customOAuth2UserService = customOAuth2UserService;
+        this.slaveMemberRepository = slaveMemberRepository;
+        this.oAuth2LoginSuccessHandler = oAuth2LoginSuccessHandler;
+        this.oAuth2LoginFailureHandler = oAuth2LoginFailureHandler;
+        this.customAuthenticationEntryPoint = customAuthenticationEntryPoint;
+        this.customAccessDeniedHandler = customAccessDeniedHandler;
+        this.corsConfigurationSource = corsConfigurationSource;
+    }
 
     //csrf를 허용할 패턴
     String[] csrfPatterns = new String[]{

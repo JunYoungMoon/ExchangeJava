@@ -1,6 +1,6 @@
 package com.mjy.exchange.controller;
 
-import com.mjy.exchange.annotation.RateLimit;
+import com.mjy.exchange.aop.RateLimit;
 import com.mjy.exchange.dto.ApiResponse;
 import com.mjy.exchange.dto.EmailRequest;
 import com.mjy.exchange.dto.EmailVerificationRequest;

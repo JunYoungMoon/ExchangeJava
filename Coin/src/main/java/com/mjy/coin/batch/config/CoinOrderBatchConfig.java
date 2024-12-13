@@ -41,9 +41,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class CoinOrderBatchConfig {
     @Bean(name = "coinOrderJob")
     public Job coinOrderJob(@Qualifier("JobRepository") JobRepository jobRepository,
-                            Step checkDataStep,
-                            Step partitionStep,
-                            Step mergeStep) {
+                            @Qualifier("checkDataStep") Step checkDataStep,
+                            @Qualifier("partitionStep") Step partitionStep,
+                            @Qualifier("mergeStep") Step mergeStep) {
         return new JobBuilder("coinOrderJob", jobRepository)
                 .start(checkDataStep)
                 .on("FAILED").end()  // checkDataStep가 FAILED면 종료
@@ -55,8 +55,8 @@ public class CoinOrderBatchConfig {
 
     @Bean
     public Step partitionStep(@Qualifier("JobRepository") JobRepository jobRepository,
-                              @Qualifier("CoinOrderPartitioner") Partitioner partitioner,
-                              Step coinOrderStep) {
+                              @Qualifier("partitioner") Partitioner partitioner,
+                              @Qualifier("coinOrderStep") Step coinOrderStep) {
         return new StepBuilder("partitionStep", jobRepository)
                 .partitioner("coinOrderPartition", partitioner)
                 .step(coinOrderStep)
@@ -65,7 +65,7 @@ public class CoinOrderBatchConfig {
     }
 
     @Bean
-    public Step coinOrderStep(JobRepository jobRepository,
+    public Step coinOrderStep(@Qualifier("JobRepository") JobRepository jobRepository,
                               PlatformTransactionManager transactionManager,
                               CoinOrderReader reader,
                               CoinOrderProcessor processor,
@@ -79,7 +79,7 @@ public class CoinOrderBatchConfig {
     }
 
     @Bean
-    public Step checkDataStep(JobRepository jobRepository,
+    public Step checkDataStep(@Qualifier("JobRepository") JobRepository jobRepository,
                               PlatformTransactionManager transactionManager,
                               CoinOrderService coinOrderService,
                               CoinInfoService coinInfoService) {
@@ -130,7 +130,7 @@ public class CoinOrderBatchConfig {
                 .build();
     }
 
-    @Bean(name = "CoinOrderPartitioner")
+    @Bean
     public Partitioner partitioner() {
         return gridSize -> {
             Map<String, ExecutionContext> partitions = new HashMap<>();
@@ -164,7 +164,7 @@ public class CoinOrderBatchConfig {
     }
 
     @Bean
-    public Step mergeStep(JobRepository jobRepository,
+    public Step mergeStep(@Qualifier("JobRepository") JobRepository jobRepository,
                           RedisService redisService,
                           CoinInfoService coinInfoService,
                           MasterCoinOrderDayHistoryRepository masterCoinOrderDayHistoryRepository,

@@ -31,7 +31,7 @@ public class PendingOrderKafkaListenerCreator {
     public PendingOrderKafkaListenerCreator(
             PendingOrderProcessorService pendingOrderProcessorService,
             CoinInfoService coinInfoService,
-            KafkaListenerEndpointRegistry kafkaListenerEndpointRegistry,
+            @Qualifier("kafkaListenerEndpointRegistry") KafkaListenerEndpointRegistry kafkaListenerEndpointRegistry,
             @Qualifier("coinOrderKafkaListenerContainerFactory") KafkaListenerContainerFactory<?> coinOrderKafkaListenerContainerFactory) {
         this.pendingOrderProcessorService = pendingOrderProcessorService;
         this.coinInfoService = coinInfoService;

@@ -1,4 +1,4 @@
-package com.mjy.exchange.annotation;
+package com.mjy.exchange.aop;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

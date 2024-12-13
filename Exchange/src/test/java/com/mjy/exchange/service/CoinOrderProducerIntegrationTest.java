@@ -25,31 +25,31 @@ public class CoinOrderProducerIntegrationTest {
     @Test
     public void testSendCoinOrder() throws InterruptedException {
 
-        CoinOrder coinOrder1 = new CoinOrder();
-        coinOrder1.setMemberUuid("cfccbb28-f07d-4e7c-8bd2-4cbd720aceab");
-        coinOrder1.setMarketName("KRW");
-        coinOrder1.setCoinName("BTC");
-        coinOrder1.setCoinAmount(new BigDecimal("0.06")); // 랜덤 금액 추가
-        coinOrder1.setOrderPrice(new BigDecimal("5300")); // 랜덤 가격 추가
-        coinOrder1.setOrderType(SELL);
-        coinOrder1.setOrderStatus(PENDING);
-        coinOrder1.setFee(new BigDecimal("0.03"));   //수수료
-        coinOrder1.setCreatedAt(LocalDateTime.now());
-        kafkaTemplate.send("BTC-KRW", coinOrder1);
-        System.out.println("Sent BTC order: " + coinOrder1);
+//        CoinOrder coinOrder1 = new CoinOrder();
+//        coinOrder1.setMemberUuid("cfccbb28-f07d-4e7c-8bd2-4cbd720aceab");
+//        coinOrder1.setMarketName("KRW");
+//        coinOrder1.setCoinName("BTC");
+//        coinOrder1.setCoinAmount(new BigDecimal("0.06")); // 랜덤 금액 추가
+//        coinOrder1.setOrderPrice(new BigDecimal("5300")); // 랜덤 가격 추가
+//        coinOrder1.setOrderType(SELL);
+//        coinOrder1.setOrderStatus(PENDING);
+//        coinOrder1.setFee(new BigDecimal("0.03"));   //수수료
+//        coinOrder1.setCreatedAt(LocalDateTime.now());
+//        kafkaTemplate.send("BTC-KRW", coinOrder1);
+//        System.out.println("Sent BTC order: " + coinOrder1);
 //
-//        CoinOrder coinOrder2 = new CoinOrder();
-//        coinOrder2.setMemberId(1L);
-//        coinOrder2.setMarketName("KRW");
-//        coinOrder2.setCoinName("BTC");
-//        coinOrder2.setCoinAmount(new BigDecimal("0.04")); // 랜덤 금액 추가
-//        coinOrder2.setOrderPrice(new BigDecimal("5400")); // 랜덤 가격 추가
-//        coinOrder2.setOrderType(BUY);
-//        coinOrder2.setOrderStatus(PENDING);
-//        coinOrder2.setFee(new BigDecimal("0.01"));   //수수료
-//        coinOrder2.setCreatedAt(LocalDateTime.now());
-//        kafkaTemplate.send("BTC-KRW", coinOrder2);
-//        System.out.println("Sent BTC order: " + coinOrder2);
+        CoinOrder coinOrder2 = new CoinOrder();
+        coinOrder2.setMemberUuid("2b005552-ee2b-4851-8857-6e595800395d");
+        coinOrder2.setMarketName("KRW");
+        coinOrder2.setCoinName("BTC");
+        coinOrder2.setCoinAmount(new BigDecimal("0.04")); // 랜덤 금액 추가
+        coinOrder2.setOrderPrice(new BigDecimal("5400")); // 랜덤 가격 추가
+        coinOrder2.setOrderType(BUY);
+        coinOrder2.setOrderStatus(PENDING);
+        coinOrder2.setFee(new BigDecimal("0.01"));   //수수료
+        coinOrder2.setCreatedAt(LocalDateTime.now());
+        kafkaTemplate.send("BTC-KRW", coinOrder2);
+        System.out.println("Sent BTC order: " + coinOrder2);
 
 //        CoinOrder coinOrder3 = new CoinOrder();
 //        coinOrder3.setMemberId(1L);

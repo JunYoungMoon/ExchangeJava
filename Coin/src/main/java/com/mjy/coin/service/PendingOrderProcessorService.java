@@ -4,6 +4,7 @@ import com.mjy.coin.dto.CoinOrderDTO;
 import com.mjy.coin.repository.coin.master.MasterCoinOrderRepository;
 import com.mjy.coin.repository.coin.slave.SlaveCoinOrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;
@@ -19,13 +20,13 @@ public class PendingOrderProcessorService {
     private final RedisService redisService;
 
     @Autowired
-    public PendingOrderProcessorService(PendingOrderMatcherService pendingOrderMatcherServiceV2,
+    public PendingOrderProcessorService(@Qualifier("pendingOrderMatcherServiceV2") PendingOrderMatcherService pendingOrderMatcherService,
                                         MasterCoinOrderRepository masterCoinOrderRepository,
                                         SlaveCoinOrderRepository slaveCoinOrderRepository,
                                         OrderService orderService,
                                         OrderBookService orderBookService,
                                         RedisService redisService) {
-        this.pendingOrderMatcherService = pendingOrderMatcherServiceV2;
+        this.pendingOrderMatcherService = pendingOrderMatcherService;
         this.masterCoinOrderRepository = masterCoinOrderRepository;
         this.orderBookService = orderBookService;
         this.orderService = orderService;

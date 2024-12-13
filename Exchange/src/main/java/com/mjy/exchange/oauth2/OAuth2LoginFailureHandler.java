@@ -1,4 +1,4 @@
-package com.mjy.exchange.handler;
+package com.mjy.exchange.oauth2;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

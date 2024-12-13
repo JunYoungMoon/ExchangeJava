@@ -1,6 +1,5 @@
 package com.mjy.exchange.aop;
 
-import com.mjy.exchange.annotation.RateLimit;
 import com.mjy.exchange.component.APIRateLimiter;
 import jakarta.servlet.http.HttpServletRequest;
 import org.aspectj.lang.ProceedingJoinPoint;

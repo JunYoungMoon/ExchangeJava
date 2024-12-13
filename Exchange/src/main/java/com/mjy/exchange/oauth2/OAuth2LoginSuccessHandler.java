@@ -1,4 +1,4 @@
-package com.mjy.exchange.handler;
+package com.mjy.exchange.oauth2;
 
 import com.mjy.exchange.dto.TokenInfo;
 import com.mjy.exchange.security.JwtTokenProvider;

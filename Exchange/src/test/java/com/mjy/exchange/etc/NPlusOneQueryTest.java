@@ -1,4 +1,4 @@
-package com.mjy.exchange.service;
+package com.mjy.exchange.etc;
 
 import com.mjy.exchange.entity.Member;
 import jakarta.persistence.EntityManager;
@@ -13,7 +13,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest
-public class MemberCoinHoldingTest {
+public class NPlusOneQueryTest {
 
     @Autowired
     private EntityManager entityManager;
