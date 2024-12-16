@@ -2,11 +2,13 @@ package com.mjy.coin.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mjy.coin.dto.ApiResponse;
+import com.mjy.coin.dto.CoinOrderDTO;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.web.csrf.CsrfToken;
 
 import java.io.IOException;
+import java.util.UUID;
 
 public class CommonUtil {
     // 모바일인지 체크하는 메서드
@@ -37,5 +39,9 @@ public class CommonUtil {
                 .build();
 
         response.getWriter().write(new ObjectMapper().writeValueAsString(apiResponse));
+    }
+
+    public static String generateUniqueKey(String prefix){
+        return prefix + "_" + UUID.randomUUID();
     }
 }

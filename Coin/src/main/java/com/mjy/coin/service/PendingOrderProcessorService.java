@@ -9,6 +9,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.UUID;
 
+import static com.mjy.coin.util.CommonUtil.generateUniqueKey;
+
 @Component
 public class PendingOrderProcessorService {
 
@@ -37,14 +39,11 @@ public class PendingOrderProcessorService {
     public synchronized void processOrder(CoinOrderDTO order) {
         String key = order.getCoinName() + "-" + order.getMarketName();
 
-        // Order ID 생성: UUID를 사용하여 고유한 주문 ID 생성
-        String uuid = order.getMemberIdx() + "_" + UUID.randomUUID();
-
-        order.setUuid(uuid);
+        order.setUuid(generateUniqueKey("Order"));
 
         try {
-            // Redis에서 해당 orderId가 존재하는지 확인
-            String existingOrder = redisService.getHashOps("PENDING:ORDER:" + key, uuid);
+            // Redis에서 해당 order UUID가 존재하는지 확인
+            String existingOrder = redisService.getHashOps("PENDING:ORDER:" + key, order.getUuid());
 
             // 주문이 존재하지 않을 경우에만 저장
             if (existingOrder.isEmpty()) {

@@ -9,7 +9,6 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -17,6 +16,7 @@ import static com.mjy.coin.enums.OrderStatus.COMPLETED;
 import static com.mjy.coin.enums.OrderStatus.PENDING;
 import static com.mjy.coin.enums.OrderType.BUY;
 import static com.mjy.coin.enums.OrderType.SELL;
+import static com.mjy.coin.util.CommonUtil.generateUniqueKey;
 
 @Component
 public class PendingOrderMatcherServiceV2 implements PendingOrderMatcherService {
@@ -55,14 +55,14 @@ public class PendingOrderMatcherServiceV2 implements PendingOrderMatcherService 
             if (!canMatchOrders(order, oppositeOrder)) break;
 
             //남은 수량
-            BigDecimal remainingQuantity = order.getCoinAmount().subtract(oppositeOrder.getCoinAmount());
+            BigDecimal remainingQuantity = calculateRemainingQuantity(order, oppositeOrder);
 
-            if (isExactMatch(remainingQuantity)) {
-                handleExactMatch(order, oppositeOrder, key, oppositeOrdersQueue);
-            } else if (isPartialMatchOrderSmaller(remainingQuantity)) {
-                handlePartialMatchWhenOrderIsSmaller(order, oppositeOrder, key, oppositeOrdersQueue);
-            } else if (isPartialMatchOrderLarger(remainingQuantity)) {
-                handlePartialMatchWhenOrderIsLarger(order, oppositeOrder, key, oppositeOrdersQueue);
+            if (isCompleteMatch(remainingQuantity)) {
+                processCompleteMatch(order, oppositeOrder, key, oppositeOrdersQueue);
+            } else if (isOversizeMatch(remainingQuantity)) {
+                processOversizeMatch(order, oppositeOrder, key, oppositeOrdersQueue, remainingQuantity);
+            } else if (isUndersizedMatch(remainingQuantity)) {
+                processUndersizedMatch(order, oppositeOrder, key, oppositeOrdersQueue, remainingQuantity);
                 break; // 나의 주문은 더 이상 처리할 수 없으므로 종료
             }
         }
@@ -86,15 +86,19 @@ public class PendingOrderMatcherServiceV2 implements PendingOrderMatcherService 
         }
     }
 
-    private boolean isExactMatch(BigDecimal remainingQuantity) {
+    private BigDecimal calculateRemainingQuantity(CoinOrderDTO order, CoinOrderDTO oppositeOrder) {
+        return order.getCoinAmount().subtract(oppositeOrder.getCoinAmount());
+    }
+
+    private boolean isCompleteMatch(BigDecimal remainingQuantity) {
         return remainingQuantity.compareTo(BigDecimal.ZERO) == 0;
     }
 
-    private boolean isPartialMatchOrderSmaller(BigDecimal remainingQuantity) {
+    private boolean isOversizeMatch(BigDecimal remainingQuantity) {
         return remainingQuantity.compareTo(BigDecimal.ZERO) > 0;
     }
 
-    private boolean isPartialMatchOrderLarger(BigDecimal remainingQuantity) {
+    private boolean isUndersizedMatch(BigDecimal remainingQuantity) {
         return remainingQuantity.compareTo(BigDecimal.ZERO) < 0;
     }
 
@@ -117,7 +121,14 @@ public class PendingOrderMatcherServiceV2 implements PendingOrderMatcherService 
                 : orderService.getBuyOrderQueue(key);
     }
 
-    private void handleExactMatch(CoinOrderDTO order, CoinOrderDTO oppositeOrder, String key, PriorityQueue<CoinOrderDTO> queue) {
+    private void updateOrderWithMatch(CoinOrderDTO order, CoinOrderDTO oppositeOrder, BigDecimal executionPrice) {
+        order.setOrderStatus(COMPLETED);
+        order.setMatchedAt(LocalDateTime.now());
+        order.setExecutionPrice(executionPrice);
+        order.setMatchIdx(order.getUuid() + "|" + oppositeOrder.getUuid());
+    }
+
+    private void processCompleteMatch(CoinOrderDTO order, CoinOrderDTO oppositeOrder, String key, PriorityQueue<CoinOrderDTO> queue) {
         System.out.println("완전체결 : " + " 주문 : " + order + " 반대 주문 : " + oppositeOrder);
 
         //실제 체결 되는 가격은 반대 주문 가격 설정
@@ -125,18 +136,15 @@ public class PendingOrderMatcherServiceV2 implements PendingOrderMatcherService 
 
         // 주문과 반대주문 모두 체결로 처리
         // 주문건은 redis에 바로 넣으면 되고 반대 주문은 redis에서 미체결 제거후 체결 데이터로 전환
-        order.setOrderStatus(COMPLETED);
-        order.setMatchedAt(LocalDateTime.now());
-        order.setExecutionPrice(executionPrice);
-        order.setMatchIdx(order.getUuid() + "|" + oppositeOrder.getUuid());
+        updateOrderWithMatch(order, oppositeOrder, executionPrice);
+
         redisService.insertOrderInRedis(key, COMPLETED, order);
 
-        oppositeOrder.setOrderStatus(COMPLETED);
-        oppositeOrder.setMatchedAt(LocalDateTime.now());
-        oppositeOrder.setExecutionPrice(executionPrice);
-        oppositeOrder.setMatchIdx(oppositeOrder.getUuid() + "|" + order.getUuid());
-        redisService.deleteHashOps(PENDING + ":ORDER:" + key, oppositeOrder.getUuid());
+        updateOrderWithMatch(oppositeOrder, order, executionPrice);
+
         redisService.insertOrderInRedis(key, COMPLETED, oppositeOrder);
+
+        redisService.deleteHashOps(PENDING + ":ORDER:" + key, oppositeOrder.getUuid());
 
         // 상대는 우선순위큐 poll
         queue.poll();
@@ -145,67 +153,25 @@ public class PendingOrderMatcherServiceV2 implements PendingOrderMatcherService 
         orderBookService.updateOrderBook(key, oppositeOrder, oppositeOrder.getOrderType() == BUY, false);
     }
 
-    private void handlePartialMatchWhenOrderIsSmaller(CoinOrderDTO order, CoinOrderDTO oppositeOrder, String key, PriorityQueue<CoinOrderDTO> queue) {
-        System.out.println("부분체결 (주문이 반대 주문보다 크다) : " + " 주문 : " + order + " 반대 주문 : " + oppositeOrder);
-
-        // 반대 주문 체결가로 지정
-        BigDecimal executionPrice = oppositeOrder.getOrderPrice();
-
-        // 반대 주문 모두 체결 처리
-        oppositeOrder.setOrderStatus(COMPLETED);
-        oppositeOrder.setMatchedAt(LocalDateTime.now());
-        oppositeOrder.setMatchIdx(oppositeOrder.getUuid() + "|" + order.getUuid());
-        oppositeOrder.setExecutionPrice(executionPrice);
-
-        redisService.deleteHashOps(PENDING + ":ORDER:" + key, oppositeOrder.getUuid());
-        redisService.insertOrderInRedis(key, COMPLETED, oppositeOrder);
-
-        // 나의 주문 부분 체결 처리
-        String previousUUID = order.getUuid();
-        String uuid = order.getMemberIdx() + "_" + UUID.randomUUID();
-
-        order.setUuid(uuid);
-        order.setOrderStatus(COMPLETED);
-        order.setMatchedAt(LocalDateTime.now());
-        order.setExecutionPrice(executionPrice);
-        order.setMatchIdx(order.getUuid() + "|" + oppositeOrder.getUuid());
-        order.setCoinAmount(oppositeOrder.getCoinAmount());
-
-        redisService.insertOrderInRedis(key, COMPLETED, order);
-
-        // 남은 수량을 잔여 수량으로 설정
-        order.setOrderStatus(PENDING);
-        order.setUuid(previousUUID);
-        order.setCoinAmount(remainingQuantity);
-        order.setExecutionPrice(null);
-        // 상대는 우선순위큐 poll
-        queue.poll();
-    }
-
-    private void handlePartialMatchWhenOrderIsLarger(CoinOrderDTO order, CoinOrderDTO oppositeOrder, String key, PriorityQueue<CoinOrderDTO> queue) {
+    private void processUndersizedMatch(CoinOrderDTO order, CoinOrderDTO oppositeOrder, String key, PriorityQueue<CoinOrderDTO> queue, BigDecimal remainingQuantity) {
         System.out.println("부분체결 (주문이 반대 주문보다 작다) : " + " 주문 : " + order + " 반대 주문 : " + oppositeOrder);
 
-        // 반대 주문을 체결가로 지정
+        //실제 체결 되는 가격은 반대 주문 가격 설정
         BigDecimal executionPrice = oppositeOrder.getOrderPrice();
 
         // 나의 주문 모두 체결 처리
-        order.setOrderStatus(COMPLETED);
-        order.setMatchedAt(LocalDateTime.now());
-        order.setMatchIdx(order.getUuid() + "|" + oppositeOrder.getUuid());
-        order.setExecutionPrice(executionPrice);
+        updateOrderWithMatch(order, oppositeOrder, executionPrice);
 
         redisService.insertOrderInRedis(key, COMPLETED, order);
 
         // 반대 주문 부분 체결 처리
         String previousUUID = oppositeOrder.getUuid();
-        String uuid = oppositeOrder.getMemberIdx() + "_" + UUID.randomUUID();
 
-        oppositeOrder.setUuid(uuid);
-        oppositeOrder.setOrderStatus(COMPLETED);
-        oppositeOrder.setMatchedAt(LocalDateTime.now());
-        oppositeOrder.setExecutionPrice(executionPrice);
-        oppositeOrder.setMatchIdx(oppositeOrder.getUuid() + "|" + order.getUuid());
+        oppositeOrder.setUuid(generateUniqueKey("Order"));
+
         oppositeOrder.setCoinAmount(order.getCoinAmount());
+
+        updateOrderWithMatch(oppositeOrder, order, executionPrice);
 
         redisService.insertOrderInRedis(key, COMPLETED, oppositeOrder);
 
@@ -221,6 +187,38 @@ public class PendingOrderMatcherServiceV2 implements PendingOrderMatcherService 
 
         //미체결 주문 kafka 전송
         sendPendingOrderToKafka(oppositeOrder);
+    }
+
+    private void processOversizeMatch(CoinOrderDTO order, CoinOrderDTO oppositeOrder, String key, PriorityQueue<CoinOrderDTO> queue, BigDecimal remainingQuantity) {
+        System.out.println("부분체결 (주문이 반대 주문보다 크다) : " + " 주문 : " + order + " 반대 주문 : " + oppositeOrder);
+
+        //실제 체결 되는 가격은 반대 주문 가격 설정
+        BigDecimal executionPrice = oppositeOrder.getOrderPrice();
+
+        // 반대 주문 모두 체결 처리
+        updateOrderWithMatch(oppositeOrder, order, executionPrice);
+
+        redisService.insertOrderInRedis(key, COMPLETED, oppositeOrder);
+        redisService.deleteHashOps(PENDING + ":ORDER:" + key, oppositeOrder.getUuid());
+
+        // 나의 주문 부분 체결 처리
+        String previousUUID = order.getUuid();
+
+        order.setUuid(generateUniqueKey("Order"));
+
+        order.setCoinAmount(oppositeOrder.getCoinAmount());
+
+        updateOrderWithMatch(order, oppositeOrder, executionPrice);
+
+        redisService.insertOrderInRedis(key, COMPLETED, order);
+
+        // 남은 수량을 잔여 수량으로 설정
+        order.setOrderStatus(PENDING);
+        order.setUuid(previousUUID);
+        order.setCoinAmount(remainingQuantity);
+        order.setExecutionPrice(null);
+        // 상대는 우선순위큐 poll
+        queue.poll();
     }
 
     //미체결 주문 kafka 전송
