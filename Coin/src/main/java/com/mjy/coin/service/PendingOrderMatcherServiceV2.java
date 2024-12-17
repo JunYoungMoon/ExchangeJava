@@ -86,7 +86,7 @@ public class PendingOrderMatcherServiceV2 implements PendingOrderMatcherService 
         }
     }
 
-    private BigDecimal calculateRemainingQuantity(CoinOrderDTO order, CoinOrderDTO oppositeOrder) {
+    public BigDecimal calculateRemainingQuantity(CoinOrderDTO order, CoinOrderDTO oppositeOrder) {
         return order.getCoinAmount().subtract(oppositeOrder.getCoinAmount());
     }
 

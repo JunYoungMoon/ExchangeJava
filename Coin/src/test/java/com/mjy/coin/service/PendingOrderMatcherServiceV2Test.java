@@ -1,16 +1,29 @@
 package com.mjy.coin.service;
 
 import com.mjy.coin.dto.CoinOrderDTO;
+import com.mjy.coin.dto.PriceVolumeDTO;
+import com.mjy.coin.repository.coin.master.MasterCoinOrderRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.kafka.core.KafkaTemplate;
 
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
 
 import static com.mjy.coin.enums.OrderStatus.*;
 import static com.mjy.coin.util.CommonUtil.generateUniqueKey;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+@ExtendWith(MockitoExtension.class)
 class PendingOrderMatcherServiceV2Test {
+
+    @InjectMocks
+    private PendingOrderMatcherServiceV2 pendingOrderMatcherService;
 
     private CoinOrderDTO order;
     private CoinOrderDTO oppositeOrder;
@@ -31,14 +44,22 @@ class PendingOrderMatcherServiceV2Test {
         this.oppositeOrder = oppositeOrder;
     }
 
-    private BigDecimal calculateRemainingQuantity(CoinOrderDTO order, CoinOrderDTO oppositeOrder) {
-        return order.getCoinAmount().subtract(oppositeOrder.getCoinAmount());
+    @Test
+    public void testCalculateRemainingQuantity() {
+        BigDecimal remaining = pendingOrderMatcherService.calculateRemainingQuantity(order, oppositeOrder);
+
+        assertEquals(0, remaining.compareTo(BigDecimal.ZERO));
     }
 
     @Test
-    public void testCalculateRemainingQuantity() {
-        BigDecimal remaining = calculateRemainingQuantity(order, oppositeOrder);
+    public void testIsCompleteMatch() {
+    }
 
-        assertEquals(0, remaining.compareTo(BigDecimal.ZERO));
+    @Test
+    public void isOversizeMatch() {
+    }
+
+    @Test
+    public void isUndersizedMatch() {
     }
 }
