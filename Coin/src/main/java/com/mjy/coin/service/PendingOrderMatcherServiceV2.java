@@ -90,26 +90,26 @@ public class PendingOrderMatcherServiceV2 implements PendingOrderMatcherService 
         return order.getCoinAmount().subtract(oppositeOrder.getCoinAmount());
     }
 
-    private boolean isCompleteMatch(BigDecimal remainingQuantity) {
+    public boolean isCompleteMatch(BigDecimal remainingQuantity) {
         return remainingQuantity.compareTo(BigDecimal.ZERO) == 0;
     }
 
-    private boolean isOversizeMatch(BigDecimal remainingQuantity) {
+    public boolean isOversizeMatch(BigDecimal remainingQuantity) {
         return remainingQuantity.compareTo(BigDecimal.ZERO) > 0;
     }
 
-    private boolean isUndersizedMatch(BigDecimal remainingQuantity) {
+    public boolean isUndersizedMatch(BigDecimal remainingQuantity) {
         return remainingQuantity.compareTo(BigDecimal.ZERO) < 0;
     }
 
-    private boolean canMatchOrders(CoinOrderDTO order, CoinOrderDTO oppositeOrder) {
+    public boolean canMatchOrders(CoinOrderDTO order, CoinOrderDTO oppositeOrder) {
         BigDecimal currentOrderPrice = order.getOrderPrice();
         BigDecimal oppositeOrderPrice = oppositeOrder.getOrderPrice();
 
         // 매수 가격이 매도 가격보다 크거나 같으면 true, 매도 가격이 매수 가격보다 작거나 같으면 true
         boolean isPriceMatching =
                 (order.getOrderType() == BUY && currentOrderPrice.compareTo(oppositeOrderPrice) >= 0) ||
-                        (order.getOrderType() == SELL && currentOrderPrice.compareTo(oppositeOrderPrice) <= 0);
+                (order.getOrderType() == SELL && currentOrderPrice.compareTo(oppositeOrderPrice) <= 0);
 
         // 주문 수량이 0보다 작거나 같고 반대 주문과 가격이 맞지 않을때 벗어난다.
         return isPriceMatching && order.getCoinAmount().compareTo(BigDecimal.ZERO) > 0;
