@@ -115,13 +115,13 @@ public class PendingOrderMatcherServiceV2 implements PendingOrderMatcherService 
         return isPriceMatching && order.getCoinAmount().compareTo(BigDecimal.ZERO) > 0;
     }
 
-    private PriorityQueue<CoinOrderDTO> getOppositeOrdersQueue(CoinOrderDTO order, String key) {
+    public PriorityQueue<CoinOrderDTO> getOppositeOrdersQueue(CoinOrderDTO order, String key) {
         return (order.getOrderType() == BUY)
                 ? orderService.getSellOrderQueue(key)
                 : orderService.getBuyOrderQueue(key);
     }
 
-    private void updateOrderWithMatch(CoinOrderDTO order, CoinOrderDTO oppositeOrder, BigDecimal executionPrice) {
+    public void updateOrderWithMatch(CoinOrderDTO order, CoinOrderDTO oppositeOrder, BigDecimal executionPrice) {
         order.setOrderStatus(COMPLETED);
         order.setMatchedAt(LocalDateTime.now());
         order.setExecutionPrice(executionPrice);
