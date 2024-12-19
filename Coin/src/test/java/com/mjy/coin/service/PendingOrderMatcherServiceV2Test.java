@@ -2,7 +2,6 @@ package com.mjy.coin.service;
 
 import com.mjy.coin.dto.CoinOrderDTO;
 import com.mjy.coin.enums.OrderType;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -18,6 +17,8 @@ import static com.mjy.coin.enums.OrderType.BUY;
 import static com.mjy.coin.enums.OrderType.SELL;
 import static com.mjy.coin.util.CommonUtil.generateUniqueKey;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -25,6 +26,12 @@ class PendingOrderMatcherServiceV2Test {
 
     @Mock
     private OrderService orderService;
+
+    @Mock
+    private OrderBookService orderBookService;
+
+    @Mock
+    private RedisService redisService;
 
     @InjectMocks
     private PendingOrderMatcherServiceV2 pendingOrderMatcherService;
@@ -172,5 +179,36 @@ class PendingOrderMatcherServiceV2Test {
         assertNotNull(order.getMatchedAt(), "매칭 시간이 존재해야 한다.");
         assertEquals(executionPrice, order.getExecutionPrice(), "매치 가격이 같아야 한다.");
         assertEquals(order.getUuid() + "|" + oppositeOrder.getUuid(), order.getMatchIdx(), "매치 인덱스가 일치해야 한다.");
+    }
+
+    @Test
+    public void testProcessCompleteMatch() {
+        //given
+        String key = "BTC-KRW";
+
+        Comparator<CoinOrderDTO> buyOrderComparator =
+                Comparator.comparing(CoinOrderDTO::getOrderPrice).reversed()
+                        .thenComparing(CoinOrderDTO::getCreatedAt);
+
+        Comparator<CoinOrderDTO> sellOrderComparator =
+                Comparator.comparing(CoinOrderDTO::getOrderPrice)
+                        .thenComparing(CoinOrderDTO::getCreatedAt);
+
+        PriorityQueue<CoinOrderDTO> buyQueue = new PriorityQueue<>(buyOrderComparator);
+        PriorityQueue<CoinOrderDTO> sellQueue = new PriorityQueue<>(sellOrderComparator);
+
+        CoinOrderDTO order = createOrder(BUY, "100", "1.5");
+        CoinOrderDTO oppositeOrder = createOrder(SELL, "90", "1.5");
+
+        buyQueue.add(order);
+        sellQueue.add(oppositeOrder);
+
+        pendingOrderMatcherService.processCompleteMatch(order, oppositeOrder, key, sellQueue);
+
+        //when
+        verify(redisService).insertOrderInRedis(eq(key), eq(COMPLETED), eq(order));
+        verify(redisService).insertOrderInRedis(eq(key), eq(COMPLETED), eq(oppositeOrder));
+
+        //then
     }
 }

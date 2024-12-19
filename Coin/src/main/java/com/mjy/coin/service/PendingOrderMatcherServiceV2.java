@@ -128,7 +128,7 @@ public class PendingOrderMatcherServiceV2 implements PendingOrderMatcherService 
         order.setMatchIdx(order.getUuid() + "|" + oppositeOrder.getUuid());
     }
 
-    private void processCompleteMatch(CoinOrderDTO order, CoinOrderDTO oppositeOrder, String key, PriorityQueue<CoinOrderDTO> queue) {
+    public void processCompleteMatch(CoinOrderDTO order, CoinOrderDTO oppositeOrder, String key, PriorityQueue<CoinOrderDTO> queue) {
         System.out.println("완전체결 : " + " 주문 : " + order + " 반대 주문 : " + oppositeOrder);
 
         //실제 체결 되는 가격은 반대 주문 가격 설정
@@ -137,15 +137,13 @@ public class PendingOrderMatcherServiceV2 implements PendingOrderMatcherService 
         // 주문과 반대주문 모두 체결로 처리
         // 주문건은 redis에 바로 넣으면 되고 반대 주문은 redis에서 미체결 제거후 체결 데이터로 전환
         updateOrderWithMatch(order, oppositeOrder, executionPrice);
-
-        redisService.insertOrderInRedis(key, COMPLETED, order);
-
         updateOrderWithMatch(oppositeOrder, order, executionPrice);
 
+        redisService.insertOrderInRedis(key, COMPLETED, order);
         redisService.insertOrderInRedis(key, COMPLETED, oppositeOrder);
 
+        // 반대 미체결 주문 제거
         redisService.deleteHashOps(PENDING + ":ORDER:" + key, oppositeOrder.getUuid());
-
         // 상대는 우선순위큐 poll
         queue.poll();
 
@@ -162,17 +160,14 @@ public class PendingOrderMatcherServiceV2 implements PendingOrderMatcherService 
         // 나의 주문 모두 체결 처리
         updateOrderWithMatch(order, oppositeOrder, executionPrice);
 
-        redisService.insertOrderInRedis(key, COMPLETED, order);
-
         // 반대 주문 부분 체결 처리
         String previousUUID = oppositeOrder.getUuid();
-
         oppositeOrder.setUuid(generateUniqueKey("Order"));
-
         oppositeOrder.setCoinAmount(order.getCoinAmount());
 
         updateOrderWithMatch(oppositeOrder, order, executionPrice);
 
+        redisService.insertOrderInRedis(key, COMPLETED, order);
         redisService.insertOrderInRedis(key, COMPLETED, oppositeOrder);
 
         // 남은 수량을 잔여 수량으로 설정
