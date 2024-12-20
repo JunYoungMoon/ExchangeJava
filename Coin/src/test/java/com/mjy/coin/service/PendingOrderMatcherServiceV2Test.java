@@ -98,7 +98,7 @@ class PendingOrderMatcherServiceV2Test {
     }
 
     @Test
-    public void testCanMatchOrders(){
+    public void testCanMatchOrders() {
         // Case 1: BUY 타입, 가격 일치, 수량 > 0 => true 반환
         CoinOrderDTO buyOrder = createOrder(BUY, "100", "1.5");
         CoinOrderDTO sellOrder = createOrder(SELL, "90", "1.5");
@@ -112,21 +112,25 @@ class PendingOrderMatcherServiceV2Test {
         // Case 3: BUY 타입, 가격 불일치 => false 반환
         CoinOrderDTO buyOrderFail = createOrder(BUY, "80", "1.5");
         CoinOrderDTO sellOrderFail = createOrder(SELL, "90", "1.5");
-        assertFalse(pendingOrderMatcherService.canMatchOrders(buyOrderFail, sellOrderFail), "BUY 주문이 SELL 주문의 가격 조건을 만족하지 않아야 함");
+        assertFalse(pendingOrderMatcherService.canMatchOrders(buyOrderFail, sellOrderFail),
+                "BUY 주문이 SELL 주문의 가격 조건을 만족하지 않아야 함");
 
         // Case 4: SELL 타입, 가격 불일치 => false 반환
         CoinOrderDTO sellOrderFail2 = createOrder(SELL, "110", "1.5");
         CoinOrderDTO buyOrderFail2 = createOrder(BUY, "100", "1.5");
-        assertFalse(pendingOrderMatcherService.canMatchOrders(sellOrderFail2, buyOrderFail2), "SELL 주문이 BUY 주문의 가격 조건을 만족하지 않아야 함");
+        assertFalse(pendingOrderMatcherService.canMatchOrders(sellOrderFail2, buyOrderFail2),
+                "SELL 주문이 BUY 주문의 가격 조건을 만족하지 않아야 함");
 
         // Case 5: 주문 수량이 0 => false 반환
         CoinOrderDTO zeroAmountOrder = createOrder(BUY, "100", "0");
         CoinOrderDTO validOppositeOrder = createOrder(SELL, "90", "1.5");
-        assertFalse(pendingOrderMatcherService.canMatchOrders(zeroAmountOrder, validOppositeOrder), "수량이 0인 경우 false 반환");
+        assertFalse(pendingOrderMatcherService.canMatchOrders(zeroAmountOrder, validOppositeOrder),
+                "수량이 0인 경우 false 반환");
 
         // Case 6: 수량 < 0 => false 반환
         CoinOrderDTO negativeAmountOrder = createOrder(BUY, "100", "-1.5");
-        assertFalse(pendingOrderMatcherService.canMatchOrders(negativeAmountOrder, validOppositeOrder), "수량이 음수인 경우 false 반환");
+        assertFalse(pendingOrderMatcherService.canMatchOrders(negativeAmountOrder, validOppositeOrder),
+                "수량이 음수인 경우 false 반환");
     }
 
     @Test
@@ -159,8 +163,8 @@ class PendingOrderMatcherServiceV2Test {
         PriorityQueue<CoinOrderDTO> resultForBuy = pendingOrderMatcherService.getOppositeOrdersQueue(buyOrder, key);
         assertEquals(sellQueue, resultForBuy, "BUY 주문은 SELL 큐를 반환");
 
-        PriorityQueue<CoinOrderDTO> resultForSell  = pendingOrderMatcherService.getOppositeOrdersQueue(sellOrder, key);
-        assertEquals(buyQueue, resultForSell , "SELL 주문은 BUY 큐를 반환");
+        PriorityQueue<CoinOrderDTO> resultForSell = pendingOrderMatcherService.getOppositeOrdersQueue(sellOrder, key);
+        assertEquals(buyQueue, resultForSell, "SELL 주문은 BUY 큐를 반환");
     }
 
     @Test
@@ -203,7 +207,9 @@ class PendingOrderMatcherServiceV2Test {
         buyQueue.add(order);
         sellQueue.add(oppositeOrder);
 
-        pendingOrderMatcherService.processCompleteMatch(order, oppositeOrder, key, sellQueue);
+        BigDecimal executionPrice = pendingOrderMatcherService.getExecutionPrice(oppositeOrder);
+
+        pendingOrderMatcherService.processCompleteMatch(order, oppositeOrder, key, sellQueue, executionPrice);
 
         //when
         verify(redisService).insertOrderInRedis(eq(key), eq(COMPLETED), eq(order));
