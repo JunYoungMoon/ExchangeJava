@@ -135,6 +135,16 @@ public class PendingOrderMatcherServiceV2 implements PendingOrderMatcherService 
         order.setMatchIdx(order.getUuid() + "|" + oppositeOrder.getUuid());
     }
 
+    private void completeOrders(String key, CoinOrderDTO order, CoinOrderDTO oppositeOrder) {
+        redisService.insertOrderInRedis(key, COMPLETED, order);
+        redisService.insertOrderInRedis(key, COMPLETED, oppositeOrder);
+    }
+
+    private void removeOppositePendingOrder(String key, String uuid, PriorityQueue<CoinOrderDTO> queue) {
+        redisService.deleteHashOps(PENDING + ":ORDER:" + key, uuid);
+        queue.poll();
+    }
+
     public void processCompleteMatch(CoinOrderDTO order, CoinOrderDTO oppositeOrder, String key,
                                      PriorityQueue<CoinOrderDTO> queue, BigDecimal executionPrice) {
         System.out.println("완전체결 : " + " 주문 : " + order + " 반대 주문 : " + oppositeOrder);
@@ -144,13 +154,10 @@ public class PendingOrderMatcherServiceV2 implements PendingOrderMatcherService 
         updateOrderWithMatch(oppositeOrder, order, executionPrice);
 
         // 두 주문 모두 체결 주문으로 변경
-        redisService.insertOrderInRedis(key, COMPLETED, order);
-        redisService.insertOrderInRedis(key, COMPLETED, oppositeOrder);
+        completeOrders(key, order, oppositeOrder);
 
         // 반대 미체결 주문 제거
-        redisService.deleteHashOps(PENDING + ":ORDER:" + key, oppositeOrder.getUuid());
-        // 반대 주문 우선순위큐 poll
-        queue.poll();
+        removeOppositePendingOrder(key, oppositeOrder.getUuid(), queue);
     }
 
     private void processUndersizedMatch(CoinOrderDTO order, CoinOrderDTO oppositeOrder, String key,
@@ -169,13 +176,10 @@ public class PendingOrderMatcherServiceV2 implements PendingOrderMatcherService 
         updateOrderWithMatch(oppositeOrder, order, executionPrice);
 
         // 두 주문 모두 체결 주문으로 변경
-        redisService.insertOrderInRedis(key, COMPLETED, order);
-        redisService.insertOrderInRedis(key, COMPLETED, oppositeOrder);
+        completeOrders(key, order, oppositeOrder);
 
-        // 이전 미체결 주문 제거
-        redisService.deleteHashOps(PENDING + ":ORDER:" + key, previousUUID);
-        // 반대 주문 우선순위큐 poll
-        queue.poll();
+        // 반대 미체결 주문 제거
+        removeOppositePendingOrder(key, previousUUID, queue);
 
         // 남은 수량을 잔여 수량으로 설정
         oppositeOrder.setOrderStatus(PENDING);
@@ -208,8 +212,7 @@ public class PendingOrderMatcherServiceV2 implements PendingOrderMatcherService 
         updateOrderWithMatch(order, oppositeOrder, executionPrice);
 
         // 두 주문 모두 체결 주문으로 변경
-        redisService.insertOrderInRedis(key, COMPLETED, oppositeOrder);
-        redisService.insertOrderInRedis(key, COMPLETED, order);
+        completeOrders(key, order, oppositeOrder);
 
         // 나의 주문 남은 수량을 잔여 수량으로 설정
         order.setOrderStatus(PENDING);
@@ -218,9 +221,7 @@ public class PendingOrderMatcherServiceV2 implements PendingOrderMatcherService 
         order.setExecutionPrice(null);
 
         // 반대 미체결 주문 제거
-        redisService.deleteHashOps(PENDING + ":ORDER:" + key, oppositeOrder.getUuid());
-        // 반대 우선순위큐 poll
-        queue.poll();
+        removeOppositePendingOrder(key, oppositeOrder.getUuid(), queue);
     }
 
     //미체결 주문 kafka 전송

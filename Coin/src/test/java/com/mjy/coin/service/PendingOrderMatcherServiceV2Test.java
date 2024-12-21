@@ -209,12 +209,26 @@ class PendingOrderMatcherServiceV2Test {
 
         BigDecimal executionPrice = pendingOrderMatcherService.getExecutionPrice(oppositeOrder);
 
+        //when
         pendingOrderMatcherService.processCompleteMatch(order, oppositeOrder, key, sellQueue, executionPrice);
 
-        //when
+        // then
+        // 1. Redis 삽입 확인
         verify(redisService).insertOrderInRedis(eq(key), eq(COMPLETED), eq(order));
         verify(redisService).insertOrderInRedis(eq(key), eq(COMPLETED), eq(oppositeOrder));
 
-        //then
+        // 2. updateOrderWithMatch 결과 확인
+        assertEquals(COMPLETED, order.getOrderStatus());
+        assertEquals(COMPLETED, oppositeOrder.getOrderStatus());
+        assertNotNull(order.getMatchedAt());
+        assertNotNull(oppositeOrder.getMatchedAt());
+        assertEquals(executionPrice, order.getExecutionPrice());
+        assertEquals(executionPrice, oppositeOrder.getExecutionPrice());
+        assertEquals(order.getUuid() + "|" + oppositeOrder.getUuid(), order.getMatchIdx());
+        assertEquals(oppositeOrder.getUuid() + "|" + order.getUuid(), oppositeOrder.getMatchIdx());
+
+        // 3. redis 제거 및 poll 확인
+        verify(redisService).deleteHashOps(eq(PENDING + ":ORDER:" + key), eq(oppositeOrder.getUuid()));
+        assertTrue(sellQueue.isEmpty());
     }
 }
