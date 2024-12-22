@@ -78,11 +78,10 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                     .build();
 
             member = masterMemberRepository.save(member); // 저장된 Member 객체
-            String memberUuid = member.getUuid(); // 자동 생성된 memberIdx 가져오기
 
             // 임시 지갑 생성
             CoinHolding coinHolding1 = CoinHolding.builder()
-                    .memberUuid(memberUuid)
+                    .member(member)
                     .coinType("BTC")
                     .usingAmount(BigDecimal.valueOf(100000000))
                     .availableAmount(BigDecimal.valueOf(100000000))
@@ -91,7 +90,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                     .build();
 
             CoinHolding coinHolding2 = CoinHolding.builder()
-                    .memberUuid(memberUuid)
+                    .member(member)
                     .coinType("ETH")
                     .usingAmount(BigDecimal.valueOf(100000000))
                     .availableAmount(BigDecimal.valueOf(100000000))

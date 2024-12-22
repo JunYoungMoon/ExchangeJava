@@ -13,9 +13,6 @@ public class CoinHolding {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idx;
 
-    @Column(name = "memberUuid")
-    private String memberUuid;
-
     @Column(length = 10, nullable = false)
     private String coinType;
 
@@ -32,8 +29,8 @@ public class CoinHolding {
     private Boolean isFavorited = false;
 
     @Builder
-    public CoinHolding(String memberUuid, String coinType, BigDecimal usingAmount, BigDecimal availableAmount, String walletAddress, Boolean isFavorited) {
-        this.memberUuid = memberUuid;
+    public CoinHolding(Member member, String coinType, BigDecimal usingAmount, BigDecimal availableAmount, String walletAddress, Boolean isFavorited) {
+        this.member = member;
         this.coinType = coinType;
         this.usingAmount = usingAmount;
         this.availableAmount = availableAmount;

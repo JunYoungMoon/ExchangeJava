@@ -40,7 +40,7 @@ class SlaveMemberRepositoryTest {
         masterMemberRepository.save(member);
 
         CoinHolding holding1 = CoinHolding.builder()
-                .memberUuid(member.getUuid())
+                .member(member)
                 .coinType("BTC")
                 .usingAmount(BigDecimal.valueOf(0.5))
                 .availableAmount(BigDecimal.valueOf(1.0))
@@ -51,7 +51,7 @@ class SlaveMemberRepositoryTest {
         masterCoinHoldingRepository.save(holding1);
 
         CoinHolding holding2 = CoinHolding.builder()
-                .memberUuid(member.getUuid())
+                .member(member)
                 .coinType("ETH")
                 .usingAmount(BigDecimal.valueOf(0.2))
                 .availableAmount(BigDecimal.valueOf(0.8))
