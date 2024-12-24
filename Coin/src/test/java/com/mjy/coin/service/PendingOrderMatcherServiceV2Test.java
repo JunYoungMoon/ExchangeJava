@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
@@ -33,6 +34,7 @@ class PendingOrderMatcherServiceV2Test {
     @Mock
     private RedisService redisService;
 
+    @Spy
     @InjectMocks
     private PendingOrderMatcherServiceV2 pendingOrderMatcherService;
 

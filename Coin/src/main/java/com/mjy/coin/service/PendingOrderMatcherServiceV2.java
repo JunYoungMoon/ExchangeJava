@@ -74,7 +74,7 @@ public class PendingOrderMatcherServiceV2 implements PendingOrderMatcherService 
         processNonMatchedOrder(key, order);
     }
 
-    private void addPendingOrder(String key, CoinOrderDTO order) {
+    public void addPendingOrder(String key, CoinOrderDTO order) {
         // Redis에 미체결 주문 저장
         redisService.insertOrderInRedis(key, PENDING, order);
 
@@ -234,6 +234,8 @@ public class PendingOrderMatcherServiceV2 implements PendingOrderMatcherService 
 
     //미체결 주문 kafka 전송
     public void sendPendingOrderToKafka(CoinOrderDTO orderDTO) {
+
+        System.out.println("sendPendingOrderToKafka");
         //
     }
 }
