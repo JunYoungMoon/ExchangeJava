@@ -70,22 +70,30 @@ public class PendingOrderMatcherServiceV2 implements PendingOrderMatcherService 
             }
         }
 
-        // 남은 주문 정보 그대로 미체결 입력
+        //남은 주문 미체결 처리
+        processNonMatchedOrder(key, order);
+    }
+
+    private void addPendingOrder(String key, CoinOrderDTO order) {
+        // Redis에 미체결 주문 저장
+        redisService.insertOrderInRedis(key, PENDING, order);
+
+        // 미체결 주문 Kafka 전송
+        sendPendingOrderToKafka(order);
+
+        // 주문 추가 및 주문 호가 갱신
+        if (order.getOrderType() == OrderType.BUY) {
+            orderService.addBuyOrder(key, order);
+            orderBookService.updateOrderBook(key, order, true, true);
+        } else if (order.getOrderType() == OrderType.SELL) {
+            orderService.addSellOrder(key, order);
+            orderBookService.updateOrderBook(key, order, false, true);
+        }
+    }
+
+    public void processNonMatchedOrder(String key, CoinOrderDTO order){
         if (order.getOrderStatus() == PENDING && order.getOrderPrice().compareTo(BigDecimal.ZERO) > 0) {
-            redisService.insertOrderInRedis(key, PENDING, order);
-
-            //미체결 주문 kafka 전송
-            sendPendingOrderToKafka(order);
-
-            if (order.getOrderType() == OrderType.BUY) {
-                System.out.println("Adding buy order to queue: " + order);
-                orderService.addBuyOrder(key, order);
-                orderBookService.updateOrderBook(key, order, true, true);
-            } else if (order.getOrderType() == OrderType.SELL) {
-                System.out.println("Adding sell order to queue: " + order);
-                orderService.addSellOrder(key, order);
-                orderBookService.updateOrderBook(key, order, false, true);
-            }
+            addPendingOrder(key, order);
         }
     }
 
@@ -225,7 +233,7 @@ public class PendingOrderMatcherServiceV2 implements PendingOrderMatcherService 
     }
 
     //미체결 주문 kafka 전송
-    private void sendPendingOrderToKafka(CoinOrderDTO orderDTO) {
+    public void sendPendingOrderToKafka(CoinOrderDTO orderDTO) {
         //
     }
 }

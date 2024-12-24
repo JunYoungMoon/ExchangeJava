@@ -6,6 +6,8 @@ import com.mjy.exchange.entity.Member;
 import com.mjy.exchange.dto.MemberRequest;
 import com.mjy.exchange.repository.master.MasterCoinHoldingRepository;
 import com.mjy.exchange.repository.master.MasterMemberRepository;
+import com.mjy.exchange.repository.slave.SlaveCoinHoldingRepository;
+import com.mjy.exchange.repository.slave.SlaveCoinInfoRepository;
 import com.mjy.exchange.repository.slave.SlaveMemberRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,9 +19,9 @@ import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.math.BigDecimal;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -35,7 +37,7 @@ public class MemberServiceTest {
     private MasterMemberRepository masterMemberRepository;
 
     @Mock
-    private MasterCoinHoldingRepository masterCoinHoldingRepository;
+    private SlaveCoinHoldingRepository slaveCoinHoldingRepository;
 
     @Mock
     private RedisService redisService;
@@ -122,6 +124,8 @@ public class MemberServiceTest {
                 .roles(List.of("USER"))
                 .profileImage("test-image.jpg")
                 .build();
+        when(masterMemberRepository.save(member)).thenReturn(member);
+
         member = masterMemberRepository.save(member); // 회원 저장
 
         CoinHolding coinHolding1 = CoinHolding.builder()
@@ -143,12 +147,21 @@ public class MemberServiceTest {
                 .build();
         //when
         List<CoinHolding> coinHoldings = List.of(coinHolding1, coinHolding2);
-        masterCoinHoldingRepository.saveAll(coinHoldings);
+        slaveCoinHoldingRepository.saveAll(coinHoldings);
 
-        // 저장된 Member와 CoinHoldings 조회
         Member savedMember = masterMemberRepository.findById(member.getIdx()).orElseThrow();
+        List<CoinHolding> savedCoinHoldings = slaveCoinHoldingRepository.findByMember(savedMember);
 
         //then
+        assertThat(savedMember).isNotNull();
+        assertThat(savedMember.getUuid()).isEqualTo(member.getUuid());
+
+        assertThat(savedCoinHoldings).hasSize(2);
+        assertThat(savedCoinHoldings.get(0).getCoinType()).isEqualTo("BTC");
+        assertThat(savedCoinHoldings.get(1).getCoinType()).isEqualTo("ETH");
+
+        assertThat(savedCoinHoldings.get(0).getMember()).isEqualTo(savedMember);
+        assertThat(savedCoinHoldings.get(1).getMember()).isEqualTo(savedMember);
     }
 
 }

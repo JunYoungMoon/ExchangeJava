@@ -231,4 +231,28 @@ class PendingOrderMatcherServiceV2Test {
         verify(redisService).deleteHashOps(eq(PENDING + ":ORDER:" + key), eq(oppositeOrder.getUuid()));
         assertTrue(sellQueue.isEmpty());
     }
+
+    @Test
+    public void testProcessNonMatchedOrder(){
+        // given
+        String key = "BTC-KRW";
+        CoinOrderDTO order = createOrder(BUY, "100", "1.5");
+        order.setOrderStatus(PENDING);
+
+        // when
+        pendingOrderMatcherService.processNonMatchedOrder(key, order);
+
+        // then
+        // 1. Redis에 미체결 주문이 저장되었는지 확인
+        verify(redisService).insertOrderInRedis(eq(key), eq(PENDING), eq(order));
+
+        // 2. Kafka로 미체결 주문 전송이 호출되었는지 확인
+        verify(pendingOrderMatcherService).sendPendingOrderToKafka(eq(order));
+
+        // 3. 주문 서비스에 주문이 추가되었는지 확인
+        verify(orderService).addBuyOrder(eq(key), eq(order));
+
+        // 4. 주문 책이 갱신되었는지 확인
+        verify(orderBookService).updateOrderBook(eq(key), eq(order), eq(true), eq(true));
+    }
 }
