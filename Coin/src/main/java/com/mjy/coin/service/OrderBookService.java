@@ -1,6 +1,7 @@
 package com.mjy.coin.service;
 
 import com.mjy.coin.dto.CoinOrderDTO;
+import lombok.Getter;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -8,6 +9,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@Getter
 public class OrderBookService {
     private final Map<String, TreeMap<BigDecimal, BigDecimal>> buyOrderBooks = new HashMap<>();  // 매수: 높은 가격 우선
     private final Map<String, TreeMap<BigDecimal, BigDecimal>> sellOrderBooks = new HashMap<>(); // 매도: 낮은 가격 우선
