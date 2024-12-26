@@ -18,6 +18,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.util.Iterator;
 import java.util.List;
 
 
@@ -29,10 +30,9 @@ public class CoinOrderReader implements ItemReader<CoinOrderDTO> {
     private final Long chunkIdx;
     private final String coinName;
     private final LocalDate yesterday;
-    private PreparedStatement preparedStatement;
-    private ResultSet resultSet;
-    private boolean initialized = false;
-
+    private Iterator<CoinOrderDTO> iterator;
+    private int readCount = 0; // 읽은 횟수
+    private final int maxReadCount = 10; // 최대 읽기 횟수
 
     public CoinOrderReader(JdbcTemplate jdbcTemplate,
                            @Value("#{stepExecutionContext['chunkIdx']}") Long chunkIdx,
@@ -44,42 +44,44 @@ public class CoinOrderReader implements ItemReader<CoinOrderDTO> {
         this.yesterday = yesterday;
     }
 
+
     @Override
     public CoinOrderDTO read() throws SQLException {
-//        if (!initialized) {
-//            String sql = """
-//                SELECT * FROM CoinOrder
-//                WHERE coinName = ?
-//                  AND idx >= ?
-//                  AND DATE(matchedAt) = ?
-//            """;
+        System.out.println(chunkIdx);
+        // 데이터가 없으면 null 반환
+        if (iterator == null || !iterator.hasNext()) {
+            System.out.println("1");
+
+            // 쿼리로 데이터를 한 번에 가져오기
+            String sql = "SELECT * FROM CoinOrder WHERE idx > ? AND DATE(matchedAt) = ? LIMIT 1000";
+            List<CoinOrderDTO> coinOrderList = jdbcTemplate.query(sql, new Object[]{chunkIdx, yesterday},
+                    new BeanPropertyRowMapper<>(CoinOrderDTO.class));
+
+            // Iterator로 데이터를 순차적으로 반환
+            iterator = coinOrderList.iterator();
+        }
+
+        // iterator에서 하나씩 반환
+        if (iterator.hasNext()) {
+            return iterator.next();
+        }
+
+        return null;  // 더 이상 데이터가 없으면 null 반환
+//        System.out.println("CoinOrderReader.read" + chunkIdx);
 //
-//            Connection connection = jdbcTemplate.getDataSource().getConnection();
-//            preparedStatement = connection.prepareStatement(sql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-//
-//            preparedStatement.setString(1, coinName);
-//            preparedStatement.setLong(2, chunkIdx);
-//            preparedStatement.setObject(3, yesterday);
-//
-//            resultSet = preparedStatement.executeQuery();
-//            initialized = true;
+//        if (readCount >= maxReadCount) {
+//            return null; // 최대 횟수 도달 시 종료
 //        }
 //
-//        // 결과를 순차적으로 읽어옴
-//        if (resultSet.next()) {
-//            return mapRow(resultSet); // 매번 새 객체로 반환
-//        } else {
-//            resultSet.close();
-//            preparedStatement.close();
-//            return null;
-//        }
-
-        CoinOrderDTO coinOrderDTO = new CoinOrderDTO();  // 매번 새 객체를 생성하여 반환
-
-        coinOrderDTO.setExecutionPrice(BigDecimal.valueOf(5000));
-        coinOrderDTO.setCoinAmount(BigDecimal.valueOf(10));
-
-        return coinOrderDTO;
+//        readCount++; // 읽은 횟수 증가
+//
+//
+//        CoinOrderDTO coinOrderDTO = new CoinOrderDTO();  // 매번 새 객체를 생성하여 반환
+//
+//        coinOrderDTO.setExecutionPrice(BigDecimal.valueOf(5000));
+//        coinOrderDTO.setCoinAmount(BigDecimal.valueOf(10));
+//
+//        return coinOrderDTO;
     }
 
     private CoinOrderDTO mapRow(ResultSet rs) throws SQLException {

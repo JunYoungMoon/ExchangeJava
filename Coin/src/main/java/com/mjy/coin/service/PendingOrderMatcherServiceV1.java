@@ -49,8 +49,8 @@ public class PendingOrderMatcherServiceV1 implements PendingOrderMatcherService 
         PriorityQueue<CoinOrderDTO> sellOrders = orderService.getSellOrderQueue(key);
 
         if (buyOrders != null && sellOrders != null) {
-            List<CoinOrderDTO> matchList = new ArrayList<>();
-            List<PriceVolumeDTO> priceVolumeList = new ArrayList<>();
+            List<CoinOrderDTO> matchList = new ArrayList<>();   //임시 객체로 사용하지 말것
+            List<PriceVolumeDTO> priceVolumeList = new ArrayList<>(); //임시 객체로 사용하지 말것
 
             while (!buyOrders.isEmpty() && !sellOrders.isEmpty()) {
                 CoinOrderDTO buyOrder = buyOrders.peek();

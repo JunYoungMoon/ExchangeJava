@@ -34,17 +34,18 @@ public class CoinOrderWriter implements ItemWriter<CoinOrderDTO> {
 
     @Override
     public void write(Chunk<? extends CoinOrderDTO> items) {
-        BigDecimal totalPrice = BigDecimal.ZERO;
-        BigDecimal totalVolume = BigDecimal.ZERO;
-
-        for (CoinOrderDTO item : items) {
-            totalPrice = totalPrice.add(item.getExecutionPrice().multiply(item.getCoinAmount()));
-            totalVolume = totalVolume.add(item.getCoinAmount());
-        }
-
-        // Redis에 쓰레드별 데이터 저장
-        String key = yesterday + ":" + coinName + ":partition:" + Thread.currentThread().getName();
-        redisService.incrementHashValue(key, "totalPrice", totalPrice.doubleValue(), Duration.ofDays(1));
-        redisService.incrementHashValue(key, "totalVolume", totalVolume.doubleValue(), Duration.ofDays(1));
+        System.out.println("CoinOrderWriter.write" + items);
+//        BigDecimal totalPrice = BigDecimal.ZERO;
+//        BigDecimal totalVolume = BigDecimal.ZERO;
+//
+//        for (CoinOrderDTO item : items) {
+//            totalPrice = totalPrice.add(item.getExecutionPrice().multiply(item.getCoinAmount()));
+//            totalVolume = totalVolume.add(item.getCoinAmount());
+//        }
+//
+//        // Redis에 쓰레드별 데이터 저장
+//        String key = yesterday + ":" + coinName + ":partition:" + Thread.currentThread().getName();
+//        redisService.incrementHashValue(key, "totalPrice", totalPrice.doubleValue(), Duration.ofDays(1));
+//        redisService.incrementHashValue(key, "totalVolume", totalVolume.doubleValue(), Duration.ofDays(1));
     }
 }
