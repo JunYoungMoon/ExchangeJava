@@ -39,7 +39,7 @@ public class PendingOrderProcessorService {
     public synchronized void processOrder(CoinOrderDTO order) {
         String key = order.getCoinName() + "-" + order.getMarketName();
 
-        order.setUuid(generateUniqueKey("Order"));
+        order.setUuid(generateUniqueKey(order));
 
         try {
             // Redis에서 해당 order UUID가 존재하는지 확인

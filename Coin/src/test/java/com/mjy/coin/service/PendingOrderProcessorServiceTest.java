@@ -12,6 +12,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+import static com.mjy.coin.enums.OrderStatus.PENDING;
+import static com.mjy.coin.enums.OrderType.BUY;
+import static com.mjy.coin.util.CommonUtil.generateUniqueKey;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -107,5 +113,22 @@ class PendingOrderProcessorServiceTest {
 
         // 체결 시도가 이루어졌는지 검증
         verify(priorityQueueManager, times(1)).matchOrders(order);
+    }
+
+    private CoinOrderDTO createOrder(OrderType type, String price, String amount) {
+        CoinOrderDTO order = new CoinOrderDTO();
+        order.setOrderType(type);
+        order.setOrderPrice(new BigDecimal(price));
+        order.setCoinAmount(new BigDecimal(amount));
+        order.setCreatedAt(LocalDateTime.now());
+        order.setOrderStatus(PENDING);
+        return order;
+    }
+
+    @Test
+    public void testGenerateUniqueKey() throws Exception {
+        CoinOrderDTO order = createOrder(BUY, "110", "1.5");
+
+        System.out.println(generateUniqueKey(order));
     }
 }

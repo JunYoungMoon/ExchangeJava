@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.web.csrf.CsrfToken;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 public class CommonUtil {
@@ -41,7 +42,10 @@ public class CommonUtil {
         response.getWriter().write(new ObjectMapper().writeValueAsString(apiResponse));
     }
 
-    public static String generateUniqueKey(String prefix){
-        return prefix + "_" + UUID.randomUUID();
+    public static String generateUniqueKey(CoinOrderDTO order) {
+        if (order != null) {
+            return UUID.randomUUID() + ":" + order.getCreatedAt();
+        }
+        return UUID.randomUUID() + ":" + LocalDateTime.now();
     }
 }

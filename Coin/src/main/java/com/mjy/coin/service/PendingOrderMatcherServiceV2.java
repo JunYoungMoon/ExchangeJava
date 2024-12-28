@@ -178,7 +178,7 @@ public class PendingOrderMatcherServiceV2 implements PendingOrderMatcherService 
 
         // 반대 주문 부분 체결 처리
         String previousUUID = oppositeOrder.getUuid();
-        oppositeOrder.setUuid(generateUniqueKey("Order"));
+        oppositeOrder.setUuid(generateUniqueKey(oppositeOrder));
         oppositeOrder.setCoinAmount(order.getCoinAmount());
 
         updateOrderWithMatch(oppositeOrder, order, executionPrice);
@@ -214,7 +214,7 @@ public class PendingOrderMatcherServiceV2 implements PendingOrderMatcherService 
 
         // 나의 주문 부분 체결 처리
         String previousUUID = order.getUuid();
-        order.setUuid(generateUniqueKey("Order"));
+        order.setUuid(generateUniqueKey(order));
         order.setCoinAmount(oppositeOrder.getCoinAmount());
 
         updateOrderWithMatch(order, oppositeOrder, executionPrice);

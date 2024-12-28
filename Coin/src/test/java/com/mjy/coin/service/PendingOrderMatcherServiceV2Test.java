@@ -40,7 +40,7 @@ class PendingOrderMatcherServiceV2Test {
 
     private CoinOrderDTO createOrder(OrderType type, String price, String amount) {
         CoinOrderDTO order = new CoinOrderDTO();
-        order.setUuid(generateUniqueKey("Order"));
+        order.setUuid(generateUniqueKey(order));
         order.setOrderType(type);
         order.setOrderPrice(new BigDecimal(price));
         order.setCoinAmount(new BigDecimal(amount));
