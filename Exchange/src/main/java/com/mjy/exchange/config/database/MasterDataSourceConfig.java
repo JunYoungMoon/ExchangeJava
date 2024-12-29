@@ -1,5 +1,7 @@
 package com.mjy.exchange.config.database;
 
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -74,5 +76,12 @@ public class MasterDataSourceConfig {
     public PlatformTransactionManager transactionManager(
             @Qualifier("masterEntityManagerFactory") EntityManagerFactory entityManagerFactory) {
         return new JpaTransactionManager(entityManagerFactory);
+    }
+
+    // QueryDSL 설정 추가 (Master 데이터소스)
+    @Bean
+    public JPAQueryFactory masterJPAQueryFactory(@Qualifier("masterEntityManagerFactory") EntityManagerFactory entityManagerFactory) {
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        return new JPAQueryFactory(entityManager);
     }
 }
