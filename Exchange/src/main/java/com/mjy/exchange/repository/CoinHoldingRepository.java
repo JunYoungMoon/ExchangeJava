@@ -18,7 +18,7 @@ public class CoinHoldingRepository {
         this.queryFactory = queryFactory;
     }
 
-    public List<CoinHolding> findByMemberUuid(String memberUuid) {
+    public List<CoinHolding> findCoinHoldingsByMemberUuid(String memberUuid) {
         QCoinHolding coinHolding = QCoinHolding.coinHolding;
 
         return queryFactory.selectFrom(coinHolding)
