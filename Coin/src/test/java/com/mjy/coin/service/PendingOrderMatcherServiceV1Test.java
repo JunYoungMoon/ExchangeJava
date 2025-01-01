@@ -24,7 +24,7 @@ class PendingOrderMatcherServiceV1Test {
     private OrderBookService orderBookService;
 
     @Mock
-    private OrderService orderService;
+    private OrderQueueService orderQueueService;
 
     @Mock
     private RedisService redisService;
@@ -78,8 +78,8 @@ class PendingOrderMatcherServiceV1Test {
         sellOrders.add(sellOrder);
 
         // Mockito에서 PriorityQueue 반환하도록 설정
-        when(orderService.getBuyOrderQueue(testKey)).thenReturn(buyOrders);
-        when(orderService.getSellOrderQueue(testKey)).thenReturn(sellOrders);
+        when(orderQueueService.getBuyOrderQueue(testKey)).thenReturn(buyOrders);
+        when(orderQueueService.getSellOrderQueue(testKey)).thenReturn(sellOrders);
 
         // 2. 주문 매칭 실행
         pendingOrderMatcherService.matchOrders(buyOrder);
@@ -135,8 +135,8 @@ class PendingOrderMatcherServiceV1Test {
         sellOrders.add(sellOrder);
 
         // Mockito에서 PriorityQueue 반환하도록 설정
-        lenient().when(orderService.getBuyOrderQueue(buyOrder.getCoinName() + "-" + buyOrder.getMarketName())).thenReturn(buyOrders);
-        lenient().when(orderService.getSellOrderQueue(sellOrder.getCoinName() + "-" + sellOrder.getMarketName())).thenReturn(sellOrders);
+        lenient().when(orderQueueService.getBuyOrderQueue(buyOrder.getCoinName() + "-" + buyOrder.getMarketName())).thenReturn(buyOrders);
+        lenient().when(orderQueueService.getSellOrderQueue(sellOrder.getCoinName() + "-" + sellOrder.getMarketName())).thenReturn(sellOrders);
 
         // 2. 주문 매칭 실행
         pendingOrderMatcherService.matchOrders(buyOrder);
@@ -183,8 +183,8 @@ class PendingOrderMatcherServiceV1Test {
         sellOrders.add(sellOrder);
 
         // Mockito에서 PriorityQueue 반환하도록 설정
-        lenient().when(orderService.getBuyOrderQueue(buyOrder.getCoinName() + "-" + buyOrder.getMarketName())).thenReturn(buyOrders);
-        lenient().when(orderService.getSellOrderQueue(sellOrder.getCoinName() + "-" + sellOrder.getMarketName())).thenReturn(sellOrders);
+        lenient().when(orderQueueService.getBuyOrderQueue(buyOrder.getCoinName() + "-" + buyOrder.getMarketName())).thenReturn(buyOrders);
+        lenient().when(orderQueueService.getSellOrderQueue(sellOrder.getCoinName() + "-" + sellOrder.getMarketName())).thenReturn(sellOrders);
 
         // 2. 주문 매칭 실행
         pendingOrderMatcherService.matchOrders(buyOrder);

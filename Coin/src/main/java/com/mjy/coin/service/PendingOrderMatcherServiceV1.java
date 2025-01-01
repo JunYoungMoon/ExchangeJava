@@ -6,6 +6,7 @@ import com.mjy.coin.repository.coin.master.MasterCoinOrderRepository;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -15,24 +16,24 @@ import java.util.*;
 import static com.mjy.coin.enums.OrderStatus.COMPLETED;
 import static com.mjy.coin.enums.OrderStatus.PENDING;
 
-@Component
+@Service
 public class PendingOrderMatcherServiceV1 implements PendingOrderMatcherService {
     private final MasterCoinOrderRepository masterCoinOrderRepository;
     private final OrderBookService orderBookService;
-    private final OrderService orderService;
+    private final OrderQueueService orderQueueService;
     private final RedisService redisService;
     private final KafkaTemplate<String, Map<String, List<CoinOrderDTO>>> matchListKafkaTemplate;
     private final KafkaTemplate<String, Map<String, List<PriceVolumeDTO>>> priceVolumeMapKafkaTemplate;
 
     public PendingOrderMatcherServiceV1(MasterCoinOrderRepository masterCoinOrderRepository,
-                                        OrderService orderService,
+                                        OrderQueueService orderQueueService,
                                         OrderBookService orderBookService,
                                         RedisService redisService,
                                         @Qualifier("matchListKafkaTemplate") KafkaTemplate<String, Map<String, List<CoinOrderDTO>>> matchListKafkaTemplate,
                                         @Qualifier("priceVolumeMapKafkaTemplate") KafkaTemplate<String, Map<String, List<PriceVolumeDTO>>> priceVolumeMapKafkaTemplate) {
         this.masterCoinOrderRepository = masterCoinOrderRepository;
         this.orderBookService = orderBookService;
-        this.orderService = orderService;
+        this.orderQueueService = orderQueueService;
         this.redisService = redisService;
         this.matchListKafkaTemplate = matchListKafkaTemplate;
         this.priceVolumeMapKafkaTemplate = priceVolumeMapKafkaTemplate;
@@ -45,8 +46,8 @@ public class PendingOrderMatcherServiceV1 implements PendingOrderMatcherService 
 
         BigDecimal executionPrice;
 
-        PriorityQueue<CoinOrderDTO> buyOrders = orderService.getBuyOrderQueue(key);
-        PriorityQueue<CoinOrderDTO> sellOrders = orderService.getSellOrderQueue(key);
+        PriorityQueue<CoinOrderDTO> buyOrders = orderQueueService.getBuyOrderQueue(key);
+        PriorityQueue<CoinOrderDTO> sellOrders = orderQueueService.getSellOrderQueue(key);
 
         if (buyOrders != null && sellOrders != null) {
             List<CoinOrderDTO> matchList = new ArrayList<>();   //임시 객체로 사용하지 말것

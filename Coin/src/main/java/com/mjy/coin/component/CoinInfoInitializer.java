@@ -11,18 +11,18 @@ import java.util.*;
 @Component
 public class CoinInfoInitializer {
 
-    private final OrderService orderService;
+    private final OrderQueueService orderQueueService;
     private final OrderBookService orderBookService;
     private final CoinInfoService coinInfoService;
     private final RedisService redisService;
     private final ConvertService convertService;
 
-    public CoinInfoInitializer(OrderService orderService,
+    public CoinInfoInitializer(OrderQueueService orderQueueService,
                                OrderBookService orderBookService,
                                CoinInfoService coinInfoService,
                                RedisService redisService,
                                ConvertService convertService) {
-        this.orderService = orderService;
+        this.orderQueueService = orderQueueService;
         this.orderBookService = orderBookService;
         this.coinInfoService = coinInfoService;
         this.redisService = redisService;
@@ -35,8 +35,8 @@ public class CoinInfoInitializer {
 
         for (String key : keys) {
             // 주문 우선순위큐, 호가 트리 자료구조 생성
-            orderService.initializeBuyOrder(key);
-            orderService.initializeSellOrder(key);
+            orderQueueService.initializeBuyOrder(key);
+            orderQueueService.initializeSellOrder(key);
             orderBookService.initializeBuyOrderBook(key);
             orderBookService.initializeSellOrderBook(key);
 
@@ -50,12 +50,12 @@ public class CoinInfoInitializer {
 
                 // 매수 주문일 경우
                 if (orderDTO.getOrderType() == OrderType.BUY) {
-                    orderService.addBuyOrder(key, orderDTO);
+                    orderQueueService.addBuyOrder(key, orderDTO);
                     orderBookService.addBuyOrderBook(key,orderDTO);
                 }
                 // 매도 주문일 경우
                 else if (orderDTO.getOrderType() == OrderType.SELL) {
-                    orderService.addSellOrder(key, orderDTO);
+                    orderQueueService.addSellOrder(key, orderDTO);
                     orderBookService.addSellOrderBook(key,orderDTO);
                 }
             }

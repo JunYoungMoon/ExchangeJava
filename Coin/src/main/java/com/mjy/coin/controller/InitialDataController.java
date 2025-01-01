@@ -1,23 +1,19 @@
 package com.mjy.coin.controller;
 
 import com.mjy.coin.dto.*;
-import com.mjy.coin.entity.coin.CoinOrder;
 import com.mjy.coin.enums.OrderStatus;
 import com.mjy.coin.enums.OrderType;
 import com.mjy.coin.service.ChartService;
 import com.mjy.coin.service.CoinOrderService;
 import com.mjy.coin.service.OrderBookService;
-import com.mjy.coin.service.PendingOrderProcessorService;
+import com.mjy.coin.service.LimitOrderService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -26,17 +22,17 @@ import java.util.Random;
 @RestController
 public class InitialDataController {
 
-    private final PendingOrderProcessorService pendingOrderProcessorService;
+    private final LimitOrderService limitOrderService;
     private final ChartService chartService;
     private final CoinOrderService coinOrderService;
     private final OrderBookService orderBookService;
 
     public InitialDataController(ChartService chartService, CoinOrderService coinOrderService, OrderBookService orderBookService
-    ,PendingOrderProcessorService pendingOrderProcessorService) {
+    , LimitOrderService limitOrderService) {
         this.chartService = chartService;
         this.coinOrderService = coinOrderService;
         this.orderBookService = orderBookService;
-        this.pendingOrderProcessorService = pendingOrderProcessorService;
+        this.limitOrderService = limitOrderService;
     }
 
     @GetMapping("/chart")
@@ -112,7 +108,7 @@ public class InitialDataController {
         // 생성 시간 설정
         coinOrderDto.setCreatedAt(LocalDateTime.now());
 
-        pendingOrderProcessorService.processOrder(coinOrderDto);
+        limitOrderService.processOrder(coinOrderDto);
 
         return ApiResponse.builder()
                 .status("success")

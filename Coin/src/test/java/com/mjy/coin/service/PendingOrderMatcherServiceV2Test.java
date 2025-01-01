@@ -26,7 +26,7 @@ import static org.mockito.Mockito.when;
 class PendingOrderMatcherServiceV2Test {
 
     @Mock
-    private OrderService orderService;
+    private OrderQueueService orderQueueService;
 
     @Mock
     private OrderBookService orderBookService;
@@ -158,8 +158,8 @@ class PendingOrderMatcherServiceV2Test {
         sellQueue.add(sellOrder);
 
         //when
-        when(orderService.getBuyOrderQueue(key)).thenReturn(buyQueue);
-        when(orderService.getSellOrderQueue(key)).thenReturn(sellQueue);
+        when(orderQueueService.getBuyOrderQueue(key)).thenReturn(buyQueue);
+        when(orderQueueService.getSellOrderQueue(key)).thenReturn(sellQueue);
 
         //then
         PriorityQueue<CoinOrderDTO> resultForBuy = pendingOrderMatcherService.getOppositeOrdersQueue(buyOrder, key);
@@ -252,7 +252,7 @@ class PendingOrderMatcherServiceV2Test {
         verify(pendingOrderMatcherService).sendPendingOrderToKafka(eq(order));
 
         // 3. 주문 서비스에 주문이 추가되었는지 확인
-        verify(orderService).addBuyOrder(eq(key), eq(order));
+        verify(orderQueueService).addBuyOrder(eq(key), eq(order));
 
         // 4. 주문 책이 갱신되었는지 확인
         verify(orderBookService).updateOrderBook(eq(key), eq(order), eq(true), eq(true));

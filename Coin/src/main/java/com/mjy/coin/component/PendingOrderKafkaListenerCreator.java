@@ -2,7 +2,7 @@ package com.mjy.coin.component;
 
 import com.mjy.coin.dto.CoinOrderDTO;
 import com.mjy.coin.service.CoinInfoService;
-import com.mjy.coin.service.PendingOrderProcessorService;
+import com.mjy.coin.service.LimitOrderService;
 import jakarta.annotation.PostConstruct;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -26,14 +26,14 @@ public class PendingOrderKafkaListenerCreator {
     private final CoinInfoService coinInfoService;
     private final KafkaListenerEndpointRegistry kafkaListenerEndpointRegistry;
     private final KafkaListenerContainerFactory<?> coinOrderKafkaListenerContainerFactory;
-    private final PendingOrderProcessorService pendingOrderProcessorService;
+    private final LimitOrderService limitOrderService;
 
     public PendingOrderKafkaListenerCreator(
-            PendingOrderProcessorService pendingOrderProcessorService,
+            LimitOrderService limitOrderService,
             CoinInfoService coinInfoService,
             @Qualifier("kafkaListenerEndpointRegistry") KafkaListenerEndpointRegistry kafkaListenerEndpointRegistry,
             @Qualifier("coinOrderKafkaListenerContainerFactory") KafkaListenerContainerFactory<?> coinOrderKafkaListenerContainerFactory) {
-        this.pendingOrderProcessorService = pendingOrderProcessorService;
+        this.limitOrderService = limitOrderService;
         this.coinInfoService = coinInfoService;
         this.kafkaListenerEndpointRegistry = kafkaListenerEndpointRegistry;
         this.coinOrderKafkaListenerContainerFactory = coinOrderKafkaListenerContainerFactory;
@@ -56,7 +56,7 @@ public class PendingOrderKafkaListenerCreator {
         kafkaListenerEndpoint.setTopics(topic);
         kafkaListenerEndpoint.setMessageHandlerMethodFactory(new DefaultMessageHandlerMethodFactory());
 
-        PendingOrderKafkaListener listener = new PendingOrderKafkaListener(pendingOrderProcessorService);
+        PendingOrderKafkaListener listener = new PendingOrderKafkaListener(limitOrderService);
         kafkaListenerEndpoint.setBean(listener);
 
         try {

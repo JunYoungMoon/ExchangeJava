@@ -24,9 +24,9 @@ import static org.mockito.Mockito.verify;
 
 @SpringBootTest
 @ActiveProfiles("test") // test 프로파일을 활성화
-class PendingOrderProcessorServiceTest {
+class LimitOrderServiceTest {
     @Autowired
-    private PendingOrderProcessorService pendingOrderProcessorService;
+    private LimitOrderService limitOrderService;
 
     @MockBean
     private PendingOrderMatcherServiceV1 priorityQueueManager;
@@ -35,7 +35,7 @@ class PendingOrderProcessorServiceTest {
     private OrderBookService orderBookService;
 
     @MockBean
-    private OrderService orderService;
+    private OrderQueueService orderQueueService;
 
     @MockBean
     private MasterCoinOrderRepository masterCoinOrderRepository;
@@ -63,13 +63,13 @@ class PendingOrderProcessorServiceTest {
         Mockito.when(redisService.getHashOps(anyString(), anyString())).thenReturn("");
 
         // 메서드 실행
-        pendingOrderProcessorService.processOrder(order);
+        limitOrderService.processOrder(order);
 
         // Redis에 새로운 주문이 추가되었는지 검증
         verify(redisService, times(1)).insertOrderInRedis(anyString(), any(), eq(order));
 
         // 매수 주문이 추가되고 주문서가 업데이트되는지 검증
-        verify(orderService, times(1)).addBuyOrder(anyString(), eq(order));
+        verify(orderQueueService, times(1)).addBuyOrder(anyString(), eq(order));
         verify(orderBookService, times(1)).updateOrderBook(anyString(), eq(order), eq(true), eq(true));
 
         // 체결 시도가 이루어졌는지 검증
@@ -82,13 +82,13 @@ class PendingOrderProcessorServiceTest {
         Mockito.when(redisService.getHashOps(anyString(), anyString())).thenReturn("existingOrder");
 
         // 메서드 실행
-        pendingOrderProcessorService.processOrder(order);
+        limitOrderService.processOrder(order);
 
         // Redis에 새로운 주문이 추가되지 않았는지 검증
         verify(redisService, times(0)).insertOrderInRedis(anyString(), any(), eq(order));
 
         // 매수 주문 및 주문서 업데이트가 실행되지 않았는지 검증
-        verify(orderService, times(0)).addBuyOrder(anyString(), eq(order));
+        verify(orderQueueService, times(0)).addBuyOrder(anyString(), eq(order));
         verify(orderBookService, times(0)).updateOrderBook(anyString(), eq(order), eq(true), eq(true));
 
         // 체결 시도도 이루어지지 않았는지 검증
@@ -102,13 +102,13 @@ class PendingOrderProcessorServiceTest {
         order.setOrderType(OrderType.SELL); // 매도 주문으로 설정
 
         // 메서드 실행
-        pendingOrderProcessorService.processOrder(order);
+        limitOrderService.processOrder(order);
 
         // Redis에 새로운 주문이 추가되었는지 검증
         verify(redisService, times(1)).insertOrderInRedis(anyString(), any(), eq(order));
 
         // 매도 주문이 추가되고 주문서가 업데이트되는지 검증
-        verify(orderService, times(1)).addSellOrder(anyString(), eq(order));
+        verify(orderQueueService, times(1)).addSellOrder(anyString(), eq(order));
         verify(orderBookService, times(1)).updateOrderBook(anyString(), eq(order), eq(false), eq(true));
 
         // 체결 시도가 이루어졌는지 검증

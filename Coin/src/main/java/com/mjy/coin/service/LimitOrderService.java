@@ -5,38 +5,39 @@ import com.mjy.coin.repository.coin.master.MasterCoinOrderRepository;
 import com.mjy.coin.repository.coin.slave.SlaveCoinOrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-
-import java.util.UUID;
+import org.springframework.stereotype.Service;
 
 import static com.mjy.coin.util.CommonUtil.generateUniqueKey;
 
-@Component
-public class PendingOrderProcessorService {
+@Service
+public class LimitOrderService implements OrderService {
 
     private final PendingOrderMatcherService pendingOrderMatcherService;
     private final OrderBookService orderBookService;
-    private final OrderService orderService;
+    private final OrderQueueService orderQueueService;
     private final MasterCoinOrderRepository masterCoinOrderRepository;
     private final SlaveCoinOrderRepository slaveCoinOrderRepository;
     private final RedisService redisService;
 
     @Autowired
-    public PendingOrderProcessorService(@Qualifier("pendingOrderMatcherServiceV2") PendingOrderMatcherService pendingOrderMatcherService,
-                                        MasterCoinOrderRepository masterCoinOrderRepository,
-                                        SlaveCoinOrderRepository slaveCoinOrderRepository,
-                                        OrderService orderService,
-                                        OrderBookService orderBookService,
-                                        RedisService redisService) {
+    public LimitOrderService(@Qualifier("pendingOrderMatcherServiceV2") PendingOrderMatcherService pendingOrderMatcherService,
+                             MasterCoinOrderRepository masterCoinOrderRepository,
+                             SlaveCoinOrderRepository slaveCoinOrderRepository,
+                             OrderQueueService orderQueueService,
+                             OrderBookService orderBookService,
+                             RedisService redisService) {
         this.pendingOrderMatcherService = pendingOrderMatcherService;
         this.masterCoinOrderRepository = masterCoinOrderRepository;
         this.orderBookService = orderBookService;
-        this.orderService = orderService;
+        this.orderQueueService = orderQueueService;
         this.slaveCoinOrderRepository = slaveCoinOrderRepository;
         this.redisService = redisService;
     }
 
+    @Override
     public synchronized void processOrder(CoinOrderDTO order) {
+        // 지정가 주문 처리 로직
+
         String key = order.getCoinName() + "-" + order.getMarketName();
 
         order.setUuid(generateUniqueKey(order));
