@@ -61,6 +61,20 @@ public class RedisService {
         values.putAll(key, data);
     }
 
+    // Hash 생성 후 Key-Value 값 삽입
+    public void createHashAndSetValues(String key, Map<String, String> data) {
+        HashOperations<String, Object, Object> hashOps = redisTemplate.opsForHash();
+        // Redis에 Hash와 값을 넣기
+        hashOps.putAll(key, data);
+    }
+
+    // HSET을 사용하여 특정 필드의 값을 변경
+    public void updateHashField(String key, String hashKey, String value) {
+        HashOperations<String, Object, Object> hashOps = redisTemplate.opsForHash();
+        // Hash의 특정 필드 값 업데이트
+        hashOps.put(key, hashKey, value);
+    }
+
     public void incrementHashValue(String key, String hashKey, Double incrementBy, Duration ttlDuration) {
         HashOperations<String, Object, Double> values = redisTemplate.opsForHash();
         values.increment(key, hashKey, incrementBy);

@@ -33,13 +33,15 @@ spring:
     master:
       datasource:
         hikari:
-          jdbc-url: jdbc:mysql://localhost:${SHARD_MASTER_PORT}/Exchange
+#          jdbc-url: jdbc:mysql://localhost:${SHARD_MASTER_PORT}/Exchange
+          jdbc-url: jdbc:mysql://localhost:15306/Exchange
           username: root
           password: 1234
     slave:
       datasource:
         hikari:
-          jdbc-url: jdbc:mysql://localhost:${SHARD_SLAVE_PORT}/Exchange
+#          jdbc-url: jdbc:mysql://localhost:${SHARD_SLAVE_PORT}/Exchange
+          jdbc-url: jdbc:mysql://localhost:16306/Exchange
           username: root
           password: 1234
 
