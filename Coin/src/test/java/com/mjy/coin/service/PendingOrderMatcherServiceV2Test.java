@@ -1,6 +1,7 @@
 package com.mjy.coin.service;
 
 import com.mjy.coin.dto.CoinOrderDTO;
+import com.mjy.coin.enums.OrderStatus;
 import com.mjy.coin.enums.OrderType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -257,4 +258,39 @@ class PendingOrderMatcherServiceV2Test {
         // 4. 주문 책이 갱신되었는지 확인
         verify(orderBookService).updateOrderBook(eq(key), eq(order), eq(true), eq(true));
     }
+
+    @Test
+    void testPriorityQueueMemoryUsage() {
+        PriorityQueue<CoinOrderDTO> queue = new PriorityQueue<>(Comparator.comparing(CoinOrderDTO::getOrderPrice)
+        );
+
+        Runtime runtime = Runtime.getRuntime();
+        long count = 0;
+
+        while (count < 3_000_000) { // 임계값 설정
+            CoinOrderDTO order = new CoinOrderDTO();
+            order.setUuid("hashKey" + count);
+            order.setCoinName("BTC");
+            order.setMarketName("KRW");
+            order.setCoinAmount(BigDecimal.valueOf(0.1));
+            order.setOrderPrice(BigDecimal.valueOf(50000 + count));
+            order.setOrderType(OrderType.BUY);
+            order.setFee(BigDecimal.valueOf(0.001));
+            order.setMemberIdx(123L + count);
+            order.setMemberUuid("memberUuid" + count);
+            order.setOrderStatus(OrderStatus.PENDING);
+
+            queue.add(order);
+            count++;
+
+            if (count % 100000 == 0) {
+                System.out.println("Inserted orders: " + count);
+                System.out.println("Used Memory: " +
+                        (runtime.totalMemory() - runtime.freeMemory()) / 1024 / 1024 + " MB");
+            }
+        }
+
+        assertFalse(queue.isEmpty(), "Queue should not be empty");
+    }
+
 }

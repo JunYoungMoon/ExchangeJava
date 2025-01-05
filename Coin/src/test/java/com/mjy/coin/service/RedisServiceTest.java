@@ -10,8 +10,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.RedisTemplate;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.Random;
 
+import static com.mjy.coin.enums.OrderStatus.PENDING;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -80,4 +83,45 @@ class RedisServiceTest {
         assertThat(orderDataMap).containsEntry("coinName", "ETH");
         assertThat(orderDataMap).containsEntry("marketName", "USDT");
     }
+
+    @Test
+    public void testInsertLargeDataInRedis() {
+        // given
+        String keyPrefix = "testKey";
+        OrderStatus orderStatus = OrderStatus.PENDING;
+        Random random = new Random();
+
+        for (int i = 0; i < 3_000_000; i++) { // 300만 건 삽입
+            String hashKey = "orderUuid-" + i;
+
+            CoinOrderDTO order = new CoinOrderDTO();
+            order.setUuid(hashKey);
+            order.setCoinName("BTC");
+            order.setMarketName("KRW");
+            order.setCoinAmount(BigDecimal.valueOf(0.1));
+
+            // 가격을 5000~6000 사이의 랜덤 값으로 설정
+            BigDecimal randomPrice = BigDecimal.valueOf(5000 + random.nextInt(1001)); // 5000 ~ 6000 사이
+            order.setOrderPrice(randomPrice);
+
+            order.setOrderType(OrderType.BUY);
+            order.setFee(BigDecimal.valueOf(0.001));
+            order.setMemberIdx(123L + i);
+            order.setMemberUuid("memberUuid" + i);
+            order.setCreatedAt(LocalDateTime.now());
+
+            // when
+            // 매수일 때 ZSET에 내림차순으로 가격을 기준으로 정렬
+            redisService.insertOrderInRedis(keyPrefix, orderStatus, order);
+
+            // 로그를 주기적으로 출력
+            if (i % 10_000 == 0) {
+                System.out.println("Inserted " + i + " records into Redis.");
+            }
+        }
+
+        // then
+        System.out.println("Completed insertion of large data into Redis.");
+    }
+
 }

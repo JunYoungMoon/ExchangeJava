@@ -2,6 +2,7 @@ package com.mjy.coin.service;
 
 import com.mjy.coin.dto.CoinOrderDTO;
 import com.mjy.coin.enums.OrderStatus;
+import com.mjy.coin.enums.OrderType;
 import org.springframework.data.redis.core.*;
 import org.springframework.stereotype.Component;
 
@@ -176,8 +177,20 @@ public class RedisService {
             // 주문 데이터를 JSON 문자열로 변환
             String jsonOrderData = convertService.convertMapToString(orderDataMap);
 
+            String zsetKey = orderStatus + ":ORDER:ZSET:" + key;
+
+            // 가격을 기준으로 내림차순으로 정렬되도록 - 가격을 부호 반전하여 저장
+            double price = order.getOrderPrice().doubleValue();
+            if (order.getOrderType() == OrderType.BUY) {
+                // 매수는 높은 가격이 먼저 나오므로 부호 반전
+                price = -price;
+            }
+
+            // ZSET에 가격을 기준으로 주문 UUID를 저장
+            redisTemplate.opsForZSet().add(zsetKey, order.getUuid(), price);
+
             // Redis에 주문 데이터 저장 (Hash 구조 사용)
-            setHashOps(orderStatus + ":ORDER:" + key, Map.of(order.getUuid(), jsonOrderData));
+            setHashOps(orderStatus + ":ORDER:HASH:" + key, Map.of(order.getUuid(), jsonOrderData));
 
         } catch (Exception e) {
             System.err.println("Failed to insert order in Redis: " + e.getMessage());
