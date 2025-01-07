@@ -2,21 +2,24 @@ package com.mjy.coin.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mjy.coin.dto.CoinOrderDTO;
+import com.mjy.coin.entity.cassandra.PendingOrder;
 import com.mjy.coin.enums.OrderStatus;
 import com.mjy.coin.enums.OrderType;
+import com.mjy.coin.repository.coin.cassandra.PendingOrderRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.scheduling.annotation.Async;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.CompletableFuture;
 
-import static com.mjy.coin.enums.OrderStatus.PENDING;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 class RedisServiceTest {
@@ -27,6 +30,8 @@ class RedisServiceTest {
     private ConvertService convertService;
     @Autowired
     private ObjectMapper objectMapper;
+    @Autowired
+    private PendingOrderRepository pendingOrderRepository;
 
     @Test
     public void testInsertOrderInRedis() throws Exception {
@@ -84,14 +89,29 @@ class RedisServiceTest {
         assertThat(orderDataMap).containsEntry("marketName", "USDT");
     }
 
+    @Async
+    public CompletableFuture<Void> saveToRedis(String keyPrefix, OrderStatus orderStatus, CoinOrderDTO order) {
+        redisService.addOrderToZSetByPrice(keyPrefix, orderStatus, order);
+        return CompletableFuture.completedFuture(null);
+    }
+
+    @Async
+    public CompletableFuture<Void> saveToCassandra(PendingOrder pendingOrder) {
+        pendingOrderRepository.save(pendingOrder);
+        return CompletableFuture.completedFuture(null);
+    }
+
+
     @Test
     public void testInsertLargeDataInRedis() {
-        // given
         String keyPrefix = "testKey";
         OrderStatus orderStatus = OrderStatus.PENDING;
         Random random = new Random();
 
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
+
         for (int i = 0; i < 3_000_000; i++) { // 300만 건 삽입
+            long idx = 1 + random.nextInt(10);
             String hashKey = "orderUuid-" + i;
 
             CoinOrderDTO order = new CoinOrderDTO();
@@ -106,22 +126,40 @@ class RedisServiceTest {
 
             order.setOrderType(OrderType.BUY);
             order.setFee(BigDecimal.valueOf(0.001));
-            order.setMemberIdx(123L + i);
-            order.setMemberUuid("memberUuid" + i);
+            order.setMemberIdx(idx);
+            order.setMemberUuid("memberUuid" + idx);
             order.setCreatedAt(LocalDateTime.now());
 
-            // when
-            // 매수일 때 ZSET에 내림차순으로 가격을 기준으로 정렬
-            redisService.insertOrderInRedis(keyPrefix, orderStatus, order);
+            // 비동기로 Redis와 Cassandra 작업 추가
+            futures.add(saveToRedis(keyPrefix, orderStatus, order));
+            futures.add(saveToCassandra(convert(order)));
 
             // 로그를 주기적으로 출력
             if (i % 10_000 == 0) {
-                System.out.println("Inserted " + i + " records into Redis.");
+                System.out.println("Inserted " + i + " records.");
             }
         }
 
-        // then
-        System.out.println("Completed insertion of large data into Redis.");
+        // 모든 비동기 작업 완료 대기
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+
+        System.out.println("Completed insertion of large data into Redis and Cassandra.");
+    }
+
+
+    public static PendingOrder convert(CoinOrderDTO coinOrderDTO) {
+        PendingOrder pendingOrder = new PendingOrder();
+        pendingOrder.setOrderUuid(coinOrderDTO.getUuid());
+        pendingOrder.setCoinName(coinOrderDTO.getCoinName());
+        pendingOrder.setMarketName(coinOrderDTO.getMarketName());
+        pendingOrder.setCoinAmount(coinOrderDTO.getCoinAmount());
+        pendingOrder.setOrderPrice(coinOrderDTO.getOrderPrice());
+        pendingOrder.setOrderType(coinOrderDTO.getOrderType());
+        pendingOrder.setFee(coinOrderDTO.getFee());
+        pendingOrder.setMemberIdx(coinOrderDTO.getMemberIdx());
+        pendingOrder.setMemberUuid(coinOrderDTO.getMemberUuid());
+        pendingOrder.setCreatedAt(coinOrderDTO.getCreatedAt());
+        return pendingOrder;
     }
 
 }
