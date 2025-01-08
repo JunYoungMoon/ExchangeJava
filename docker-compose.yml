@@ -145,17 +145,6 @@ services:
     depends_on:
       - zookeeper
 
-#  prometheus:
-#    image: prom/prometheus:latest
-#    restart: unless-stopped
-#    container_name: prometheus
-#    ports:
-#      - "9090:9090"
-#    volumes:
-#      - ./config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-#    extra_hosts:
-#      - "host.docker.internal:host-gateway"
-
 #  loki:
 #    image: grafana/loki:latest
 #    restart: unless-stopped
@@ -171,21 +160,23 @@ services:
 #      - ./logs:/logs
 #      - ./config/promtail/promtail.yml:/etc/promtail/config.yml
 
-#  grafana:
-#    image: grafana/grafana:latest
-#    restart: unless-stopped
-#    container_name: grafana
-#    environment:
-#      - GF_SECURITY_ADMIN_USER=admin
-#      - GF_SECURITY_ADMIN_PASSWORD=admin
-#    ports:
-#      - "3000:3000"
-#    volumes:
-#      - ./db/grafana-data:/var/lib/grafana
+  grafana:
+    image: grafana/grafana:latest
+    restart: unless-stopped
+    container_name: grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./db/grafana-data:/var/lib/grafana
+    networks:
+      - apm_network
 
   controller:
     image: ngrinder/controller:latest
-    container_name: ngrinder_controller
+    container_name: ngrinder-controller
     restart: unless-stopped
     ports:
       - "9000:80"
@@ -193,27 +184,29 @@ services:
       - "12000-12009:12000-12009"
     volumes:
       - ./ngrinder-data:/opt/ngrinder-controller
+    networks:
+      - ngrinder-network
 
   agent1:
     image: ngrinder/agent:latest
-    container_name: ngrinder_agent1
+    container_name: ngrinder-agent1
     restart: unless-stopped
-    links:
-      - controller
+    networks:
+      - ngrinder-network
 
   agent2:
     image: ngrinder/agent:latest
-    container_name: ngrinder_agent2
+    container_name: ngrinder-agent2
     restart: unless-stopped
-    links:
-      - controller
+    networks:
+      - ngrinder-network
 
   agent3:
     image: ngrinder/agent:latest
-    container_name: ngrinder_agent3
+    container_name: ngrinder-agent3
     restart: unless-stopped
-    links:
-      - controller
+    networks:
+      - ngrinder-network
 
   cassandra:
     image: cassandra:latest
@@ -222,7 +215,43 @@ services:
     environment:
       - CASSANDRA_USER=admin
       - CASSANDRA_PASSWORD=admin
+      - LOCAL_JMX=no
     ports:
       - "9042:9042"
+      - "7199:7199"
     volumes:
       - ./db/cassandra-data:/var/lib/cassandra
+      - ./config/cassandra/jmxremote.password:/etc/cassandra/jmxremote.password
+    networks:
+      - apm_network
+
+  cassandra-exporter:
+    image: criteord/cassandra_exporter:latest
+    container_name: cassandra-exporter
+    ports:
+      - "8087:8080"
+    environment:
+      - CASSANDRA_EXPORTER_CONFIG_host=cassandra:7199
+      - CASSANDRA_EXPORTER_CONFIG_user=admin
+      - CASSANDRA_EXPORTER_CONFIG_password=admin
+    networks:
+      - apm_network
+    depends_on:
+      - cassandra
+
+  prometheus:
+    image: prom/prometheus:latest
+    restart: unless-stopped
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - apm_network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+networks:
+  apm_network:
+  ngrinder-network:

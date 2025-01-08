@@ -101,14 +101,12 @@ class RedisServiceTest {
         return CompletableFuture.completedFuture(null);
     }
 
-
     @Test
     public void testInsertLargeDataInRedis() {
         String keyPrefix = "testKey";
         OrderStatus orderStatus = OrderStatus.PENDING;
         Random random = new Random();
 
-        List<CompletableFuture<Void>> futures = new ArrayList<>();
 
         for (int i = 0; i < 3_000_000; i++) { // 300만 건 삽입
             long idx = 1 + random.nextInt(10);
@@ -131,17 +129,15 @@ class RedisServiceTest {
             order.setCreatedAt(LocalDateTime.now());
 
             // 비동기로 Redis와 Cassandra 작업 추가
-            futures.add(saveToRedis(keyPrefix, orderStatus, order));
-            futures.add(saveToCassandra(convert(order)));
+//            saveToRedis(keyPrefix, orderStatus, order);
+//            redisService.addOrderToZSetByPrice(keyPrefix, orderStatus, order);
+            saveToCassandra(convert(order));
 
             // 로그를 주기적으로 출력
             if (i % 10_000 == 0) {
                 System.out.println("Inserted " + i + " records.");
             }
         }
-
-        // 모든 비동기 작업 완료 대기
-        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
         System.out.println("Completed insertion of large data into Redis and Cassandra.");
     }
