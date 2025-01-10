@@ -3,7 +3,7 @@ package com.mjy.coin.controller;
 import com.mjy.coin.dto.*;
 import com.mjy.coin.enums.OrderStatus;
 import com.mjy.coin.enums.OrderType;
-import com.mjy.coin.service.ChartService;
+//import com.mjy.coin.service.ChartService;
 import com.mjy.coin.service.CoinOrderService;
 import com.mjy.coin.service.OrderBookService;
 import com.mjy.coin.service.LimitOrderService;
@@ -23,28 +23,28 @@ import java.util.Random;
 public class InitialDataController {
 
     private final LimitOrderService limitOrderService;
-    private final ChartService chartService;
+//    private final ChartService chartService;
     private final CoinOrderService coinOrderService;
     private final OrderBookService orderBookService;
 
-    public InitialDataController(ChartService chartService, CoinOrderService coinOrderService, OrderBookService orderBookService
+    public InitialDataController(/*ChartService chartService, */CoinOrderService coinOrderService, OrderBookService orderBookService
     , LimitOrderService limitOrderService) {
-        this.chartService = chartService;
+//        this.chartService = chartService;
         this.coinOrderService = coinOrderService;
         this.orderBookService = orderBookService;
         this.limitOrderService = limitOrderService;
     }
 
-    @GetMapping("/chart")
-    public ApiResponse getChartData(@Valid ChartDataRequest chartDataRequest) {
-        List<CandleDTO> chartData = chartService.getChartData(chartDataRequest);
-
-        return ApiResponse.builder()
-                .status("success")
-                .msg("msg")
-                .data(chartData)
-                .build();
-    }
+//    @GetMapping("/chart")
+//    public ApiResponse getChartData(@Valid ChartDataRequest chartDataRequest) {
+//        List<CandleDTO> chartData = chartService.getChartData(chartDataRequest);
+//
+//        return ApiResponse.builder()
+//                .status("success")
+//                .msg("msg")
+//                .data(chartData)
+//                .build();
+//    }
 
     @GetMapping("/orderBook")
     public ApiResponse getOrderBookData(@Valid OrderBookDataRequest orderBookDataRequest) {

@@ -1,23 +1,9 @@
 spring:
-  exchange:
-    slave:
-      datasource:
-        hikari:
-          jdbc-url: jdbc:mysql://localhost:14306/Exchange
-          username: root
-          password: 1234
-
   coin:
     master:
       datasource:
         hikari:
           jdbc-url: jdbc:mysql://localhost:15306/Exchange
-          username: root
-          password: 1234
-    slave:
-      datasource:
-        hikari:
-          jdbc-url: jdbc:mysql://localhost:16306/Exchange
           username: root
           password: 1234
 
@@ -26,8 +12,11 @@ spring:
       host: localhost
       port: 6379
 
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health, info, metrics, prometheus
+  cassandra:
+    contact-points: localhost
+    port: 9042
+    local-datacenter: datacenter1
+    schema-action: create_if_not_exists
+    username: admin
+    password: admin
+    keyspace-name: exchange

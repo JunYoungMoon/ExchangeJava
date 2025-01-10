@@ -2,7 +2,6 @@ package com.mjy.coin.service;
 
 import com.mjy.coin.dto.CoinOrderDTO;
 import com.mjy.coin.repository.coin.master.MasterCoinOrderRepository;
-import com.mjy.coin.repository.coin.slave.SlaveCoinOrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -16,13 +15,11 @@ public class LimitOrderService implements OrderService {
     private final OrderBookService orderBookService;
     private final OrderQueueService orderQueueService;
     private final MasterCoinOrderRepository masterCoinOrderRepository;
-    private final SlaveCoinOrderRepository slaveCoinOrderRepository;
     private final RedisService redisService;
 
     @Autowired
     public LimitOrderService(@Qualifier("pendingOrderMatcherServiceV2") PendingOrderMatcherService pendingOrderMatcherService,
                              MasterCoinOrderRepository masterCoinOrderRepository,
-                             SlaveCoinOrderRepository slaveCoinOrderRepository,
                              OrderQueueService orderQueueService,
                              OrderBookService orderBookService,
                              RedisService redisService) {
@@ -30,7 +27,6 @@ public class LimitOrderService implements OrderService {
         this.masterCoinOrderRepository = masterCoinOrderRepository;
         this.orderBookService = orderBookService;
         this.orderQueueService = orderQueueService;
-        this.slaveCoinOrderRepository = slaveCoinOrderRepository;
         this.redisService = redisService;
     }
 

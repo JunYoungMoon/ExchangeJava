@@ -2,6 +2,7 @@ package com.mjy.coin.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mjy.coin.dto.CoinOrderDTO;
+import com.mjy.coin.dto.PriceVolumeDTO;
 import com.mjy.coin.entity.cassandra.PendingOrder;
 import com.mjy.coin.enums.OrderStatus;
 import com.mjy.coin.enums.OrderType;
@@ -9,11 +10,14 @@ import com.mjy.coin.repository.coin.cassandra.PendingOrderRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -22,8 +26,9 @@ import java.util.concurrent.CompletableFuture;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
+@ActiveProfiles("test")
+//@EmbeddedKafka(partitions = 1, topics = {"test-topic"})
 class RedisServiceTest {
-
     @Autowired
     private RedisService redisService;
     @Autowired
@@ -32,6 +37,12 @@ class RedisServiceTest {
     private ObjectMapper objectMapper;
     @Autowired
     private PendingOrderRepository pendingOrderRepository;
+
+    @MockBean(name = "matchListKafkaTemplate")
+    private KafkaTemplate<String, Map<String, List<CoinOrderDTO>>> matchListKafkaTemplate;
+
+    @MockBean(name = "priceVolumeMapKafkaTemplate")
+    private KafkaTemplate<String, Map<String, List<PriceVolumeDTO>>> priceVolumeMapKafkaTemplate;
 
     @Test
     public void testInsertOrderInRedis() throws Exception {
@@ -106,7 +117,6 @@ class RedisServiceTest {
         String keyPrefix = "testKey";
         OrderStatus orderStatus = OrderStatus.PENDING;
         Random random = new Random();
-
 
         for (int i = 0; i < 3_000_000; i++) { // 300만 건 삽입
             long idx = 1 + random.nextInt(10);

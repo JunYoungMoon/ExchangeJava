@@ -1,60 +1,8 @@
-server:
-#  address: 0.0.0.0
-  port: 8081
-
 spring:
-#  main:
-#    allow-bean-definition-overriding: true
-  batch:
-    jdbc:
-      initialize-schema: always
-    job:
-      enabled: false
-#        name: coinOrderJob
-
-  profiles:
-    active: dev
-
-  devtools:
-    livereload:
-      enabled: true
-    restart:
-      enabled: true
-
-  exchange:
-    slave:
-      datasource:
-        hikari:
-          jdbc-url: jdbc:mysql://localhost:14306/Exchange
-          username: root
-          password: 1234
-
-  coin:
-    master:
-      datasource:
-        hikari:
-#          jdbc-url: jdbc:mysql://localhost:${SHARD_MASTER_PORT}/Exchange
-          jdbc-url: jdbc:mysql://localhost:15306/Exchange
-          username: root
-          password: 1234
-    slave:
-      datasource:
-        hikari:
-#          jdbc-url: jdbc:mysql://localhost:${SHARD_SLAVE_PORT}/Exchange
-          jdbc-url: jdbc:mysql://localhost:16306/Exchange
-          username: root
-          password: 1234
-
-#  jpa:
-#    properties:
-#      hibernate:
-#        format_sql: true
-#        show_sql: true
-
   data:
     redis:
-#      repositories:
-#        enabled: false
+      #      repositories:
+      #        enabled: false
       host: localhost
       port: 6379
 
@@ -66,6 +14,37 @@ spring:
     username: admin
     password: admin
     keyspace-name: exchange
+
+  batch:
+    jdbc:
+      initialize-schema: always
+    job:
+      enabled: false
+  #        name: coinOrderJob
+
+  coin:
+    master:
+      datasource:
+        hikari:
+          jdbc-url: jdbc:mysql://localhost:${SHARD_MASTER_PORT}/Exchange
+#          jdbc-url: jdbc:mysql://localhost:15306/Exchange
+          username: root
+          password: 1234
+#    slave:
+#      datasource:
+#        hikari:
+#          jdbc-url: jdbc:mysql://localhost:${SHARD_SLAVE_PORT}/Exchange
+#  #        jdbc-url: jdbc:mysql://localhost:16306/Exchange
+#          username: root
+#          password: 1234
+
+#  exchange:
+#    slave:
+#      datasource:
+#        hikari:
+#          jdbc-url: jdbc:mysql://localhost:14306/Exchange
+#          username: root
+#          password: 1234
 
 #  kafka:
 #    bootstrap-servers: localhost:9092
@@ -80,7 +59,7 @@ spring:
 #          json:
 #            trusted.packages: "*"
 #            type.mapping: "coinOrder:com.mjy.coin.dto.CoinOrderDTO"
-
+#
 #    producer:
 #      key-serializer: org.apache.kafka.common.serialization.StringSerializer
 #      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
@@ -89,11 +68,17 @@ spring:
 #        spring:
 #          json:
 #            trusted.packages: "*"
-##            type.mapping: "coinOrder:com.mjy.coin.dto.CoinOrderDTO"
+#            #            type.mapping: "coinOrder:com.mjy.coin.dto.CoinOrderDTO"
 #            type.mapping: "coinOrderList:java.util.ArrayList<com.mjy.coin.dto.CoinOrderDTO>"
+
+server:
+  port: 8081
 
 management:
   endpoints:
     web:
       exposure:
         include: health, info, metrics, prometheus
+
+logging:
+  config: classpath:logback-${spring.profiles.active}.xml

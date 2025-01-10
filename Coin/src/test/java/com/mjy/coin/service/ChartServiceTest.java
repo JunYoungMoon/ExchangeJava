@@ -1,6 +1,6 @@
 package com.mjy.coin.service;
 
-import com.mjy.coin.repository.coin.slave.SlaveChartRepository;
+//import com.mjy.coin.repository.coin.slave.SlaveChartRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -9,11 +9,11 @@ import org.mockito.MockitoAnnotations;
 
 class ChartServiceTest {
 
-    @Mock
-    private SlaveChartRepository slaveChartRepository;
-
-    @InjectMocks
-    private ChartService chartService;
+//    @Mock
+//    private SlaveChartRepository slaveChartRepository;
+//
+//    @InjectMocks
+//    private ChartService chartService;
 
     @BeforeEach
     public void setup() {

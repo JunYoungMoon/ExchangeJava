@@ -7,6 +7,7 @@ import jakarta.annotation.PostConstruct;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.DependsOn;
+import org.springframework.context.annotation.Profile;
 import org.springframework.kafka.config.KafkaListenerContainerFactory;
 import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
 import org.springframework.kafka.config.MethodKafkaListenerEndpoint;
@@ -18,6 +19,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 @Component
 @DependsOn("kafkaAdmin")
+@Profile("dev")
 public class PendingOrderKafkaListenerCreator {
 
     private static final String KAFKA_GROUP_ID = "coinOrderGroup";

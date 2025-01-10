@@ -3,7 +3,6 @@ package com.mjy.coin.service;
 import com.mjy.coin.dto.CoinOrderDTO;
 import com.mjy.coin.enums.OrderType;
 import com.mjy.coin.repository.coin.master.MasterCoinOrderRepository;
-import com.mjy.coin.repository.coin.slave.SlaveCoinOrderRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -40,8 +39,6 @@ class LimitOrderServiceTest {
     @MockBean
     private MasterCoinOrderRepository masterCoinOrderRepository;
 
-    @MockBean
-    private SlaveCoinOrderRepository slaveCoinOrderRepository;
 
     @MockBean
     private RedisService redisService;
