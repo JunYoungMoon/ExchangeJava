@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -118,7 +117,7 @@ class RedisServiceTest {
         OrderStatus orderStatus = OrderStatus.PENDING;
         Random random = new Random();
 
-        for (int i = 0; i < 3_000_000; i++) { // 300만 건 삽입
+        for (int i = 0; i < 100_000_000; i++) { // 300만 건 삽입
             long idx = 1 + random.nextInt(10);
             String hashKey = "orderUuid-" + i;
 
@@ -139,9 +138,10 @@ class RedisServiceTest {
             order.setCreatedAt(LocalDateTime.now());
 
             // 비동기로 Redis와 Cassandra 작업 추가
+            redisService.addOrderToZSetByPrice(keyPrefix, orderStatus, order);
+//            redisService.insertOrderInRedis(keyPrefix, orderStatus, order);
 //            saveToRedis(keyPrefix, orderStatus, order);
-//            redisService.addOrderToZSetByPrice(keyPrefix, orderStatus, order);
-            saveToCassandra(convert(order));
+//            saveToCassandra(convert(order));
 
             // 로그를 주기적으로 출력
             if (i % 10_000 == 0) {
