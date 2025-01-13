@@ -117,7 +117,7 @@ class RedisServiceTest {
         OrderStatus orderStatus = OrderStatus.PENDING;
         Random random = new Random();
 
-        for (int i = 0; i < 100_000_000; i++) { // 300만 건 삽입
+        for (int i = 0; i < 3_000_000; i++) { // 300만 건 삽입
             long idx = 1 + random.nextInt(10);
             String hashKey = "orderUuid-" + i;
 

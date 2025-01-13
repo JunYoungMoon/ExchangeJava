@@ -4,10 +4,13 @@ import com.mjy.coin.dto.CoinOrderDTO;
 import com.mjy.coin.enums.OrderStatus;
 import com.mjy.coin.enums.OrderType;
 import org.springframework.data.redis.core.*;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
+import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -187,15 +190,45 @@ public class RedisService {
 
     public void addOrderToZSetByPrice(String key, OrderStatus orderStatus, CoinOrderDTO order) {
         String zsetKey = orderStatus + ":ORDER:ZSET:" + key;
+        String hashKey = orderStatus + ":ORDER:HASH:" + key;
 
-        // 가격을 기준으로 내림차순으로 정렬되도록 - 가격을 부호 반전하여 저장
+        // 가격을 그대로 사용
         double price = order.getOrderPrice().doubleValue();
+
+        // 시간 정보 계산 (밀리초 단위의 현재 시간)
+        long currentTimeMillis = System.currentTimeMillis();
+        int timeComponent = (int) (currentTimeMillis % 10_000); // 4자리 시간 값 추출
+
+        // 시간 값을 소수점 이하로 변환
+        double timeAsDecimal = timeComponent / 10000.0; // 4자리 시간을 소수점 이하로 변환
+
+        // 점수 생성: 가격 + 시간(소수점 이하 4자리로 표현)
+        double score = price + timeAsDecimal;
+
         if (order.getOrderType() == OrderType.BUY) {
             // 매수는 높은 가격이 먼저 나오므로 부호 반전
-            price = -price;
+            score = -score;
         }
 
+        // Lua 스크립트 실행
+        String luaScript =
+                "local zsetKey = KEYS[1] " +
+                "local hashKey = KEYS[2] " +
+                "local uuid = ARGV[1] " +
+                "local score = ARGV[2] " +
+                "local amount = ARGV[3] " +
+                "redis.call('ZADD', zsetKey, score, uuid) " +
+                "redis.call('HSET', hashKey, uuid, amount) " +
+                "return 'OK'";
+
         // ZSET에 가격을 기준으로 주문 UUID를 저장
-        redisTemplate.opsForZSet().add(zsetKey, order.getUuid(), price);
+//        redisTemplate.opsForZSet().add(zsetKey, order.getUuid(), score);
+
+        // Lua 스크립트 실행
+        redisTemplate.execute(new DefaultRedisScript<>(luaScript, String.class),
+                Arrays.asList(zsetKey, hashKey),
+                order.getUuid(),
+                String.valueOf(score),
+                String.valueOf(order.getCoinAmount()));
     }
 }
