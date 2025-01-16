@@ -99,25 +99,14 @@ class RedisServiceTest {
         assertThat(orderDataMap).containsEntry("marketName", "USDT");
     }
 
-    @Async
-    public CompletableFuture<Void> saveToRedis(String keyPrefix, OrderStatus orderStatus, CoinOrderDTO order) {
-        redisService.addOrderToZSetByPrice(keyPrefix, orderStatus, order);
-        return CompletableFuture.completedFuture(null);
-    }
-
-    @Async
-    public CompletableFuture<Void> saveToCassandra(PendingOrder pendingOrder) {
-        pendingOrderRepository.save(pendingOrder);
-        return CompletableFuture.completedFuture(null);
-    }
 
     @Test
-    public void testInsertLargeDataInRedis() {
-        String keyPrefix = "testKey";
+    public void testAddOrderToZSet() {
+        String symbol = "BTC-KRW";
         OrderStatus orderStatus = OrderStatus.PENDING;
         Random random = new Random();
 
-        for (int i = 0; i < 3_000_000; i++) { // 300만 건 삽입
+        for (int i = 0; i < 1_000; i++) { // 300만 건 삽입
             long idx = 1 + random.nextInt(10);
             String hashKey = "orderUuid-" + i;
 
@@ -131,14 +120,14 @@ class RedisServiceTest {
             BigDecimal randomPrice = BigDecimal.valueOf(5000 + random.nextInt(1001)); // 5000 ~ 6000 사이
             order.setOrderPrice(randomPrice);
 
-            order.setOrderType(OrderType.BUY);
+            order.setOrderType(random.nextBoolean() ? OrderType.BUY : OrderType.SELL);
             order.setFee(BigDecimal.valueOf(0.001));
             order.setMemberIdx(idx);
             order.setMemberUuid("memberUuid" + idx);
             order.setCreatedAt(LocalDateTime.now());
 
             // 비동기로 Redis와 Cassandra 작업 추가
-            redisService.addOrderToZSetByPrice(keyPrefix, orderStatus, order);
+            redisService.addOrderToZSet(symbol, orderStatus, order);
 //            redisService.insertOrderInRedis(keyPrefix, orderStatus, order);
 //            saveToRedis(keyPrefix, orderStatus, order);
 //            saveToCassandra(convert(order));
@@ -150,6 +139,20 @@ class RedisServiceTest {
         }
 
         System.out.println("Completed insertion of large data into Redis and Cassandra.");
+    }
+    
+    @Test
+    public void testGetOppositeOrder() throws Exception {
+        //given
+        String symbol = "BTC-KRW";
+        OrderStatus orderStatus = OrderStatus.PENDING;
+
+        CoinOrderDTO order = new CoinOrderDTO();
+        order.setOrderPrice(BigDecimal.valueOf(6000));
+
+        redisService.getOppositeOrder(symbol, orderStatus, order);
+
+        //then
     }
 
 

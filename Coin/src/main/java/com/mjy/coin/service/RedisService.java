@@ -8,16 +8,16 @@ import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static com.mjy.coin.enums.OrderStatus.COMPLETED;
 import static com.mjy.coin.enums.OrderStatus.PENDING;
+import static com.mjy.coin.enums.OrderType.BUY;
+import static com.mjy.coin.enums.OrderType.SELL;
 
 @Component
 public class RedisService {
@@ -188,47 +188,74 @@ public class RedisService {
         }
     }
 
-    public void addOrderToZSetByPrice(String key, OrderStatus orderStatus, CoinOrderDTO order) {
-        String zsetKey = orderStatus + ":ORDER:ZSET:" + key;
-        String hashKey = orderStatus + ":ORDER:HASH:" + key;
+    public void addOrderToZSet(String symbol, OrderStatus orderStatus, CoinOrderDTO order) {
+        String zsetKey = orderStatus + ":ORDER:ZSET:" + symbol + ":" + order.getOrderType();
+        String hashKey = orderStatus + ":ORDER:HASH:" + symbol + ":" + order.getOrderType();
 
-        // 가격을 그대로 사용
-        double price = order.getOrderPrice().doubleValue();
+        // 가격을 BigDecimal로 사용
+        BigDecimal price = order.getOrderPrice();
 
         // 시간 정보 계산 (밀리초 단위의 현재 시간)
         long currentTimeMillis = System.currentTimeMillis();
         int timeComponent = (int) (currentTimeMillis % 10_000); // 4자리 시간 값 추출
 
         // 시간 값을 소수점 이하로 변환
-        double timeAsDecimal = timeComponent / 10000.0; // 4자리 시간을 소수점 이하로 변환
+        BigDecimal timeAsDecimal = new BigDecimal(timeComponent).divide(new BigDecimal(10_000));
 
         // 점수 생성: 가격 + 시간(소수점 이하 4자리로 표현)
-        double score = price + timeAsDecimal;
+        BigDecimal score = price.add(timeAsDecimal);
 
-        if (order.getOrderType() == OrderType.BUY) {
+        if (order.getOrderType() == BUY) {
             // 매수는 높은 가격이 먼저 나오므로 부호 반전
-            score = -score;
+            score = score.negate();
         }
 
-        // Lua 스크립트 실행
+        // Lua 스크립트 작성
         String luaScript =
                 "local zsetKey = KEYS[1] " +
-                "local hashKey = KEYS[2] " +
-                "local uuid = ARGV[1] " +
-                "local score = ARGV[2] " +
-                "local amount = ARGV[3] " +
-                "redis.call('ZADD', zsetKey, score, uuid) " +
-                "redis.call('HSET', hashKey, uuid, amount) " +
-                "return 'OK'";
-
-        // ZSET에 가격을 기준으로 주문 UUID를 저장
-//        redisTemplate.opsForZSet().add(zsetKey, order.getUuid(), score);
+                        "local hashKey = KEYS[2] " +
+                        "local uuid = ARGV[1] " +
+                        "local score = ARGV[2] " +
+                        "local amount = ARGV[3] " +
+                        "redis.call('ZADD', zsetKey, score, uuid) " +
+                        "redis.call('HSET', hashKey, uuid, amount) " +
+                        "return 'OK'";
 
         // Lua 스크립트 실행
         redisTemplate.execute(new DefaultRedisScript<>(luaScript, String.class),
                 Arrays.asList(zsetKey, hashKey),
                 order.getUuid(),
-                String.valueOf(score),
-                String.valueOf(order.getCoinAmount()));
+                score.toString(),
+                order.getCoinAmount().toString());
+    }
+
+    public void getOppositeOrder(String symbol, OrderStatus orderStatus, CoinOrderDTO order) {
+        String oppositeType = order.getOrderType() == OrderType.BUY ? "SELL" : "BUY";
+
+        String zsetKey = orderStatus + ":ORDER:ZSET:" + symbol + ":" + oppositeType;
+        String hashKey = orderStatus + ":ORDER:HASH:" + symbol + ":" + oppositeType;
+
+        String luaScript = """
+            local topElement = redis.call('ZRANGE', KEYS[1], 0, 0, 'WITHSCORES')
+            if not topElement[1] then
+                return nil
+            end
+            local topValue = topElement[1]
+            local topScore = tonumber(topElement[2])
+            if topScore <= tonumber(ARGV[1]) then
+                local hashValue = redis.call('HGET', KEYS[2], topValue)
+                return {topValue, hashValue}
+            else
+                return nil
+            end
+        """;
+
+        List<Object> result = redisTemplate.execute(
+                new DefaultRedisScript<>(luaScript, List.class),
+                Arrays.asList(zsetKey, hashKey),
+                String.valueOf(order.getOrderPrice())
+        );
+
+        System.out.println(result);
     }
 }
