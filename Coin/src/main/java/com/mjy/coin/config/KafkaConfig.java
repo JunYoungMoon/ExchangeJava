@@ -15,7 +15,7 @@ import java.util.List;
 
 @EnableKafka
 @Configuration
-@Profile("dev")
+@Profile("test")
 public class KafkaConfig {
     private final CoinInfoService coinInfoService;
 

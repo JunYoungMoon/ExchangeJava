@@ -15,28 +15,28 @@ services:
       - ./scripts/mysql/shard1-krw-major-master-init.sql:/docker-entrypoint-initdb.d/shard1-krw-major-master-init.sql
     ports:
       - "15306:3306"
-#    healthcheck:
-#      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
-#      interval: 10s
-#      timeout: 5s
-#      retries: 5
-#
-#  shard1-krw-major-slave:
-#    image: mysql:8.0.30
-#    restart: unless-stopped
-#    container_name: shard1-krw-major-slave
-#    command: --server-id=4 --log-bin=mysql-bin --gtid-mode=ON --enforce-gtid-consistency=true
-#    environment:
-#      MYSQL_ROOT_PASSWORD: 1234
-#    depends_on:
-#      shard1-krw-major-master:
-#        condition: service_healthy
-#    volumes:
-#      - ./db/shard1-krw-major-slave-data:/var/lib/mysql
-#      - ./config/mysql/shard1-krw-major-slave-my.cnf:/etc/mysql/conf.d/shard1-krw-major-slave-my.cnf
-#      - ./scripts/mysql/shard1-krw-major-slave-init.sql:/docker-entrypoint-initdb.d/shard1-krw-major-slave-init.sql
-#    ports:
-#      - "16306:3306"
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  shard1-krw-major-slave:
+    image: mysql:8.0.30
+    restart: unless-stopped
+    container_name: shard1-krw-major-slave
+    command: --server-id=4 --log-bin=mysql-bin --gtid-mode=ON --enforce-gtid-consistency=true
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+    depends_on:
+      shard1-krw-major-master:
+        condition: service_healthy
+    volumes:
+      - ./db/shard1-krw-major-slave-data:/var/lib/mysql
+      - ./config/mysql/shard1-krw-major-slave-my.cnf:/etc/mysql/conf.d/shard1-krw-major-slave-my.cnf
+      - ./scripts/mysql/shard1-krw-major-slave-init.sql:/docker-entrypoint-initdb.d/shard1-krw-major-slave-init.sql
+    ports:
+      - "16306:3306"
 
   # 샤드 2: KRW 마켓 기타 코인 체결 정보 (마스터)
 #  shard2-krw-minor-master:
@@ -160,47 +160,47 @@ services:
 #      - ./logs:/logs
 #      - ./config/promtail/promtail.yml:/etc/promtail/config.yml
 
-  grafana:
-    image: grafana/grafana:latest
-    restart: unless-stopped
-    container_name: grafana
-    environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-    ports:
-      - "3000:3000"
-    volumes:
-      - ./db/grafana-data:/var/lib/grafana
-    networks:
-      - apm_network
-
-#  controller:
-#    image: ngrinder/controller:latest
-#    container_name: ngrinder-controller
+#  grafana:
+#    image: grafana/grafana:latest
 #    restart: unless-stopped
+#    container_name: grafana
+#    environment:
+#      - GF_SECURITY_ADMIN_USER=admin
+#      - GF_SECURITY_ADMIN_PASSWORD=admin
 #    ports:
-#      - "9000:80"
-#      - "16001:16001"
-#      - "12000-12009:12000-12009"
+#      - "3000:3000"
 #    volumes:
-#      - ./db/ngrinder-data:/opt/ngrinder-controller
+#      - ./db/grafana-data:/var/lib/grafana
 #    networks:
-#      - ngrinder-network
-#
-#  agent1:
-#    image: ngrinder/agent:latest
-#    container_name: ngrinder-agent1
-#    restart: unless-stopped
-#    networks:
-#      - ngrinder-network
-#
-#  agent2:
-#    image: ngrinder/agent:latest
-#    container_name: ngrinder-agent2
-#    restart: unless-stopped
-#    networks:
-#      - ngrinder-network
-#
+#      - apm_network
+
+  controller:
+    image: ngrinder/controller:latest
+    container_name: ngrinder-controller
+    restart: unless-stopped
+    ports:
+      - "9000:80"
+      - "16001:16001"
+      - "12000-12009:12000-12009"
+    volumes:
+      - ./db/ngrinder-data:/opt/ngrinder-controller
+    networks:
+      - ngrinder-network
+
+  agent1:
+    image: ngrinder/agent:latest
+    container_name: ngrinder-agent1
+    restart: unless-stopped
+    networks:
+      - ngrinder-network
+
+  agent2:
+    image: ngrinder/agent:latest
+    container_name: ngrinder-agent2
+    restart: unless-stopped
+    networks:
+      - ngrinder-network
+
 #  agent3:
 #    image: ngrinder/agent:latest
 #    container_name: ngrinder-agent3
@@ -208,89 +208,89 @@ services:
 #    networks:
 #      - ngrinder-network
 
-  cassandra-node1:
-    image: cassandra:latest
-    restart: unless-stopped
-    container_name: cassandra-node1
-    environment:
-      - CASSANDRA_USER=admin
-      - CASSANDRA_PASSWORD=admin
-      - LOCAL_JMX=no
-      - MAX_HEAP_SIZE=500M
-      - HEAP_NEWSIZE=300M
-    ports:
-      - "9042:9042"
-      - "7199:7199"
-    volumes:
-      - ./db/cassandra-node1:/var/lib/cassandra
-      - ./config/cassandra/cassandra.yaml:/etc/cassandra/cassandra.yaml
-      - ./config/cassandra/jmxremote.password:/etc/cassandra/jmxremote.password
-    networks:
-      - apm_network
+#  cassandra-node1:
+#    image: cassandra:latest
+#    restart: unless-stopped
+#    container_name: cassandra-node1
+#    environment:
+#      - CASSANDRA_USER=admin
+#      - CASSANDRA_PASSWORD=admin
+#      - LOCAL_JMX=no
+#      - MAX_HEAP_SIZE=500M
+#      - HEAP_NEWSIZE=300M
+#    ports:
+#      - "9042:9042"
+#      - "7199:7199"
+#    volumes:
+#      - ./db/cassandra-node1:/var/lib/cassandra
+#      - ./config/cassandra/cassandra.yaml:/etc/cassandra/cassandra.yaml
+#      - ./config/cassandra/jmxremote.password:/etc/cassandra/jmxremote.password
+#    networks:
+#      - apm_network
 
-  cassandra-node2:
-    image: cassandra:latest
-    restart: unless-stopped
-    container_name: cassandra-node2
-    environment:
-      - CASSANDRA_USER=admin
-      - CASSANDRA_PASSWORD=admin
-      - LOCAL_JMX=no
-      - CASSANDRA_SEEDS=cassandra-node1  # 첫 번째 노드를 시드로 설정
-      - MAX_HEAP_SIZE=500M
-      - HEAP_NEWSIZE=300M
-    ports:
-      - "9043:9042"  # 다른 포트 사용
-    volumes:
-      - ./db/cassandra-node2:/var/lib/cassandra
-    networks:
-      - apm_network
+#  cassandra-node2:
+#    image: cassandra:latest
+#    restart: unless-stopped
+#    container_name: cassandra-node2
+#    environment:
+#      - CASSANDRA_USER=admin
+#      - CASSANDRA_PASSWORD=admin
+#      - LOCAL_JMX=no
+#      - CASSANDRA_SEEDS=cassandra-node1  # 첫 번째 노드를 시드로 설정
+#      - MAX_HEAP_SIZE=500M
+#      - HEAP_NEWSIZE=300M
+#    ports:
+#      - "9043:9042"  # 다른 포트 사용
+#    volumes:
+#      - ./db/cassandra-node2:/var/lib/cassandra
+#    networks:
+#      - apm_network
 
-  cassandra-node3:
-    image: cassandra:latest
-    restart: unless-stopped
-    container_name: cassandra-node3
-    environment:
-      - CASSANDRA_USER=admin
-      - CASSANDRA_PASSWORD=admin
-      - LOCAL_JMX=no
-      - CASSANDRA_SEEDS=cassandra-node1  # 첫 번째 노드를 시드로 설정
-      - MAX_HEAP_SIZE=500M
-      - HEAP_NEWSIZE=300M
-    ports:
-      - "9044:9042"  # 다른 포트 사용
-    volumes:
-      - ./db/cassandra-node3:/var/lib/cassandra
-    networks:
-      - apm_network
+#  cassandra-node3:
+#    image: cassandra:latest
+#    restart: unless-stopped
+#    container_name: cassandra-node3
+#    environment:
+#      - CASSANDRA_USER=admin
+#      - CASSANDRA_PASSWORD=admin
+#      - LOCAL_JMX=no
+#      - CASSANDRA_SEEDS=cassandra-node1  # 첫 번째 노드를 시드로 설정
+#      - MAX_HEAP_SIZE=500M
+#      - HEAP_NEWSIZE=300M
+#    ports:
+#      - "9044:9042"  # 다른 포트 사용
+#    volumes:
+#      - ./db/cassandra-node3:/var/lib/cassandra
+#    networks:
+#      - apm_network
 
-  cassandra-exporter:
-    image: criteord/cassandra_exporter:latest
-    container_name: cassandra-exporter
-    ports:
-      - "8087:8080"
-    environment:
-      - CASSANDRA_EXPORTER_CONFIG_host=cassandra-node1:7199
-      - CASSANDRA_EXPORTER_CONFIG_user=admin
-      - CASSANDRA_EXPORTER_CONFIG_password=admin
-    networks:
-      - apm_network
-    depends_on:
-      - cassandra-node1
-
-  prometheus:
-    image: prom/prometheus:latest
-    restart: unless-stopped
-    container_name: prometheus
-    ports:
-      - "9090:9090"
-    volumes:
-      - ./config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-    networks:
-      - apm_network
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+#  cassandra-exporter:
+#    image: criteord/cassandra_exporter:latest
+#    container_name: cassandra-exporter
+#    ports:
+#      - "8087:8080"
+#    environment:
+#      - CASSANDRA_EXPORTER_CONFIG_host=cassandra-node1:7199
+#      - CASSANDRA_EXPORTER_CONFIG_user=admin
+#      - CASSANDRA_EXPORTER_CONFIG_password=admin
+#    networks:
+#      - apm_network
+#    depends_on:
+#      - cassandra-node1
+#
+#  prometheus:
+#    image: prom/prometheus:latest
+#    restart: unless-stopped
+#    container_name: prometheus
+#    ports:
+#      - "9090:9090"
+#    volumes:
+#      - ./config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+#    networks:
+#      - apm_network
+#    extra_hosts:
+#      - "host.docker.internal:host-gateway"
 
 networks:
-  apm_network:
-#  ngrinder-network:
+#  apm_network:
+  ngrinder-network:

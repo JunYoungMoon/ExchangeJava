@@ -59,7 +59,7 @@ public class Member {
         this.registeredAt = LocalDateTime.now(ZoneOffset.UTC);
     }
 
-    @OneToMany(mappedBy = "member", fetch = FetchType.LAZY)
+//    @OneToMany(mappedBy = "member", fetch = FetchType.LAZY)
 //    @BatchSize(size = 2) N + 1 문제 "완화" 방법
-    private List<CoinHolding> coinHoldings = new ArrayList<>();
+//    private List<CoinHolding> coinHoldings = new ArrayList<>();
 }

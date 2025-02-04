@@ -1,4 +1,4 @@
-package com.mjy.exchange;
+package com.mjy.exchange.config;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;

@@ -3,10 +3,10 @@ package com.mjy.coin.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mjy.coin.dto.CoinOrderDTO;
 import com.mjy.coin.dto.PriceVolumeDTO;
-import com.mjy.coin.entity.cassandra.PendingOrder;
+//import com.mjy.coin.entity.cassandra.PendingOrder;
 import com.mjy.coin.enums.OrderStatus;
 import com.mjy.coin.enums.OrderType;
-import com.mjy.coin.repository.coin.cassandra.PendingOrderRepository;
+//import com.mjy.coin.repository.coin.cassandra.PendingOrderRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -34,8 +34,8 @@ class RedisServiceTest {
     private ConvertService convertService;
     @Autowired
     private ObjectMapper objectMapper;
-    @Autowired
-    private PendingOrderRepository pendingOrderRepository;
+//    @Autowired
+//    private PendingOrderRepository pendingOrderRepository;
 
     @MockBean(name = "matchListKafkaTemplate")
     private KafkaTemplate<String, Map<String, List<CoinOrderDTO>>> matchListKafkaTemplate;
@@ -156,19 +156,19 @@ class RedisServiceTest {
     }
 
 
-    public static PendingOrder convert(CoinOrderDTO coinOrderDTO) {
-        PendingOrder pendingOrder = new PendingOrder();
-        pendingOrder.setOrderUuid(coinOrderDTO.getUuid());
-        pendingOrder.setCoinName(coinOrderDTO.getCoinName());
-        pendingOrder.setMarketName(coinOrderDTO.getMarketName());
-        pendingOrder.setCoinAmount(coinOrderDTO.getCoinAmount());
-        pendingOrder.setOrderPrice(coinOrderDTO.getOrderPrice());
-        pendingOrder.setOrderType(coinOrderDTO.getOrderType());
-        pendingOrder.setFee(coinOrderDTO.getFee());
-        pendingOrder.setMemberIdx(coinOrderDTO.getMemberIdx());
-        pendingOrder.setMemberUuid(coinOrderDTO.getMemberUuid());
-        pendingOrder.setCreatedAt(coinOrderDTO.getCreatedAt());
-        return pendingOrder;
-    }
+//    public static PendingOrder convert(CoinOrderDTO coinOrderDTO) {
+//        PendingOrder pendingOrder = new PendingOrder();
+//        pendingOrder.setOrderUuid(coinOrderDTO.getUuid());
+//        pendingOrder.setCoinName(coinOrderDTO.getCoinName());
+//        pendingOrder.setMarketName(coinOrderDTO.getMarketName());
+//        pendingOrder.setCoinAmount(coinOrderDTO.getCoinAmount());
+//        pendingOrder.setOrderPrice(coinOrderDTO.getOrderPrice());
+//        pendingOrder.setOrderType(coinOrderDTO.getOrderType());
+//        pendingOrder.setFee(coinOrderDTO.getFee());
+//        pendingOrder.setMemberIdx(coinOrderDTO.getMemberIdx());
+//        pendingOrder.setMemberUuid(coinOrderDTO.getMemberUuid());
+//        pendingOrder.setCreatedAt(coinOrderDTO.getCreatedAt());
+//        return pendingOrder;
+//    }
 
 }

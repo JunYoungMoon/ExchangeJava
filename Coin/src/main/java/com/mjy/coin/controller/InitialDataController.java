@@ -8,6 +8,7 @@ import com.mjy.coin.service.CoinOrderService;
 import com.mjy.coin.service.OrderBookService;
 import com.mjy.coin.service.LimitOrderService;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -19,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+@Slf4j
 @RestController
 public class InitialDataController {
 
@@ -73,6 +75,7 @@ public class InitialDataController {
 
     @PostMapping("/test")
     public ApiResponse test() {
+
         Random random = new Random();
 
         CoinOrderDTO coinOrderDto = new CoinOrderDTO();
