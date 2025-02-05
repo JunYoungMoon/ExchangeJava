@@ -24,11 +24,11 @@ spring:
 #    password: admin
 #    keyspace-name: exchange
 
-  batch:
-    jdbc:
-      initialize-schema: always
-    job:
-      enabled: false
+#  batch:
+#    jdbc:
+#      initialize-schema: always
+#    job:
+#      enabled: false
   #        name: coinOrderJob
 
   coin:

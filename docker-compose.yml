@@ -121,12 +121,7 @@ services:
       - ./config/redis/redis.conf:/etc/redis/redis.conf
     ports:
       - "6379:6379"
-    command: >
-      sh -c "redis-server /etc/redis/redis.conf & sleep 3 &&
-      redis-cli HSET 'MAJOR:COIN:BTC-KRW' 'coinType' 'MAJOR' 'feeRate' '0.01' 'marketName' 'KRW' 'coinName' 'BTC' &&
-      redis-cli HSET 'MAJOR:COIN:ETH-KRW' 'coinType' 'MAJOR' 'feeRate' '0.02' 'marketName' 'KRW' 'coinName' 'ETH' &&
-      redis-cli HSET 'MINOR:COIN:EGX-KRW' 'coinType' 'MINOR' 'feeRate' '0.03' 'marketName' 'KRW' 'coinName' 'EGX' &&
-      tail -f /dev/null"
+    command: ["redis-server", "/etc/redis/redis.conf"]
 
 #  zookeeper:
 #    image: wurstmeister/zookeeper:latest

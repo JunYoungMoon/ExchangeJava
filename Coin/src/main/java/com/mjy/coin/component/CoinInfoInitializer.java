@@ -1,11 +1,13 @@
 package com.mjy.coin.component;
 
+import com.mjy.coin.dto.CoinInfoDTO;
 import com.mjy.coin.enums.OrderType;
 import com.mjy.coin.dto.CoinOrderDTO;
 import com.mjy.coin.service.*;
 import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.util.*;
 
 @Component
@@ -33,6 +35,26 @@ public class CoinInfoInitializer {
     public void init() {
         List<String> keys = coinInfoService.getCoinMarketKeys();
 
+        if (keys.isEmpty()) {
+            List<CoinInfoDTO> coinInfoList = Arrays.asList(
+                    new CoinInfoDTO("KRW","BTC", new BigDecimal("0.01"), "MAJOR"),
+                    new CoinInfoDTO("KRW","ETH", new BigDecimal("0.02"), "MAJOR"),
+                    new CoinInfoDTO("KRW","EGX", new BigDecimal("0.03"), "MINOR")
+            );
+
+            // 코인 정보를 MAJOR:BTC-KRW 와 같이 해시 테이블 생성
+            for (CoinInfoDTO coinInfo : coinInfoList) {
+                Map<String, String> coinInfoMap = new HashMap<>();
+
+                coinInfoMap.put("coinName", String.valueOf(coinInfo.getCoinName()));
+                coinInfoMap.put("coinType", String.valueOf(coinInfo.getCoinType()));
+                coinInfoMap.put("marketName", String.valueOf(coinInfo.getMarketName()));
+                coinInfoMap.put("feeRate", String.valueOf(coinInfo.getFeeRate()));
+
+                redisService.setHashOps(coinInfo.getCoinType() + ":COIN:" + coinInfo.getCoinName() + "-" + coinInfo.getMarketName(), coinInfoMap);
+            }
+        }
+
         for (String key : keys) {
             // 주문 우선순위큐, 호가 트리 자료구조 생성
             orderQueueService.initializeBuyOrder(key);
@@ -51,12 +73,12 @@ public class CoinInfoInitializer {
                 // 매수 주문일 경우
                 if (orderDTO.getOrderType() == OrderType.BUY) {
                     orderQueueService.addBuyOrder(key, orderDTO);
-                    orderBookService.addBuyOrderBook(key,orderDTO);
+                    orderBookService.addBuyOrderBook(key, orderDTO);
                 }
                 // 매도 주문일 경우
                 else if (orderDTO.getOrderType() == OrderType.SELL) {
                     orderQueueService.addSellOrder(key, orderDTO);
-                    orderBookService.addSellOrderBook(key,orderDTO);
+                    orderBookService.addSellOrderBook(key, orderDTO);
                 }
             }
         }
