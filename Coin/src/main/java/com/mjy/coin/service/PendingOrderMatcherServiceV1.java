@@ -6,7 +6,6 @@ import com.mjy.coin.dto.PriceVolumeDTO;
 import com.mjy.coin.repository.coin.master.MasterCoinOrderRepository;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -86,8 +85,8 @@ public class PendingOrderMatcherServiceV1 implements PendingOrderMatcherService 
                         sellOrder.setExecutionPrice(executionPrice);
 
                         // 매수와 매도 체결된 상태를 DB에 기록
-//                        masterCoinOrderRepository.save(CoinOrderMapper.toEntity(buyOrder));
-//                        masterCoinOrderRepository.save(CoinOrderMapper.toEntity(sellOrder));
+                        masterCoinOrderRepository.save(CoinOrderMapper.toEntity(buyOrder));
+                        masterCoinOrderRepository.save(CoinOrderMapper.toEntity(sellOrder));
 
                         //////////////////////////////////시작////////////////////////////////////
 //                        // 1. BuyOrder 업데이트
@@ -131,7 +130,7 @@ public class PendingOrderMatcherServiceV1 implements PendingOrderMatcherService 
                         sellOrder.setMatchIdx(buyOrder.getIdx() + "|" + sellOrder.getIdx());
                         sellOrder.setExecutionPrice(executionPrice);   //실제 체결 되는 가격은 매수자의 가격으로 체결
 
-//                        masterCoinOrderRepository.save(CoinOrderMapper.toEntity(sellOrder));
+                        masterCoinOrderRepository.save(CoinOrderMapper.toEntity(sellOrder));
 
                         //////////////////////////////////시작////////////////////////////////////
 //                        // 1. SellOrder 업데이트
@@ -159,7 +158,7 @@ public class PendingOrderMatcherServiceV1 implements PendingOrderMatcherService 
                         buyOrder.setMatchIdx(previousIdx + "-" + sellOrder.getIdx());
                         buyOrder.setExecutionPrice(executionPrice);   //실제 체결 되는 가격은 매수자의 가격으로 체결
 
-//                        masterCoinOrderRepository.save(CoinOrderMapper.toEntity(buyOrder));
+                        masterCoinOrderRepository.save(CoinOrderMapper.toEntity(buyOrder));
 
                         //////////////////////////////////시작////////////////////////////////////
 //                        String previousUUID = buyOrder.getUuid();
@@ -187,7 +186,7 @@ public class PendingOrderMatcherServiceV1 implements PendingOrderMatcherService 
                         buyOrder.setOrderStatus(PENDING);
 
                         // 미체결 수량 업데이트
-//                        masterCoinOrderRepository.save(CoinOrderMapper.toEntity(buyOrder)); // 상태 업데이트
+                        masterCoinOrderRepository.save(CoinOrderMapper.toEntity(buyOrder)); // 상태 업데이트
 
                         //////////////////////////////////시작////////////////////////////////////
                         // 3. BuyOrder 업데이트
@@ -217,7 +216,7 @@ public class PendingOrderMatcherServiceV1 implements PendingOrderMatcherService 
                         buyOrder.setMatchIdx(buyOrder.getIdx() + "|" + sellOrder.getIdx());
                         buyOrder.setExecutionPrice(executionPrice);   //실제 체결 되는 가격은 매수자의 가격으로 체결
 
-//                        masterCoinOrderRepository.save(CoinOrderMapper.toEntity(buyOrder));
+                        masterCoinOrderRepository.save(CoinOrderMapper.toEntity(buyOrder));
 
                         //////////////////////////////////시작////////////////////////////////////
 //                        // 1. SellOrder 업데이트
@@ -245,7 +244,7 @@ public class PendingOrderMatcherServiceV1 implements PendingOrderMatcherService 
                         sellOrder.setMatchIdx(buyOrder.getIdx() + "|" + previousIdx);
                         sellOrder.setExecutionPrice(executionPrice);   //실제 체결 되는 가격은 매수자의 가격으로 체결
 
-//                        masterCoinOrderRepository.save(CoinOrderMapper.toEntity(sellOrder));
+                        masterCoinOrderRepository.save(CoinOrderMapper.toEntity(sellOrder));
 
                         //////////////////////////////////시작////////////////////////////////////
 //                        String previousUUID = sellOrder.getUuid();
@@ -273,7 +272,7 @@ public class PendingOrderMatcherServiceV1 implements PendingOrderMatcherService 
                         sellOrder.setOrderStatus(PENDING);
 
                         // 미체결 수량 업데이트
-//                        masterCoinOrderRepository.save(CoinOrderMapper.toEntity(sellOrder)); // 상태 업데이트
+                        masterCoinOrderRepository.save(CoinOrderMapper.toEntity(sellOrder)); // 상태 업데이트
 
                         //////////////////////////////////시작////////////////////////////////////
 //                        // 3. BuyOrder 업데이트

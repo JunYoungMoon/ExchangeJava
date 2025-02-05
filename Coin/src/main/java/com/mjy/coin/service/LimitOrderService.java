@@ -6,7 +6,6 @@ import com.mjy.coin.entity.coin.CoinOrder;
 import com.mjy.coin.enums.OrderType;
 import com.mjy.coin.repository.coin.master.MasterCoinOrderRepository;
 import com.mjy.coin.repository.coin.slave.SlaveCoinOrderRepository;
-import com.mjy.coin.repository.exchange.slave.SlaveCoinInfoRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -43,7 +42,7 @@ public class LimitOrderService implements OrderService {
     }
 
     @Override
-    public void processOrder(CoinOrderDTO order) {
+    public synchronized void processOrder(CoinOrderDTO order) {
         // 지정가 주문 처리 로직
 
         String key = order.getCoinName() + "-" + order.getMarketName();
@@ -74,8 +73,7 @@ public class LimitOrderService implements OrderService {
 //
             CoinOrder orderEntity = CoinOrderMapper.toEntity(order);
 
-//            log.error("TEST : 3");
-            // DB에 이미 존재하는 주문인지 확인
+//            // DB에 이미 존재하는 주문인지 확인
 //            Optional<Integer> existingOrder = slaveCoinOrderRepository.findByMarketNameAndCoinNameAndCreatedAt(
 //                    orderEntity.getMarketName(),
 //                    orderEntity.getCoinName(),
@@ -87,15 +85,14 @@ public class LimitOrderService implements OrderService {
 //                return; // 이미 존재하는 경우, 메서드 종료
 //            }
 
-//            log.error("TEST : 4");
             // DB에 저장 (저장된 엔티티 반환)
-//            CoinOrder savedOrderEntity = masterCoinOrderRepository.save(orderEntity);
+            CoinOrder savedOrderEntity = slaveCoinOrderRepository.save(orderEntity);
 
             // 저장된 엔티티에서 idx 가져와서 DTO에 설정
-//            order.setIdx(savedOrderEntity.getIdx());
+            order.setIdx(savedOrderEntity.getIdx());
 
             // 로그: 주문이 DB에 저장된 후
-//            System.out.println("Order saved: " + savedOrderEntity);
+            System.out.println("Order saved: " + savedOrderEntity);
 
 //             저장이 성공했으므로 매수/매도 큐에 추가
 //             호가 리스트도 추가

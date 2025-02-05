@@ -76,41 +76,41 @@ services:
 #      - "18306:3306"
 
   # 회원 및 기타 정보 저장 DB
-  exchange-master:
-    image: mysql:8.0.30
-    restart: unless-stopped
-    container_name: exchange-master
-    command: --server-id=1 --log-bin=mysql-bin --gtid-mode=ON --enforce-gtid-consistency=true
-    environment:
-      MYSQL_ROOT_PASSWORD: 1234
-    volumes:
-      - ./db/mysql-master-data:/var/lib/mysql
-      - ./config/mysql/exchange-master-my.cnf:/etc/mysql/conf.d/exchange-master-my.cnf
-      - ./scripts/mysql/exchange-master-init.sql:/docker-entrypoint-initdb.d/exchange-master-init.sql
-    ports:
-      - "13306:3306"
-    healthcheck:
-      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  exchange-slave:
-    image: mysql:8.0.30
-    restart: unless-stopped
-    container_name: exchange-slave
-    command: --server-id=2 --log-bin=mysql-bin --gtid-mode=ON --enforce-gtid-consistency=true
-    environment:
-      MYSQL_ROOT_PASSWORD: 1234
-    depends_on:
-      exchange-master:
-        condition: service_healthy
-    volumes:
-      - ./db/mysql-slave-data:/var/lib/mysql
-      - ./config/mysql/exchange-slave-my.cnf:/etc/mysql/conf.d/exchange-slave-my.cnf
-      - ./scripts/mysql/exchange-slave-init.sql:/docker-entrypoint-initdb.d/exchange-slave-init.sql
-    ports:
-      - "14306:3306"
+#  exchange-master:
+#    image: mysql:8.0.30
+#    restart: unless-stopped
+#    container_name: exchange-master
+#    command: --server-id=1 --log-bin=mysql-bin --gtid-mode=ON --enforce-gtid-consistency=true
+#    environment:
+#      MYSQL_ROOT_PASSWORD: 1234
+#    volumes:
+#      - ./db/mysql-master-data:/var/lib/mysql
+#      - ./config/mysql/exchange-master-my.cnf:/etc/mysql/conf.d/exchange-master-my.cnf
+#      - ./scripts/mysql/exchange-master-init.sql:/docker-entrypoint-initdb.d/exchange-master-init.sql
+#    ports:
+#      - "13306:3306"
+#    healthcheck:
+#      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+#      interval: 10s
+#      timeout: 5s
+#      retries: 5
+#
+#  exchange-slave:
+#    image: mysql:8.0.30
+#    restart: unless-stopped
+#    container_name: exchange-slave
+#    command: --server-id=2 --log-bin=mysql-bin --gtid-mode=ON --enforce-gtid-consistency=true
+#    environment:
+#      MYSQL_ROOT_PASSWORD: 1234
+#    depends_on:
+#      exchange-master:
+#        condition: service_healthy
+#    volumes:
+#      - ./db/mysql-slave-data:/var/lib/mysql
+#      - ./config/mysql/exchange-slave-my.cnf:/etc/mysql/conf.d/exchange-slave-my.cnf
+#      - ./scripts/mysql/exchange-slave-init.sql:/docker-entrypoint-initdb.d/exchange-slave-init.sql
+#    ports:
+#      - "14306:3306"
 
   redis:
     image: redis:latest
@@ -121,7 +121,12 @@ services:
       - ./config/redis/redis.conf:/etc/redis/redis.conf
     ports:
       - "6379:6379"
-    command: [ "redis-server", "/etc/redis/redis.conf" ]
+    command: >
+      sh -c "redis-server /etc/redis/redis.conf & sleep 3 &&
+      redis-cli HSET 'MAJOR:COIN:BTC-KRW' 'coinType' 'MAJOR' 'feeRate' '0.01' 'marketName' 'KRW' 'coinName' 'BTC' &&
+      redis-cli HSET 'MAJOR:COIN:ETH-KRW' 'coinType' 'MAJOR' 'feeRate' '0.02' 'marketName' 'KRW' 'coinName' 'ETH' &&
+      redis-cli HSET 'MINOR:COIN:EGX-KRW' 'coinType' 'MINOR' 'feeRate' '0.03' 'marketName' 'KRW' 'coinName' 'EGX' &&
+      tail -f /dev/null"
 
 #  zookeeper:
 #    image: wurstmeister/zookeeper:latest
@@ -224,7 +229,7 @@ services:
 #    volumes:
 #      - ./db/cassandra-node1:/var/lib/cassandra
 #      - ./config/cassandra/cassandra.yaml:/etc/cassandra/cassandra.yaml
-#      - ./config/cassandra/jmxremote.password:/etc/cassandra/jmxremote.password
+#      - ./config/cassandra/jmxremote.password:/etc/cassandra/jmxremote.password  #동일한 파일명으로 파일을 생성후 내용으로는 admin admin 를 입력.
 #    networks:
 #      - apm_network
 
