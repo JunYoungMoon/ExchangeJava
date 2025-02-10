@@ -1,15 +1,22 @@
 package com.mjy.coin.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mjy.coin.dto.CoinOrderDTO;
 import com.mjy.coin.dto.PriceVolumeDTO;
 import com.mjy.coin.enums.OrderType;
 import com.mjy.coin.repository.coin.master.MasterCoinOrderRepository;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.test.annotation.Commit;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -24,34 +31,47 @@ import static org.mockito.Mockito.*;
 @SpringBootTest(classes = TestApplication.class)
 @ActiveProfiles("test")
 class PendingOrderMatcherServiceV1Test {
-    @Mock
-    private OrderBookService orderBookService;
+//    @Mock
+//    private OrderBookService orderBookService;
+//
+//    @Mock
+//    private OrderQueueService orderQueueService;
+//
+//    @Mock
+//    private RedisService redisService;
+//
+//    @Mock
+//    private KafkaTemplate<String, Map<String, List<CoinOrderDTO>>> matchListKafkaTemplate;
+//
+//    @Mock
+//    private KafkaTemplate<String, Map<String, List<PriceVolumeDTO>>> priceVolumeMapKafkaTemplate;
+//
+//    @Mock
+//    private MasterCoinOrderRepository masterCoinOrderRepository;
+//
+//    @InjectMocks
+//    private PendingOrderMatcherServiceV1 pendingOrderMatcherService;
 
-    @Mock
-    private OrderQueueService orderQueueService;
-
-    @Mock
-    private RedisService redisService;
-
-    @Mock
+    @MockBean(name = "matchListKafkaTemplate")
     private KafkaTemplate<String, Map<String, List<CoinOrderDTO>>> matchListKafkaTemplate;
-
-    @Mock
+    @MockBean(name = "priceVolumeMapKafkaTemplate")
     private KafkaTemplate<String, Map<String, List<PriceVolumeDTO>>> priceVolumeMapKafkaTemplate;
 
-    @Mock
-    private MasterCoinOrderRepository masterCoinOrderRepository;
-
-    @InjectMocks
+    @Autowired
     private PendingOrderMatcherServiceV1 pendingOrderMatcherService;
 
-    private CoinOrderDTO createOrder(OrderType type, String price, String amount) {
+    private CoinOrderDTO createOrder(OrderType type, String price, String quantity) {
         CoinOrderDTO order = new CoinOrderDTO();
-        order.setIdx(1L);
+        order.setCoinName("BTC");
+        order.setMarketName("KRW");
+        order.setFee(new BigDecimal("0.1"));
         order.setOrderType(type);
         order.setOrderPrice(new BigDecimal(price));
-        order.setQuantity(new BigDecimal(amount));
+        order.setQuantity(new BigDecimal(quantity));
         order.setOrderStatus(PENDING);
+        order.setMemberIdx(1L);
+        order.setMemberUuid(String.valueOf(UUID.randomUUID()));
+        order.setUuid(String.valueOf(UUID.randomUUID()));
         return order;
     }
 
@@ -216,6 +236,7 @@ class PendingOrderMatcherServiceV1Test {
 
         // when
         pendingOrderMatcherService.processCompleteMatch(order, oppositeOrder, executionPrice);
+
 
         // then
     }

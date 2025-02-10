@@ -439,8 +439,8 @@ public class PendingOrderMatcherServiceV1 implements PendingOrderMatcherService 
         System.out.println("완전체결 : " + " 주문 : " + order + " 반대 주문 : " + oppositeOrder);
 
         // 주문과 반대주문 모두 체결 상태 변경
-        updateOrderStatus(order, oppositeOrder, executionPrice, COMPLETED, order.getIdx() ,null);
-        updateOrderStatus(oppositeOrder, order, executionPrice, COMPLETED, order.getIdx() ,null);
+        updateOrderStatus(order, oppositeOrder, executionPrice, COMPLETED, order.getIdx() ,order.getQuantity());
+        updateOrderStatus(oppositeOrder, order, executionPrice, COMPLETED, oppositeOrder.getIdx() ,oppositeOrder.getQuantity());
 
         // 주문과 반대주문 모두 DB 저장
         masterCoinOrderRepository.save(CoinOrderMapper.toEntity(order));
@@ -454,13 +454,13 @@ public class PendingOrderMatcherServiceV1 implements PendingOrderMatcherService 
         System.out.println("부분체결 (주문이 반대 주문보다 크다) : " + " 주문 : " + order + " 반대 주문 : " + oppositeOrder);
 
         // 반대 주문 모두 체결 처리
-        updateOrderStatus(oppositeOrder, order, executionPrice, COMPLETED, oppositeOrder.getIdx(), null);
+        updateOrderStatus(oppositeOrder, order, executionPrice, COMPLETED, oppositeOrder.getIdx(), oppositeOrder.getQuantity());
 
         // 나의 주문 이전 Idx 저장
         Long previousIdx = order.getIdx();
 
         // 나의 주문 부분 체결 처리 (새로운 row 생성)
-        updateOrderStatus(order, oppositeOrder, executionPrice, COMPLETED, null,null);
+        updateOrderStatus(order, oppositeOrder, executionPrice, COMPLETED, null,order.getQuantity());
 
         // 주문과 반대주문 모두 DB 저장
         masterCoinOrderRepository.save(CoinOrderMapper.toEntity(order));
