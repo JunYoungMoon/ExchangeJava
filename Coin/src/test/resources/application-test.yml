@@ -1,4 +1,9 @@
 spring:
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+
   coin:
     master:
       datasource:
@@ -6,17 +11,14 @@ spring:
           jdbc-url: jdbc:mysql://localhost:15306/Exchange
           username: root
           password: 1234
+    slave:
+      datasource:
+        hikari:
+          jdbc-url: jdbc:mysql://localhost:16306/Exchange
+          username: root
+          password: 1234
 
   data:
     redis:
       host: localhost
       port: 6379
-
-  cassandra:
-    contact-points: localhost
-    port: 9042
-    local-datacenter: datacenter1
-    schema-action: create_if_not_exists
-    username: admin
-    password: admin
-    keyspace-name: exchange
