@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 public class MatchOrderDTO {
     private String marketName; // 예: KRW
     private String coinName; // 예: BTC
-    private BigDecimal coinAmount; // 매수/매도 코인 개수
+    private BigDecimal quantity; // 매수/매도 코인 개수
     private BigDecimal orderPrice; // 주문가 (사용자가 입력한 가격)
     private BigDecimal executionPrice; // 체결가 (실제로 거래된 가격)
     private OrderType orderType; // 매수/매도 타입(enum)

@@ -16,7 +16,7 @@ public class CoinOrderFactory {
         coinOrder.setMemberUuid(memberUuid);
         coinOrder.setMarketName(orderRequest.getMarketName());
         coinOrder.setCoinName(orderRequest.getCoinName());
-        coinOrder.setCoinAmount(new BigDecimal(String.valueOf(orderRequest.getCoinAmount())));
+        coinOrder.setQuantity(new BigDecimal(String.valueOf(orderRequest.getQuantity())));
         coinOrder.setOrderPrice(new BigDecimal(String.valueOf(orderRequest.getOrderPrice())));
         coinOrder.setOrderType(orderRequest.getOrderType());
         coinOrder.setOrderStatus(PENDING);

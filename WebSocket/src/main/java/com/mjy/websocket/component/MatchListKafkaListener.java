@@ -30,7 +30,7 @@ public class MatchListKafkaListener {
 
                 matchOrderDTO.setMarketName(coinOrderDTO.getMarketName());
                 matchOrderDTO.setCoinName(coinOrderDTO.getCoinName());
-                matchOrderDTO.setCoinAmount(coinOrderDTO.getCoinAmount());
+                matchOrderDTO.setQuantity(coinOrderDTO.getQuantity());
                 matchOrderDTO.setExecutionPrice(coinOrderDTO.getExecutionPrice());
                 matchOrderDTO.setOrderPrice(coinOrderDTO.getOrderPrice());
                 matchOrderDTO.setOrderType(coinOrderDTO.getOrderType());

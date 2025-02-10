@@ -54,7 +54,7 @@ class RedisServiceTest {
         order.setUuid(hashKey);
         order.setCoinName("BTC");
         order.setMarketName("KRW");
-        order.setCoinAmount(BigDecimal.valueOf(0.1));
+        order.setQuantity(BigDecimal.valueOf(0.1));
         order.setOrderPrice(BigDecimal.valueOf(50000));
         order.setOrderType(OrderType.BUY);
         order.setFee(BigDecimal.valueOf(0.001));
@@ -114,7 +114,7 @@ class RedisServiceTest {
             order.setUuid(hashKey);
             order.setCoinName("BTC");
             order.setMarketName("KRW");
-            order.setCoinAmount(BigDecimal.valueOf(0.1));
+            order.setQuantity(BigDecimal.valueOf(0.1));
 
             // 가격을 5000~6000 사이의 랜덤 값으로 설정
             BigDecimal randomPrice = BigDecimal.valueOf(5000 + random.nextInt(1001)); // 5000 ~ 6000 사이
@@ -161,7 +161,7 @@ class RedisServiceTest {
 //        pendingOrder.setOrderUuid(coinOrderDTO.getUuid());
 //        pendingOrder.setCoinName(coinOrderDTO.getCoinName());
 //        pendingOrder.setMarketName(coinOrderDTO.getMarketName());
-//        pendingOrder.setCoinAmount(coinOrderDTO.getCoinAmount());
+//        pendingOrder.setQuantity(coinOrderDTO.getQuantity());
 //        pendingOrder.setOrderPrice(coinOrderDTO.getOrderPrice());
 //        pendingOrder.setOrderType(coinOrderDTO.getOrderType());
 //        pendingOrder.setFee(coinOrderDTO.getFee());

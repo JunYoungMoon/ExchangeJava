@@ -27,14 +27,14 @@ public class OrderBookService {
     // 초기 매수 주문 호가 추가
     public void addBuyOrderBook(String key, CoinOrderDTO order){
         BigDecimal price = processBigDecimal(order.getOrderPrice());
-        BigDecimal amount = processBigDecimal(order.getCoinAmount());
+        BigDecimal amount = processBigDecimal(order.getQuantity());
         addOrderToBook(buyOrderBooks.get(key), price, amount);
     }
 
     // 초기 매도 주문 호가 추가
     public void addSellOrderBook(String key, CoinOrderDTO order){
         BigDecimal price = processBigDecimal(order.getOrderPrice());
-        BigDecimal amount = processBigDecimal(order.getCoinAmount());
+        BigDecimal amount = processBigDecimal(order.getQuantity());
         addOrderToBook(sellOrderBooks.get(key), price, amount);
     }
 
@@ -57,15 +57,15 @@ public class OrderBookService {
     public void updateOrderBook(String key, CoinOrderDTO order, boolean isBuy, boolean isAdd) {
         if (isBuy) {
             if (isAdd) {
-                addOrderToBook(buyOrderBooks.get(key), order.getOrderPrice(), order.getCoinAmount());
+                addOrderToBook(buyOrderBooks.get(key), order.getOrderPrice(), order.getQuantity());
             } else {
-                subtractOrderFromBook(buyOrderBooks.get(key), order.getOrderPrice(), order.getCoinAmount());
+                subtractOrderFromBook(buyOrderBooks.get(key), order.getOrderPrice(), order.getQuantity());
             }
         } else {
             if (isAdd) {
-                addOrderToBook(sellOrderBooks.get(key), order.getOrderPrice(), order.getCoinAmount());
+                addOrderToBook(sellOrderBooks.get(key), order.getOrderPrice(), order.getQuantity());
             } else {
-                subtractOrderFromBook(sellOrderBooks.get(key), order.getOrderPrice(), order.getCoinAmount());
+                subtractOrderFromBook(sellOrderBooks.get(key), order.getOrderPrice(), order.getQuantity());
             }
         }
     }

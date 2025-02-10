@@ -58,7 +58,7 @@ class OrderQueueServiceTest {
         order.setMemberUuid("member-" + idx);
         order.setMarketName("KRW");
         order.setCoinName("BTC");
-        order.setCoinAmount(BigDecimal.valueOf(new Random().nextInt(100) + 1)); // 1 ~ 100
+        order.setQuantity(BigDecimal.valueOf(new Random().nextInt(100) + 1)); // 1 ~ 100
         order.setOrderPrice(BigDecimal.valueOf(new Random().nextInt(100000) + 1000)); // 1000 ~ 101000
         order.setExecutionPrice(BigDecimal.valueOf(new Random().nextInt(100000) + 1000));
         order.setOrderType(idx % 2 == 0 ? OrderType.BUY : OrderType.SELL);

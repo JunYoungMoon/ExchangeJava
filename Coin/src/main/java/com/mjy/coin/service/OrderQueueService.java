@@ -4,6 +4,7 @@ import com.mjy.coin.dto.CoinOrderDTO;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.concurrent.PriorityBlockingQueue;
 
 @Service
 public class OrderQueueService {
@@ -12,7 +13,7 @@ public class OrderQueueService {
 
     // 초기 매수 주문 큐 생성 메서드
     public void initializeBuyOrder(String key) {
-        buyOrderQueues.putIfAbsent(key, new PriorityQueue<>(
+        buyOrderQueues.putIfAbsent(key, new PriorityQueue<>(11,
                 Comparator.comparing(CoinOrderDTO::getOrderPrice).reversed()
                         .thenComparing(CoinOrderDTO::getCreatedAt)
         ));
@@ -20,7 +21,7 @@ public class OrderQueueService {
 
     // 초기 매도 주문 큐 생성 메서드
     public void initializeSellOrder(String key) {
-        sellOrderQueues.putIfAbsent(key, new PriorityQueue<>(
+        sellOrderQueues.putIfAbsent(key, new PriorityQueue<>(11,
                 Comparator.comparing(CoinOrderDTO::getOrderPrice)
                         .thenComparing(CoinOrderDTO::getCreatedAt)
         ));

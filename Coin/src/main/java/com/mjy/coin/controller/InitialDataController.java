@@ -92,7 +92,7 @@ public class InitialDataController {
 
         // 0.01 ~ 0.1 범위의 랜덤 금액
         BigDecimal randomAmount = new BigDecimal(0.01 + (0.09 * random.nextDouble())).setScale(2, RoundingMode.DOWN);
-        coinOrderDto.setCoinAmount(new BigDecimal(String.valueOf(randomAmount)));
+        coinOrderDto.setQuantity(new BigDecimal(String.valueOf(randomAmount)));
 
         // 5000 ~ 6000 범위에서 100원 단위로 랜덤 가격 생성
         int randomPrice = 5000 + (random.nextInt(11) * 100); // 5000에서 6000까지 100원 단위 (5000 + 100*0~10)

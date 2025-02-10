@@ -47,7 +47,7 @@ class OrderServiceTest {
         OrderRequest orderRequest = new OrderRequest();
         orderRequest.setCoinName("BTC");
         orderRequest.setMarketName("KRW");
-        orderRequest.setCoinAmount(BigDecimal.valueOf(1));
+        orderRequest.setQuantity(BigDecimal.valueOf(1));
         orderRequest.setOrderPrice(BigDecimal.valueOf(5000000));
         orderRequest.setOrderType(OrderType.BUY);
 
@@ -69,7 +69,7 @@ class OrderServiceTest {
         OrderRequest orderRequest = new OrderRequest();
         orderRequest.setCoinName("BTC");
         orderRequest.setMarketName("KRW");
-        orderRequest.setCoinAmount(BigDecimal.valueOf(1));
+        orderRequest.setQuantity(BigDecimal.valueOf(1));
         orderRequest.setOrderPrice(BigDecimal.valueOf(5000000));
         orderRequest.setOrderType(OrderType.BUY);
 
@@ -98,7 +98,7 @@ class OrderServiceTest {
         OrderRequest orderRequest = new OrderRequest();
         orderRequest.setCoinName("BTC");
         orderRequest.setMarketName("KRW");
-        orderRequest.setCoinAmount(BigDecimal.valueOf(1));
+        orderRequest.setQuantity(BigDecimal.valueOf(1));
         orderRequest.setOrderPrice(BigDecimal.valueOf(5000000));
         orderRequest.setOrderType(OrderType.BUY);
 

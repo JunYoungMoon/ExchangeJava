@@ -44,7 +44,7 @@ class PendingOrderMatcherServiceV2Test {
         order.setUuid(generateUniqueKey(order));
         order.setOrderType(type);
         order.setOrderPrice(new BigDecimal(price));
-        order.setCoinAmount(new BigDecimal(amount));
+        order.setQuantity(new BigDecimal(amount));
         order.setOrderStatus(PENDING);
         return order;
     }
@@ -272,7 +272,7 @@ class PendingOrderMatcherServiceV2Test {
             order.setUuid("hashKey" + count);
             order.setCoinName("BTC");
             order.setMarketName("KRW");
-            order.setCoinAmount(BigDecimal.valueOf(0.1));
+            order.setQuantity(BigDecimal.valueOf(0.1));
             order.setOrderPrice(BigDecimal.valueOf(50000 + count));
             order.setOrderType(OrderType.BUY);
             order.setFee(BigDecimal.valueOf(0.001));

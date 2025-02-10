@@ -23,7 +23,7 @@ public class OrderRequest{
 
     @NotNull(message = "{orderRequest.NotEmpty.coinAmount}") // 코인 개수는 필수 입력 사항입니다.
     @Schema(description = " 매수/매도 코인 개수", defaultValue = "0.01")
-    private BigDecimal coinAmount; // 매수/매도 코인 개수
+    private BigDecimal quantity; // 매수/매도 코인 개수
 
     @NotNull(message = "{orderRequest.NotEmpty.orderPrice}") // 주문 금액은 필수 입력 사항입니다.
     @Schema(description = "매수/매도 금액", defaultValue = "5000")

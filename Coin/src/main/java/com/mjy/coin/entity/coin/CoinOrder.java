@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Entity
-public class CoinOrder {
+public class CoinOrder extends Timestamped{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,7 +38,7 @@ public class CoinOrder {
     private OrderType orderType; // 매수/매도 (enum)
 
     @Column(nullable = false, precision = 18, scale = 8)
-    private BigDecimal coinAmount; // 매수/매도 코인 개수
+    private BigDecimal quantity; // 매수/매도 코인 개수
 
     @Column(nullable = false, precision = 18, scale = 8)
     private BigDecimal orderPrice; // 주문가 (사용자가 입력한 가격)
@@ -51,9 +51,6 @@ public class CoinOrder {
 
     @Column(nullable = false, precision = 18, scale = 8)
     private BigDecimal fee; // 수수료
-
-    @Column(nullable = false)
-    private LocalDateTime createdAt; // 등록일자
 
     @Column(nullable = false)
     private String uuid; // redis uuid

@@ -7,17 +7,22 @@ import com.mjy.coin.enums.OrderType;
 import com.mjy.coin.repository.coin.master.MasterCoinOrderRepository;
 import com.mjy.coin.repository.coin.slave.SlaveCoinOrderRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static com.mjy.coin.util.CommonUtil.generateUniqueKey;
 
 @Slf4j
 @Service
 public class LimitOrderService implements OrderService {
+
+    private final Set<String> orderHashSet = ConcurrentHashMap.newKeySet(); // 동시성 고려
 
     private final PendingOrderMatcherService pendingOrderMatcherService;
     private final OrderBookService orderBookService;
@@ -41,11 +46,9 @@ public class LimitOrderService implements OrderService {
         this.redisService = redisService;
     }
 
+    // 지정가 주문 처리 로직
     @Override
-    public synchronized void processOrder(CoinOrderDTO order) {
-        // 지정가 주문 처리 로직
-
-        String key = order.getCoinName() + "-" + order.getMarketName();
+    public void processOrder(CoinOrderDTO order) {
 
         order.setUuid(generateUniqueKey(order));
 
@@ -73,7 +76,18 @@ public class LimitOrderService implements OrderService {
 //
             CoinOrder orderEntity = CoinOrderMapper.toEntity(order);
 
-//            // DB에 이미 존재하는 주문인지 확인
+            //[임시]이미 존재하는 주문인지 확인 Hash
+            String rawString = orderEntity.getMarketName() + orderEntity.getCoinName() + orderEntity.getCreatedAt();
+            String orderHash = DigestUtils.md5Hex(rawString);
+
+            if(orderHashSet.contains(orderHash)){
+                System.out.println("Order already exists: " + orderEntity.getIdx());
+                return; // 이미 존재하는 경우, 메서드 종료
+            }
+
+            orderHashSet.add(orderHash);
+
+//            //이미 존재하는 주문인지 확인 DB
 //            Optional<Integer> existingOrder = slaveCoinOrderRepository.findByMarketNameAndCoinNameAndCreatedAt(
 //                    orderEntity.getMarketName(),
 //                    orderEntity.getCoinName(),
@@ -86,28 +100,31 @@ public class LimitOrderService implements OrderService {
 //            }
 
             // DB에 저장 (저장된 엔티티 반환)
-            CoinOrder savedOrderEntity = slaveCoinOrderRepository.save(orderEntity);
+//            CoinOrder savedOrderEntity = slaveCoinOrderRepository.save(orderEntity);
 
             // 저장된 엔티티에서 idx 가져와서 DTO에 설정
-            order.setIdx(savedOrderEntity.getIdx());
+//            order.setIdx(savedOrderEntity.getIdx());
 
             // 로그: 주문이 DB에 저장된 후
-            System.out.println("Order saved: " + savedOrderEntity);
+//            System.out.println("Order saved: " + savedOrderEntity);
+
+            //symbol 생성
+            String symbol = order.getCoinName() + "-" + order.getMarketName();
 
 //             저장이 성공했으므로 매수/매도 큐에 추가
 //             호가 리스트도 추가
             if (order.getOrderType() == OrderType.BUY) {
                 System.out.println("Adding buy order to queue: " + order);
-                orderQueueService.addBuyOrder(key, order);
-                orderBookService.updateOrderBook(key, order, true, true);
+                orderQueueService.addBuyOrder(symbol, order);
+                orderBookService.updateOrderBook(symbol, order, true, true);
             } else if (order.getOrderType() == OrderType.SELL) {
                 System.out.println("Adding sell order to queue: " + order);
-                orderQueueService.addSellOrder(key, order);
-                orderBookService.updateOrderBook(key, order, false, true);
+                orderQueueService.addSellOrder(symbol, order);
+                orderBookService.updateOrderBook(symbol, order, false, true);
             }
 
             // 주문 체결 시도
-            pendingOrderMatcherService.matchOrders(order);
+            pendingOrderMatcherService.matchOrders(symbol, order);
 
             //호가 리스트 출력
 //            orderBookService.printOrderBook(key);

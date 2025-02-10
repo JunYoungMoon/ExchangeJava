@@ -10,7 +10,6 @@ import org.springframework.stereotype.Component;
 
 
 @Component
-@Profile("test")
 public class PendingOrderKafkaListener implements MessageListener<String, CoinOrderDTO> {
 
     private final LimitOrderService limitOrderService;

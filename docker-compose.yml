@@ -160,19 +160,32 @@ services:
 #      - ./logs:/logs
 #      - ./config/promtail/promtail.yml:/etc/promtail/config.yml
 
-#  grafana:
-#    image: grafana/grafana:latest
-#    restart: unless-stopped
-#    container_name: grafana
-#    environment:
-#      - GF_SECURITY_ADMIN_USER=admin
-#      - GF_SECURITY_ADMIN_PASSWORD=admin
-#    ports:
-#      - "3000:3000"
-#    volumes:
-#      - ./db/grafana-data:/var/lib/grafana
-#    networks:
-#      - apm_network
+  grafana:
+    image: grafana/grafana:latest
+    restart: unless-stopped
+    container_name: grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./db/grafana-data:/var/lib/grafana
+    networks:
+      - apm_network
+
+  prometheus:
+    image: prom/prometheus:latest
+    restart: unless-stopped
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - apm_network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   controller:
     image: ngrinder/controller:latest
@@ -194,12 +207,12 @@ services:
     networks:
       - ngrinder-network
 
-  agent2:
-    image: ngrinder/agent:latest
-    container_name: ngrinder-agent2
-    restart: unless-stopped
-    networks:
-      - ngrinder-network
+#  agent2:
+#    image: ngrinder/agent:latest
+#    container_name: ngrinder-agent2
+#    restart: unless-stopped
+#    networks:
+#      - ngrinder-network
 
 #  agent3:
 #    image: ngrinder/agent:latest
@@ -277,20 +290,7 @@ services:
 #      - apm_network
 #    depends_on:
 #      - cassandra-node1
-#
-#  prometheus:
-#    image: prom/prometheus:latest
-#    restart: unless-stopped
-#    container_name: prometheus
-#    ports:
-#      - "9090:9090"
-#    volumes:
-#      - ./config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-#    networks:
-#      - apm_network
-#    extra_hosts:
-#      - "host.docker.internal:host-gateway"
 
 networks:
-#  apm_network:
+  apm_network:
   ngrinder-network:

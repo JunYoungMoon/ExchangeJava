@@ -20,10 +20,9 @@ public class CoinOrderMapper {
         entity.setMarketName(dto.getMarketName());
         entity.setOrderType(dto.getOrderType());
         entity.setOrderPrice(dto.getOrderPrice());
-        entity.setCoinAmount(dto.getCoinAmount());
+        entity.setQuantity(dto.getQuantity());
         entity.setOrderStatus(dto.getOrderStatus());
         entity.setFee(dto.getFee());
-        entity.setCreatedAt(dto.getCreatedAt());
         entity.setMatchIdx(dto.getMatchIdx());
         entity.setMatchedAt(dto.getMatchedAt());
         entity.setExecutionPrice(dto.getExecutionPrice());
@@ -38,7 +37,7 @@ public class CoinOrderMapper {
                 entity.getMemberUuid(),
                 entity.getMarketName(),
                 entity.getCoinName(),
-                entity.getCoinAmount(),
+                entity.getQuantity(),
                 entity.getOrderPrice(),
                 entity.getOrderType(),
                 entity.getOrderStatus(),

@@ -47,6 +47,9 @@ dependencies {
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
     implementation 'org.springframework.kafka:spring-kafka'
     implementation 'org.apache.kafka:kafka-clients'
+
+    implementation 'commons-codec:commons-codec:1.15' // MD5 해시 사용
+
 //    implementation 'io.springfox:springfox-boot-starter:3.0.0'
 //    runtimeOnly 'com.h2database:h2'
     runtimeOnly 'mysql:mysql-connector-java:8.0.30'

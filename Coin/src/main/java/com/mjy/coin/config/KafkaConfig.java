@@ -13,9 +13,9 @@ import org.springframework.kafka.core.KafkaAdmin;
 
 import java.util.List;
 
-@EnableKafka
+//@EnableKafka
 @Configuration
-@Profile("test")
+@Profile("dev")
 public class KafkaConfig {
     private final CoinInfoService coinInfoService;
 

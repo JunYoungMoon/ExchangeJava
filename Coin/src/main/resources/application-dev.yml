@@ -12,9 +12,6 @@ spring:
   jpa:
     show-sql: true
 
-  cassandra:
-    enabled: false
-
 #  cassandra:
 #    contact-points: localhost
 #    port: 9042
@@ -85,6 +82,12 @@ spring:
 #    web:
 #      exposure:
 #        include: health, info, metrics, prometheus
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
 
 #logging:
 #  config: classpath:logback-${spring.profiles.active}.xml

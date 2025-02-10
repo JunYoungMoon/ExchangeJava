@@ -41,9 +41,7 @@ public class PendingOrderMatcherServiceV2 implements PendingOrderMatcherService 
     }
 
     @Override
-    public void matchOrders(CoinOrderDTO order) {
-        String key = order.getCoinName() + "-" + order.getMarketName();
-
+    public void matchOrders(String key, CoinOrderDTO order) {
         // 반대 주문 가져오기 : 매수 주문이면 매도 큐를, 매도 주문이면 매수 큐를 가져온다.
         PriorityQueue<CoinOrderDTO> oppositeOrdersQueue = getOppositeOrdersQueue(order, key);
 
@@ -103,7 +101,7 @@ public class PendingOrderMatcherServiceV2 implements PendingOrderMatcherService 
     }
 
     public BigDecimal calculateRemainingQuantity(CoinOrderDTO order, CoinOrderDTO oppositeOrder) {
-        return order.getCoinAmount().subtract(oppositeOrder.getCoinAmount());
+        return order.getQuantity().subtract(oppositeOrder.getQuantity());
     }
 
     public boolean isCompleteMatch(BigDecimal remainingQuantity) {
@@ -128,7 +126,7 @@ public class PendingOrderMatcherServiceV2 implements PendingOrderMatcherService 
                         (order.getOrderType() == SELL && currentOrderPrice.compareTo(oppositeOrderPrice) <= 0);
 
         // 주문 수량이 0보다 작거나 같고 반대 주문과 가격이 맞지 않을때 벗어난다.
-        return isPriceMatching && order.getCoinAmount().compareTo(BigDecimal.ZERO) > 0;
+        return isPriceMatching && order.getQuantity().compareTo(BigDecimal.ZERO) > 0;
     }
 
     public PriorityQueue<CoinOrderDTO> getOppositeOrdersQueue(CoinOrderDTO order, String key) {
@@ -180,7 +178,7 @@ public class PendingOrderMatcherServiceV2 implements PendingOrderMatcherService 
         // 반대 주문 부분 체결 처리
         String previousUUID = oppositeOrder.getUuid();
         oppositeOrder.setUuid(generateUniqueKey(oppositeOrder));
-        oppositeOrder.setCoinAmount(order.getCoinAmount());
+        oppositeOrder.setQuantity(order.getQuantity());
 
         updateOrderWithMatch(oppositeOrder, order, executionPrice);
 
@@ -193,7 +191,7 @@ public class PendingOrderMatcherServiceV2 implements PendingOrderMatcherService 
         // 남은 수량을 잔여 수량으로 설정
         oppositeOrder.setOrderStatus(PENDING);
         oppositeOrder.setUuid(previousUUID);
-        oppositeOrder.setCoinAmount(remainingQuantity);
+        oppositeOrder.setQuantity(remainingQuantity);
         oppositeOrder.setExecutionPrice(null);
         oppositeOrder.setMatchIdx("");
 
@@ -216,7 +214,7 @@ public class PendingOrderMatcherServiceV2 implements PendingOrderMatcherService 
         // 나의 주문 부분 체결 처리
         String previousUUID = order.getUuid();
         order.setUuid(generateUniqueKey(order));
-        order.setCoinAmount(oppositeOrder.getCoinAmount());
+        order.setQuantity(oppositeOrder.getQuantity());
 
         updateOrderWithMatch(order, oppositeOrder, executionPrice);
 
@@ -226,7 +224,7 @@ public class PendingOrderMatcherServiceV2 implements PendingOrderMatcherService 
         // 나의 주문 남은 수량을 잔여 수량으로 설정
         order.setOrderStatus(PENDING);
         order.setUuid(previousUUID);
-        order.setCoinAmount(remainingQuantity);
+        order.setQuantity(remainingQuantity);
         order.setExecutionPrice(null);
 
         // 반대 미체결 주문 제거

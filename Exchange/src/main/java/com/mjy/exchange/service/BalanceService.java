@@ -18,7 +18,7 @@ public class BalanceService {
     }
 
     public void checkBalance(String memberUuid, OrderRequest orderRequest, CoinInfo coinInfo) {
-        BigDecimal totalOrderAmount = orderRequest.getCoinAmount().multiply(orderRequest.getOrderPrice());
+        BigDecimal totalOrderAmount = orderRequest.getQuantity().multiply(orderRequest.getOrderPrice());
         BigDecimal fee = totalOrderAmount.multiply(coinInfo.getFeeRate());
 
         // 마켓 잔액 검증 및 차감

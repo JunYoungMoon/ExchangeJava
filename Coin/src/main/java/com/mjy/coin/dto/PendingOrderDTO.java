@@ -35,7 +35,7 @@ public class PendingOrderDTO {
         this.memberUuid = order.getMemberUuid();
         this.marketName = order.getMarketName();
         this.coinName = order.getCoinName();
-        this.coinAmount = order.getCoinAmount();
+        this.coinAmount = order.getQuantity();
         this.orderPrice = order.getOrderPrice();
         this.orderType = order.getOrderType();
         this.orderStatus = order.getOrderStatus();

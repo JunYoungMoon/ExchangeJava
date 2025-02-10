@@ -19,7 +19,6 @@ import java.util.concurrent.atomic.AtomicLong;
 
 @Component
 @DependsOn("kafkaAdmin")
-@Profile("test")
 public class PendingOrderKafkaListenerCreator {
 
     private static final String KAFKA_GROUP_ID = "coinOrderGroup";

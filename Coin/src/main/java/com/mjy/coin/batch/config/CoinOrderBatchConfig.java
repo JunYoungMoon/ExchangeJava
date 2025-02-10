@@ -113,8 +113,8 @@
 //            BigDecimal totalVolume = BigDecimal.ZERO;
 //
 //            for (CoinOrderDTO item : items) {
-//                totalPrice = totalPrice.add(item.getExecutionPrice().multiply(item.getCoinAmount()));
-//                totalVolume = totalVolume.add(item.getCoinAmount());
+//                totalPrice = totalPrice.add(item.getExecutionPrice().multiply(item.getQuantity()));
+//                totalVolume = totalVolume.add(item.getQuantity());
 //            }
 //
 //            String key = yesterday + ":" + coinName + "-" + marketName;

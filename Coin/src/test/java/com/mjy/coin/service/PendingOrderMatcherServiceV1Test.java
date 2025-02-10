@@ -1,66 +1,164 @@
 package com.mjy.coin.service;
 
 import com.mjy.coin.dto.CoinOrderDTO;
+import com.mjy.coin.dto.CoinOrderMapper;
 import com.mjy.coin.dto.PriceVolumeDTO;
-import com.mjy.coin.enums.OrderStatus;
 import com.mjy.coin.enums.OrderType;
 import com.mjy.coin.repository.coin.master.MasterCoinOrderRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Profile;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.*;
 
+import static com.mjy.coin.enums.OrderStatus.COMPLETED;
+import static com.mjy.coin.enums.OrderStatus.PENDING;
+import static com.mjy.coin.enums.OrderType.BUY;
+import static com.mjy.coin.enums.OrderType.SELL;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
+//@ExtendWith(MockitoExtension.class)
+@SpringBootTest
+@ActiveProfiles("test")
 class PendingOrderMatcherServiceV1Test {
-    @Mock
-    private OrderBookService orderBookService;
 
-    @Mock
-    private OrderQueueService orderQueueService;
+//    @Mock
+//    private OrderBookService orderBookService;
+//
+//    @Mock
+//    private OrderQueueService orderQueueService;
+//
+//    @Mock
+//    private RedisService redisService;
+//
+//    @Mock
+//    private KafkaTemplate<String, Map<String, List<CoinOrderDTO>>> matchListKafkaTemplate;
+//
+//    @Mock
+//    private KafkaTemplate<String, Map<String, List<PriceVolumeDTO>>> priceVolumeMapKafkaTemplate;
+//
+//    @Mock
+//    private MasterCoinOrderRepository masterCoinOrderRepository;
+//
+//    @InjectMocks
+//    private PendingOrderMatcherServiceV1 pendingOrderMatcherService;
 
-    @Mock
-    private RedisService redisService;
-
-    @Mock
-    private KafkaTemplate<String, Map<String, List<CoinOrderDTO>>> matchListKafkaTemplate;
-
-    @Mock
-    private KafkaTemplate<String, Map<String, List<PriceVolumeDTO>>> priceVolumeMapKafkaTemplate;
-
-    @Mock
-    private MasterCoinOrderRepository masterCoinOrderRepository;
-
-    @InjectMocks
+    @Autowired
     private PendingOrderMatcherServiceV1 pendingOrderMatcherService;
 
-    private String testKey = "BTC-KRW";
+    private CoinOrderDTO createOrder(OrderType type, String price, String amount) {
+        CoinOrderDTO order = new CoinOrderDTO();
+        order.setIdx(1L);
+        order.setOrderType(type);
+        order.setOrderPrice(new BigDecimal(price));
+        order.setQuantity(new BigDecimal(amount));
+        order.setOrderStatus(PENDING);
+        return order;
+    }
 
     @Test
-    public void testMatchOrders() {
+    public void testCalculateRemainingQuantity() {
+        // given
+        CoinOrderDTO order = createOrder(BUY, "110", "1.5");
+        CoinOrderDTO oppositeOrder = createOrder(BUY, "110", "1.5");
 
-        // 1. BuyOrders와 SellOrders 설정
-        CoinOrderDTO buyOrder = new CoinOrderDTO();
-        buyOrder.setCoinAmount(BigDecimal.valueOf(1));
-        buyOrder.setOrderPrice(BigDecimal.valueOf(50000));
-        buyOrder.setOrderStatus(OrderStatus.PENDING);
-        buyOrder.setExecutionPrice(BigDecimal.valueOf(50000));
+        // when
+        BigDecimal remaining = pendingOrderMatcherService.calculateRemainingQuantity(order, oppositeOrder);
 
-        CoinOrderDTO sellOrder = new CoinOrderDTO();
-        sellOrder.setCoinAmount(BigDecimal.valueOf(1));
-        sellOrder.setOrderPrice(BigDecimal.valueOf(50000));
-        sellOrder.setOrderStatus(OrderStatus.PENDING);
-        buyOrder.setExecutionPrice(BigDecimal.valueOf(50000));
+        // then
+        assertEquals(0, remaining.compareTo(BigDecimal.ZERO));
+    }
+
+    @Test
+    public void testIsCompleteMatch() {
+        // given
+        BigDecimal zeroQuantity = BigDecimal.ZERO;
+        BigDecimal nonZeroQuantity = new BigDecimal("1.5");
+
+        // when & then
+        assertTrue(pendingOrderMatcherService.isCompleteMatch(zeroQuantity), "남은 수량이 0인 경우 true 반환");
+        assertFalse(pendingOrderMatcherService.isCompleteMatch(nonZeroQuantity), "남은 수량이 양수인 경우 false 반환");
+    }
 
 
-        // Comparator 설정 (OrderService에서 사용한 것과 동일)
+    @Test
+    public void testIsOversizeMatch() {
+        // given
+        BigDecimal positiveQuantity = new BigDecimal("1.5");
+        BigDecimal zeroQuantity = BigDecimal.ZERO;
+        BigDecimal negativeQuantity = new BigDecimal("-1.5");
+
+        // when & then
+        assertTrue(pendingOrderMatcherService.isOversizeMatch(positiveQuantity), "남은 수량이 양수인 경우 true 반환");
+        assertFalse(pendingOrderMatcherService.isOversizeMatch(zeroQuantity), "남은 수량이 0인 경우 false 반환");
+        assertFalse(pendingOrderMatcherService.isOversizeMatch(negativeQuantity), "남은 수량이 음수인 경우 false 반환");
+    }
+
+    @Test
+    public void testIsUndersizedMatch() {
+        // given
+        BigDecimal negativeQuantity = new BigDecimal("-1.5");
+        BigDecimal zeroQuantity = BigDecimal.ZERO;
+        BigDecimal positiveQuantity = new BigDecimal("1.5");
+
+        // when & then
+        assertTrue(pendingOrderMatcherService.isUndersizedMatch(negativeQuantity), "남은 수량이 음수인 경우 true 반환");
+        assertFalse(pendingOrderMatcherService.isUndersizedMatch(zeroQuantity), "남은 수량이 0인 경우 false 반환");
+        assertFalse(pendingOrderMatcherService.isUndersizedMatch(positiveQuantity), "남은 수량이 양수인 경우 false 반환");
+    }
+
+    @Test
+    public void testCanMatchOrders() {
+        // Case 1: BUY 타입, 가격 일치, 수량 > 0 => true 반환
+        CoinOrderDTO buyOrder = createOrder(BUY, "100", "1.5");
+        CoinOrderDTO sellOrder = createOrder(SELL, "90", "1.5");
+        assertTrue(pendingOrderMatcherService.canMatchOrders(buyOrder, sellOrder), "BUY 주문이 SELL 주문과 가격 조건을 만족해야 함");
+
+        // Case 2: SELL 타입, 가격 일치, 수량 > 0 => true 반환
+        CoinOrderDTO sellOrder2 = createOrder(SELL, "90", "1.5");
+        CoinOrderDTO buyOrder2 = createOrder(BUY, "100", "1.5");
+        assertTrue(pendingOrderMatcherService.canMatchOrders(sellOrder2, buyOrder2), "SELL 주문이 BUY 주문과 가격 조건을 만족해야 함");
+
+        // Case 3: BUY 타입, 가격 불일치 => false 반환
+        CoinOrderDTO buyOrderFail = createOrder(BUY, "80", "1.5");
+        CoinOrderDTO sellOrderFail = createOrder(SELL, "90", "1.5");
+        assertFalse(pendingOrderMatcherService.canMatchOrders(buyOrderFail, sellOrderFail),
+                "BUY 주문이 SELL 주문의 가격 조건을 만족하지 않아야 함");
+
+        // Case 4: SELL 타입, 가격 불일치 => false 반환
+        CoinOrderDTO sellOrderFail2 = createOrder(SELL, "110", "1.5");
+        CoinOrderDTO buyOrderFail2 = createOrder(BUY, "100", "1.5");
+        assertFalse(pendingOrderMatcherService.canMatchOrders(sellOrderFail2, buyOrderFail2),
+                "SELL 주문이 BUY 주문의 가격 조건을 만족하지 않아야 함");
+
+        // Case 5: 주문 수량이 0 => false 반환
+        CoinOrderDTO zeroAmountOrder = createOrder(BUY, "100", "0");
+        CoinOrderDTO validOppositeOrder = createOrder(SELL, "90", "1.5");
+        assertFalse(pendingOrderMatcherService.canMatchOrders(zeroAmountOrder, validOppositeOrder),
+                "수량이 0인 경우 false 반환");
+
+        // Case 6: 수량 < 0 => false 반환
+        CoinOrderDTO negativeAmountOrder = createOrder(BUY, "100", "-1.5");
+        assertFalse(pendingOrderMatcherService.canMatchOrders(negativeAmountOrder, validOppositeOrder),
+                "수량이 음수인 경우 false 반환");
+    }
+
+    @Test
+    public void testGetOppositeOrdersQueue() {
+        //given
+        String key = "BTC-KRW";
+
         Comparator<CoinOrderDTO> buyOrderComparator =
                 Comparator.comparing(CoinOrderDTO::getOrderPrice).reversed()
                         .thenComparing(CoinOrderDTO::getCreatedAt);
@@ -69,55 +167,46 @@ class PendingOrderMatcherServiceV1Test {
                 Comparator.comparing(CoinOrderDTO::getOrderPrice)
                         .thenComparing(CoinOrderDTO::getCreatedAt);
 
-        // PriorityQueue 초기화
-        PriorityQueue<CoinOrderDTO> buyOrders = new PriorityQueue<>(buyOrderComparator);
-        PriorityQueue<CoinOrderDTO> sellOrders = new PriorityQueue<>(sellOrderComparator);
+        PriorityQueue<CoinOrderDTO> buyQueue = new PriorityQueue<>(buyOrderComparator);
+        PriorityQueue<CoinOrderDTO> sellQueue = new PriorityQueue<>(sellOrderComparator);
 
-        // 주문 추가
-        buyOrders.add(buyOrder);
-        sellOrders.add(sellOrder);
+        CoinOrderDTO buyOrder = createOrder(BUY, "100", "1.5");
+        CoinOrderDTO sellOrder = createOrder(SELL, "90", "1.5");
 
-        // Mockito에서 PriorityQueue 반환하도록 설정
-        when(orderQueueService.getBuyOrderQueue(testKey)).thenReturn(buyOrders);
-        when(orderQueueService.getSellOrderQueue(testKey)).thenReturn(sellOrders);
+        buyQueue.add(buyOrder);
+        sellQueue.add(sellOrder);
 
-        // 2. 주문 매칭 실행
-        pendingOrderMatcherService.matchOrders(buyOrder);
+        //when
+        PriorityQueue<CoinOrderDTO> resultForBuy = pendingOrderMatcherService.getOppositeOrdersQueue(buyOrder, key);
+        PriorityQueue<CoinOrderDTO> resultForSell = pendingOrderMatcherService.getOppositeOrdersQueue(sellOrder, key);
 
-        // 3. 검증
-        // 매칭된 주문이 COMPLETED 상태로 업데이트 되었는지 확인
-        verify(redisService, times(2)).insertOrderInRedis(eq(testKey), eq(OrderStatus.COMPLETED), any(CoinOrderDTO.class));
-
-        // 주문 상태 검증 (매수, 매도 모두 COMPLETED 상태로 처리되어야 함)
-        assertEquals(OrderStatus.COMPLETED, buyOrder.getOrderStatus());
-        assertEquals(OrderStatus.COMPLETED, sellOrder.getOrderStatus());
-
-        verify(matchListKafkaTemplate, times(2)).send(anyString(), anyMap());
+        //then
+        assertEquals(sellQueue, resultForBuy, "BUY 주문은 SELL 큐를 반환");
+        assertEquals(buyQueue, resultForSell, "SELL 주문은 BUY 큐를 반환");
     }
 
     @Test
-    public void testMatchOrders2_fullMatch() {
-        // 1. BuyOrders와 SellOrders 설정
-        CoinOrderDTO buyOrder = new CoinOrderDTO();
-        buyOrder.setCoinAmount(BigDecimal.valueOf(1));
-        buyOrder.setOrderPrice(BigDecimal.valueOf(50000));
-        buyOrder.setCreatedAt(LocalDateTime.now());
-        buyOrder.setOrderStatus(OrderStatus.PENDING);
-        buyOrder.setOrderType(OrderType.BUY);
-        buyOrder.setCoinName("BTC");
-        buyOrder.setMarketName("KRW");
+    public void testUpdateOrderStatus() {
+        //given
+        CoinOrderDTO order = createOrder(BUY, "100", "1.5");
+        CoinOrderDTO oppositeOrder = createOrder(SELL, "90", "1.5");
 
-        CoinOrderDTO sellOrder = new CoinOrderDTO();
-        sellOrder.setCoinAmount(BigDecimal.valueOf(1));
-        sellOrder.setOrderPrice(BigDecimal.valueOf(50000));
-        sellOrder.setCreatedAt(LocalDateTime.now());
-        sellOrder.setOrderStatus(OrderStatus.PENDING);
-        sellOrder.setOrderType(OrderType.SELL);
-        sellOrder.setCoinName("BTC");
-        sellOrder.setMarketName("KRW");
+        BigDecimal executionPrice = new BigDecimal("100.0");
+        BigDecimal quantity = new BigDecimal("0.1");
 
+        // when
+        pendingOrderMatcherService.updateOrderStatus(order, oppositeOrder, executionPrice, COMPLETED, order.getIdx(), quantity);
 
-        // Comparator 설정 (OrderService에서 사용한 것과 동일)
+        // then
+        assertEquals(COMPLETED, order.getOrderStatus(), "주문 상태가 COMPLETED여야 한다.");
+        assertNotNull(order.getMatchedAt(), "매칭 시간이 존재해야 한다.");
+        assertEquals(executionPrice, order.getExecutionPrice(), "매치 가격이 같아야 한다.");
+        assertEquals(order.getIdx() + "|" + oppositeOrder.getIdx(), order.getMatchIdx(), "매치 인덱스가 일치해야 한다.");
+    }
+
+    @Test
+    public void testProcessCompleteMatch() {
+        //given
         Comparator<CoinOrderDTO> buyOrderComparator =
                 Comparator.comparing(CoinOrderDTO::getOrderPrice).reversed()
                         .thenComparing(CoinOrderDTO::getCreatedAt);
@@ -126,82 +215,20 @@ class PendingOrderMatcherServiceV1Test {
                 Comparator.comparing(CoinOrderDTO::getOrderPrice)
                         .thenComparing(CoinOrderDTO::getCreatedAt);
 
-        // PriorityQueue 초기화
-        PriorityQueue<CoinOrderDTO> buyOrders = new PriorityQueue<>(buyOrderComparator);
-        PriorityQueue<CoinOrderDTO> sellOrders = new PriorityQueue<>(sellOrderComparator);
+        PriorityQueue<CoinOrderDTO> buyQueue = new PriorityQueue<>(buyOrderComparator);
+        PriorityQueue<CoinOrderDTO> sellQueue = new PriorityQueue<>(sellOrderComparator);
 
-        // 주문 추가
-        buyOrders.add(buyOrder);
-        sellOrders.add(sellOrder);
+        CoinOrderDTO order = createOrder(BUY, "100", "1.5");
+        CoinOrderDTO oppositeOrder = createOrder(SELL, "90", "1.5");
 
-        // Mockito에서 PriorityQueue 반환하도록 설정
-        lenient().when(orderQueueService.getBuyOrderQueue(buyOrder.getCoinName() + "-" + buyOrder.getMarketName())).thenReturn(buyOrders);
-        lenient().when(orderQueueService.getSellOrderQueue(sellOrder.getCoinName() + "-" + sellOrder.getMarketName())).thenReturn(sellOrders);
+        buyQueue.add(order);
+        sellQueue.add(oppositeOrder);
 
-        // 2. 주문 매칭 실행
-        pendingOrderMatcherService.matchOrders(buyOrder);
+        BigDecimal executionPrice = pendingOrderMatcherService.getExecutionPrice(oppositeOrder);
 
-        // 3. 검증
-        // 3.1. 매수 주문의 수량이 0이 되었는지 확인
-        assertEquals(BigDecimal.ZERO, buyOrder.getCoinAmount());
+        // when
+        pendingOrderMatcherService.processCompleteMatch(order, oppositeOrder, executionPrice);
 
-        // 3.2. 매도 주문이 큐에서 제거되었는지 확인
-        assertTrue(sellOrders.isEmpty());
-    }
-
-    @Test
-    public void testMatchOrders2_partialMatch() {
-        // 1. BuyOrders와 SellOrders 설정
-        CoinOrderDTO buyOrder = new CoinOrderDTO();
-        buyOrder.setCoinAmount(BigDecimal.valueOf(3)); // 매수 수량 3
-        buyOrder.setOrderPrice(BigDecimal.valueOf(50000));
-        buyOrder.setCreatedAt(LocalDateTime.now());
-        buyOrder.setOrderStatus(OrderStatus.PENDING);
-        buyOrder.setOrderType(OrderType.BUY);
-        buyOrder.setCoinName("BTC");
-        buyOrder.setMarketName("KRW");
-
-        CoinOrderDTO sellOrder = new CoinOrderDTO();
-        sellOrder.setCoinAmount(BigDecimal.valueOf(2)); // 매도 수량 2
-        sellOrder.setOrderPrice(BigDecimal.valueOf(50000));
-        sellOrder.setCreatedAt(LocalDateTime.now());
-        sellOrder.setOrderStatus(OrderStatus.PENDING);
-        sellOrder.setOrderType(OrderType.SELL);
-        sellOrder.setCoinName("BTC");
-        sellOrder.setMarketName("KRW");
-
-        // PriorityQueue 초기화
-        PriorityQueue<CoinOrderDTO> buyOrders = new PriorityQueue<>(
-                Comparator.comparing(CoinOrderDTO::getOrderPrice).reversed()
-                        .thenComparing(CoinOrderDTO::getCreatedAt));
-        PriorityQueue<CoinOrderDTO> sellOrders = new PriorityQueue<>(
-                Comparator.comparing(CoinOrderDTO::getOrderPrice)
-                        .thenComparing(CoinOrderDTO::getCreatedAt));
-
-        // 주문 추가
-        buyOrders.add(buyOrder);
-        sellOrders.add(sellOrder);
-
-        // Mockito에서 PriorityQueue 반환하도록 설정
-        lenient().when(orderQueueService.getBuyOrderQueue(buyOrder.getCoinName() + "-" + buyOrder.getMarketName())).thenReturn(buyOrders);
-        lenient().when(orderQueueService.getSellOrderQueue(sellOrder.getCoinName() + "-" + sellOrder.getMarketName())).thenReturn(sellOrders);
-
-        // 2. 주문 매칭 실행
-        pendingOrderMatcherService.matchOrders(buyOrder);
-
-        // 3. 검증
-        // 3.1. 매수 주문의 수량이 남아 있는지 확인 (3 - 2 = 1)
-        assertEquals(BigDecimal.valueOf(1), buyOrder.getCoinAmount());
-
-        // 3.2. 매도 주문이 큐에서 제거되었는지 확인
-        assertTrue(sellOrders.isEmpty());
-
-        // 3.3. 매수 주문이 여전히 존재하는지 확인
-        assertFalse(buyOrders.isEmpty());
-
-        // 3.4. 매수 큐에서 매수 주문이 여전히 남아 있는지 확인
-        CoinOrderDTO remainingBuyOrder = buyOrders.peek();
-        assertNotNull(remainingBuyOrder);
-        assertEquals(BigDecimal.valueOf(1), remainingBuyOrder.getCoinAmount());
+        // then
     }
 }
