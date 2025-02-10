@@ -1,22 +1,15 @@
 package com.mjy.coin.service;
 
 import com.mjy.coin.dto.CoinOrderDTO;
-import com.mjy.coin.dto.CoinOrderMapper;
 import com.mjy.coin.dto.PriceVolumeDTO;
 import com.mjy.coin.enums.OrderType;
 import com.mjy.coin.repository.coin.master.MasterCoinOrderRepository;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Profile;
+
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -28,33 +21,28 @@ import static com.mjy.coin.enums.OrderType.SELL;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-//@ExtendWith(MockitoExtension.class)
-@SpringBootTest
+@SpringBootTest(classes = TestApplication.class)
 @ActiveProfiles("test")
 class PendingOrderMatcherServiceV1Test {
+    @Mock
+    private OrderBookService orderBookService;
 
-//    @Mock
-//    private OrderBookService orderBookService;
-//
-//    @Mock
-//    private OrderQueueService orderQueueService;
-//
-//    @Mock
-//    private RedisService redisService;
-//
-//    @Mock
-//    private KafkaTemplate<String, Map<String, List<CoinOrderDTO>>> matchListKafkaTemplate;
-//
-//    @Mock
-//    private KafkaTemplate<String, Map<String, List<PriceVolumeDTO>>> priceVolumeMapKafkaTemplate;
-//
-//    @Mock
-//    private MasterCoinOrderRepository masterCoinOrderRepository;
-//
-//    @InjectMocks
-//    private PendingOrderMatcherServiceV1 pendingOrderMatcherService;
+    @Mock
+    private OrderQueueService orderQueueService;
 
-    @Autowired
+    @Mock
+    private RedisService redisService;
+
+    @Mock
+    private KafkaTemplate<String, Map<String, List<CoinOrderDTO>>> matchListKafkaTemplate;
+
+    @Mock
+    private KafkaTemplate<String, Map<String, List<PriceVolumeDTO>>> priceVolumeMapKafkaTemplate;
+
+    @Mock
+    private MasterCoinOrderRepository masterCoinOrderRepository;
+
+    @InjectMocks
     private PendingOrderMatcherServiceV1 pendingOrderMatcherService;
 
     private CoinOrderDTO createOrder(OrderType type, String price, String amount) {
