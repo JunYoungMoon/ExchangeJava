@@ -1,9 +1,22 @@
 spring:
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+
   coin:
     master:
       datasource:
         hikari:
-          jdbc-url: jdbc:mysql://localhost:15306/Exchange
+          jdbc-url: jdbc:mysql://localhost:${SHARD_MASTER_PORT}/Exchange
+          username: root
+          password: 1234
+    slave:
+      datasource:
+        hikari:
+          jdbc-url: jdbc:mysql://localhost:${SHARD_SLAVE_PORT}/Exchange
           username: root
           password: 1234
 
@@ -12,11 +25,11 @@ spring:
       host: localhost
       port: 6379
 
-  cassandra:
-    contact-points: localhost
-    port: 9042
-    local-datacenter: datacenter1
-    schema-action: create_if_not_exists
-    username: admin
-    password: admin
-    keyspace-name: exchange
+#  cassandra:
+#    contact-points: localhost
+#    port: 9042
+#    local-datacenter: datacenter1
+#    schema-action: create_if_not_exists
+#    username: admin
+#    password: admin
+#    keyspace-name: exchange

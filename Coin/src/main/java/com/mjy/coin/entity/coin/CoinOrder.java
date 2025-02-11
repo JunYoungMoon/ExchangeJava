@@ -3,8 +3,7 @@ package com.mjy.coin.entity.coin;
 import com.mjy.coin.enums.OrderStatus;
 import com.mjy.coin.enums.OrderType;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -13,9 +12,11 @@ import java.time.LocalDateTime;
  * 코인 거래의 체결 상세 내역을 저장합니다.
  */
 @Getter
-@Setter
 @Entity
-public class CoinOrder {
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE) // 빌더 패턴에서만 객체 생성 가능하도록 제한
+@Builder
+public class CoinOrder extends Timestamped {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,7 +39,7 @@ public class CoinOrder {
     private OrderType orderType; // 매수/매도 (enum)
 
     @Column(nullable = false, precision = 18, scale = 8)
-    private BigDecimal coinAmount; // 매수/매도 코인 개수
+    private BigDecimal quantity; // 매수/매도 코인 개수
 
     @Column(nullable = false, precision = 18, scale = 8)
     private BigDecimal orderPrice; // 주문가 (사용자가 입력한 가격)
@@ -53,13 +54,10 @@ public class CoinOrder {
     private BigDecimal fee; // 수수료
 
     @Column(nullable = false)
-    private LocalDateTime createdAt; // 등록일자
-
-    @Column(nullable = false)
     private String uuid; // redis uuid
 
     @Column
-    private String matchIdx; // 매수 idx와 매도 idx를 결합한 매치 ID
+    private Long matchIdx; // 매칭되는 반대 주문의 idx
 
     @Column
     private LocalDateTime matchedAt; // 체결일자

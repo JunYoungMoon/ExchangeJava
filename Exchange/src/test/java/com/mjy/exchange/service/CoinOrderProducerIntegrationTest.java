@@ -29,7 +29,7 @@ public class CoinOrderProducerIntegrationTest {
 //        coinOrder1.setMemberUuid("cfccbb28-f07d-4e7c-8bd2-4cbd720aceab");
 //        coinOrder1.setMarketName("KRW");
 //        coinOrder1.setCoinName("BTC");
-//        coinOrder1.setCoinAmount(new BigDecimal("0.06")); // 랜덤 금액 추가
+//        coinOrder1.setQuantity(new BigDecimal("0.06")); // 랜덤 금액 추가
 //        coinOrder1.setOrderPrice(new BigDecimal("5300")); // 랜덤 가격 추가
 //        coinOrder1.setOrderType(SELL);
 //        coinOrder1.setOrderStatus(PENDING);
@@ -42,7 +42,7 @@ public class CoinOrderProducerIntegrationTest {
         coinOrder2.setMemberUuid("2b005552-ee2b-4851-8857-6e595800395d");
         coinOrder2.setMarketName("KRW");
         coinOrder2.setCoinName("BTC");
-        coinOrder2.setCoinAmount(new BigDecimal("0.04")); // 랜덤 금액 추가
+        coinOrder2.setQuantity(new BigDecimal("0.04")); // 랜덤 금액 추가
         coinOrder2.setOrderPrice(new BigDecimal("5400")); // 랜덤 가격 추가
         coinOrder2.setOrderType(BUY);
         coinOrder2.setOrderStatus(PENDING);
@@ -55,7 +55,7 @@ public class CoinOrderProducerIntegrationTest {
 //        coinOrder3.setMemberId(1L);
 //        coinOrder3.setMarketName("KRW");
 //        coinOrder3.setCoinName("BTC");
-//        coinOrder3.setCoinAmount(new BigDecimal("0.03")); // 랜덤 금액 추가
+//        coinOrder3.setQuantity(new BigDecimal("0.03")); // 랜덤 금액 추가
 //        coinOrder3.setOrderPrice(new BigDecimal("5300")); // 랜덤 가격 추가
 //        coinOrder3.setOrderType(BUY);
 //        coinOrder3.setOrderStatus(PENDING);
@@ -68,7 +68,7 @@ public class CoinOrderProducerIntegrationTest {
 //        coinOrder.setMemberId(1L);
 //        coinOrder.setMarketName("KRW");
 //        coinOrder.setCoinName("BTC");
-//        coinOrder.setCoinAmount(new BigDecimal("0.08")); // 랜덤 금액 추가
+//        coinOrder.setQuantity(new BigDecimal("0.08")); // 랜덤 금액 추가
 //        coinOrder.setOrderPrice(new BigDecimal("5000")); // 랜덤 가격 추가
 //        coinOrder.setOrderType(SELL);
 //        coinOrder.setOrderStatus(PENDING);
@@ -82,7 +82,7 @@ public class CoinOrderProducerIntegrationTest {
 //        coinOrder5.setMemberId(2L);
 //        coinOrder5.setMarketName("KRW");
 //        coinOrder5.setCoinName("BTC");
-//        coinOrder5.setCoinAmount(new BigDecimal("0.05")); // 랜덤 금액 추가
+//        coinOrder5.setQuantity(new BigDecimal("0.05")); // 랜덤 금액 추가
 //        coinOrder5.setOrderPrice(new BigDecimal("5500")); // 랜덤 가격 추가
 //        coinOrder5.setOrderType(BUY);
 //        coinOrder5.setOrderStatus(PENDING);
@@ -111,7 +111,7 @@ public class CoinOrderProducerIntegrationTest {
 //
 //            // 0.01 ~ 0.1 범위의 랜덤 금액
 //            BigDecimal randomAmount = new BigDecimal(0.01 + (0.09 * random.nextDouble())).setScale(2, RoundingMode.DOWN);
-//            coinOrder4.setCoinAmount(new BigDecimal(String.valueOf(randomAmount)));
+//            coinOrder4.setQuantity(new BigDecimal(String.valueOf(randomAmount)));
 //
 //            // 5000 ~ 6000 범위에서 100원 단위로 랜덤 가격 생성
 //            int randomPrice = 5000 + (random.nextInt(11) * 100); // 5000에서 6000까지 100원 단위 (5000 + 100*0~10)

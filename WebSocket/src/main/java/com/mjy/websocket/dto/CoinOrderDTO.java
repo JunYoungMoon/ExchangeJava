@@ -18,7 +18,7 @@ public class CoinOrderDTO {
     private String memberUuid; // 주문 등록인, member_uuid
     private String marketName; // 예: KRW
     private String coinName; // 예: BTC
-    private BigDecimal coinAmount; // 매수/매도 코인 개수
+    private BigDecimal quantity; // 매수/매도 코인 개수
     private BigDecimal orderPrice; // 주문가 (사용자가 입력한 가격)
     private BigDecimal executionPrice; // 체결가 (실제로 거래된 가격)
     private OrderType orderType; // 매수/매도 타입(enum)
@@ -41,7 +41,7 @@ public class CoinOrderDTO {
             @JsonProperty("memberUuid") String memberUuid,
             @JsonProperty("marketName") String marketName,
             @JsonProperty("coinName") String coinName,
-            @JsonProperty("coinAmount") BigDecimal coinAmount,
+            @JsonProperty("quantity") BigDecimal quantity,
             @JsonProperty("orderPrice") BigDecimal orderPrice,
             @JsonProperty("orderType") OrderType orderType,
             @JsonProperty("orderStatus") OrderStatus orderStatus,
@@ -57,7 +57,7 @@ public class CoinOrderDTO {
         this.memberUuid = memberUuid;
         this.marketName = marketName;
         this.coinName = coinName;
-        this.coinAmount = coinAmount;
+        this.quantity = quantity;
         this.orderPrice = orderPrice;
         this.orderType = orderType;
         this.orderStatus = orderStatus;
@@ -76,7 +76,7 @@ public class CoinOrderDTO {
         this.memberUuid = order.memberUuid;
         this.marketName = order.marketName;
         this.coinName = order.coinName;
-        this.coinAmount = order.coinAmount;
+        this.quantity = order.quantity;
         this.orderPrice = order.orderPrice;
         this.executionPrice = order.executionPrice;
         this.orderType = order.orderType;
@@ -96,7 +96,7 @@ public class CoinOrderDTO {
                 ", memberUuid='" + memberUuid + '\'' +
                 ", marketName='" + marketName + '\'' +
                 ", coinName='" + coinName + '\'' +
-                ", coinAmount=" + coinAmount +
+                ", quantity=" + quantity +
                 ", orderPrice=" + orderPrice +
                 ", executionPrice=" + executionPrice +
                 ", orderType=" + orderType +

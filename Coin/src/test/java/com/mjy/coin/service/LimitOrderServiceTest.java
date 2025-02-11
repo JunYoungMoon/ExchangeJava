@@ -28,7 +28,7 @@ class LimitOrderServiceTest {
     private LimitOrderService limitOrderService;
 
     @MockBean
-    private PendingOrderMatcherServiceV1 priorityQueueManager;
+    private MatchingServiceV1 priorityQueueManager;
 
     @MockBean
     private OrderBookService orderBookService;
@@ -38,7 +38,6 @@ class LimitOrderServiceTest {
 
     @MockBean
     private MasterCoinOrderRepository masterCoinOrderRepository;
-
 
     @MockBean
     private RedisService redisService;
@@ -70,7 +69,7 @@ class LimitOrderServiceTest {
         verify(orderBookService, times(1)).updateOrderBook(anyString(), eq(order), eq(true), eq(true));
 
         // 체결 시도가 이루어졌는지 검증
-        verify(priorityQueueManager, times(1)).matchOrders(order);
+        verify(priorityQueueManager, times(1)).matchOrders("BTC-KRW", order);
     }
 
     @Test
@@ -89,7 +88,7 @@ class LimitOrderServiceTest {
         verify(orderBookService, times(0)).updateOrderBook(anyString(), eq(order), eq(true), eq(true));
 
         // 체결 시도도 이루어지지 않았는지 검증
-        verify(priorityQueueManager, times(0)).matchOrders(order);
+        verify(priorityQueueManager, times(0)).matchOrders("BTC-KRW",order);
     }
 
     @Test
@@ -109,14 +108,14 @@ class LimitOrderServiceTest {
         verify(orderBookService, times(1)).updateOrderBook(anyString(), eq(order), eq(false), eq(true));
 
         // 체결 시도가 이루어졌는지 검증
-        verify(priorityQueueManager, times(1)).matchOrders(order);
+        verify(priorityQueueManager, times(1)).matchOrders("BTC-KRW", order);
     }
 
     private CoinOrderDTO createOrder(OrderType type, String price, String amount) {
         CoinOrderDTO order = new CoinOrderDTO();
         order.setOrderType(type);
         order.setOrderPrice(new BigDecimal(price));
-        order.setCoinAmount(new BigDecimal(amount));
+        order.setQuantity(new BigDecimal(amount));
         order.setCreatedAt(LocalDateTime.now());
         order.setOrderStatus(PENDING);
         return order;

@@ -24,7 +24,7 @@ public class PriceVolumeDTO {
     // 복사 생성자
     public PriceVolumeDTO(CoinOrderDTO order) {
         this.price = order.getExecutionPrice();
-        this.volume = order.getCoinAmount();
+        this.volume = order.getQuantity();
     }
 
     @Override

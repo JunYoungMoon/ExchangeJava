@@ -7,28 +7,22 @@ import java.util.stream.Collectors;
 
 public class CoinOrderMapper {
     public static CoinOrder toEntity(CoinOrderDTO dto) {
-        CoinOrder entity = new CoinOrder();
-
-        // DTO의 idx가 null이 아니면 엔티티에 설정
-        if (dto.getIdx() != null) {
-            entity.setIdx(dto.getIdx());
-        }
-
-        entity.setMemberIdx(dto.getMemberIdx());
-        entity.setMemberUuid(dto.getMemberUuid());
-        entity.setCoinName(dto.getCoinName());
-        entity.setMarketName(dto.getMarketName());
-        entity.setOrderType(dto.getOrderType());
-        entity.setOrderPrice(dto.getOrderPrice());
-        entity.setCoinAmount(dto.getCoinAmount());
-        entity.setOrderStatus(dto.getOrderStatus());
-        entity.setFee(dto.getFee());
-        entity.setCreatedAt(dto.getCreatedAt());
-        entity.setMatchIdx(dto.getMatchIdx());
-        entity.setMatchedAt(dto.getMatchedAt());
-        entity.setExecutionPrice(dto.getExecutionPrice());
-        entity.setUuid(dto.getUuid());
-        return entity;
+        return CoinOrder.builder()
+                .idx(dto.getIdx())
+                .memberIdx(dto.getMemberIdx())
+                .memberUuid(dto.getMemberUuid())
+                .coinName(dto.getCoinName())
+                .marketName(dto.getMarketName())
+                .orderType(dto.getOrderType())
+                .orderPrice(dto.getOrderPrice())
+                .quantity(dto.getQuantity())
+                .orderStatus(dto.getOrderStatus())
+                .fee(dto.getFee())
+                .matchIdx(dto.getMatchIdx())
+                .matchedAt(dto.getMatchedAt())
+                .executionPrice(dto.getExecutionPrice())
+                .uuid(dto.getUuid())
+                .build();
     }
 
     public static CoinOrderDTO fromEntity(CoinOrder entity) {
@@ -38,7 +32,7 @@ public class CoinOrderMapper {
                 entity.getMemberUuid(),
                 entity.getMarketName(),
                 entity.getCoinName(),
-                entity.getCoinAmount(),
+                entity.getQuantity(),
                 entity.getOrderPrice(),
                 entity.getOrderType(),
                 entity.getOrderStatus(),

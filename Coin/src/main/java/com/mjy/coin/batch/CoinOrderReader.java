@@ -79,7 +79,7 @@
 ////        CoinOrderDTO coinOrderDTO = new CoinOrderDTO();  // 매번 새 객체를 생성하여 반환
 ////
 ////        coinOrderDTO.setExecutionPrice(BigDecimal.valueOf(5000));
-////        coinOrderDTO.setCoinAmount(BigDecimal.valueOf(10));
+////        coinOrderDTO.setQuantity(BigDecimal.valueOf(10));
 ////
 ////        return coinOrderDTO;
 //    }
@@ -92,7 +92,7 @@
 //        coinOrderDTO.setMemberUuid(rs.getString("memberUuid"));
 //        coinOrderDTO.setMarketName(rs.getString("marketName"));
 //        coinOrderDTO.setCoinName(rs.getString("coinName"));
-//        coinOrderDTO.setCoinAmount(rs.getBigDecimal("coinAmount"));
+//        coinOrderDTO.setQuantity(rs.getBigDecimal("coinAmount"));
 //        coinOrderDTO.setOrderPrice(rs.getBigDecimal("orderPrice"));
 //        coinOrderDTO.setExecutionPrice(rs.getBigDecimal("executionPrice"));
 //        coinOrderDTO.setOrderType(OrderType.valueOf(rs.getString("orderType"))); // Enum 매핑

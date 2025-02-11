@@ -3,11 +3,7 @@ package com.mjy.coin.config;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.mjy.coin.service.CoinInfoService;
 import org.apache.kafka.clients.admin.NewTopic;
-
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
-import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
 import org.springframework.kafka.core.KafkaAdmin;
 

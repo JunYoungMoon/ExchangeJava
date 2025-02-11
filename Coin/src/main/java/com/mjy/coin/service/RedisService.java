@@ -129,7 +129,7 @@ public class RedisService {
             // 3. 필요한 데이터 업데이트
             orderDataMap.put("orderStatus", String.valueOf(order.getOrderStatus()));
             orderDataMap.put("matchedAt", String.valueOf(order.getMatchedAt()));
-            orderDataMap.put("coinAmount", String.valueOf(order.getCoinAmount()));
+            orderDataMap.put("coinAmount", String.valueOf(order.getQuantity()));
             orderDataMap.put("matchIdx", String.valueOf(order.getMatchIdx()));
             orderDataMap.put("executionPrice", String.valueOf(order.getExecutionPrice()));
 
@@ -152,7 +152,7 @@ public class RedisService {
             orderDataMap.put("uuid", String.valueOf(order.getUuid()));
             orderDataMap.put("coinName", String.valueOf(order.getCoinName()));
             orderDataMap.put("marketName", String.valueOf(order.getMarketName()));
-            orderDataMap.put("coinAmount", String.valueOf(order.getCoinAmount()));
+            orderDataMap.put("coinAmount", String.valueOf(order.getQuantity()));
             orderDataMap.put("orderPrice", String.valueOf(order.getOrderPrice()));
             orderDataMap.put("orderType", String.valueOf(order.getOrderType()));
             orderDataMap.put("fee", String.valueOf(order.getFee()));
@@ -226,7 +226,7 @@ public class RedisService {
                 Arrays.asList(zsetKey, hashKey),
                 order.getUuid(),
                 score.toString(),
-                order.getCoinAmount().toString());
+                order.getQuantity().toString());
     }
 
     public void getOppositeOrder(String symbol, OrderStatus orderStatus, CoinOrderDTO order) {

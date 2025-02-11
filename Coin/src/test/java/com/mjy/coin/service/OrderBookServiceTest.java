@@ -22,7 +22,7 @@ class OrderBookServiceTest {
     private CoinOrderDTO createOrder(String price, String amount) {
         CoinOrderDTO order = new CoinOrderDTO();
         order.setOrderPrice(new BigDecimal(price));
-        order.setCoinAmount(new BigDecimal(amount));
+        order.setQuantity(new BigDecimal(amount));
         return order;
     }
 
