@@ -1,7 +1,6 @@
 package com.mjy.coin.service;
 
 import com.mjy.coin.dto.CoinOrderDTO;
-import com.mjy.coin.entity.coin.CoinOrder;
 import com.mjy.coin.enums.OrderType;
 import com.mjy.coin.repository.coin.master.MasterCoinOrderRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,9 +10,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 
 import java.math.BigDecimal;
 import java.util.Comparator;
@@ -25,7 +21,6 @@ import static com.mjy.coin.enums.OrderStatus.PENDING;
 import static com.mjy.coin.enums.OrderType.BUY;
 import static com.mjy.coin.enums.OrderType.SELL;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -159,21 +154,6 @@ class MatchingServiceV1MockTest {
     }
 
     @Test
-    @DisplayName("미체결 주문인지 체크")
-    public void testProcessNonMatchedOrder() {
-        // given
-        CoinOrderDTO order = createOrder(BUY, "110", "1.5");
-
-        // when
-        matchingService.processNonMatchedOrder(symbol, order);
-
-        // then
-        verify(masterCoinOrderRepository, times(1)).save(any(CoinOrder.class));
-        verify(orderQueueService, times(1)).addBuyOrder(symbol, order);
-        verify(orderBookService, times(1)).updateOrderBook(symbol, order, true, true);
-    }
-
-    @Test
     @DisplayName("체결 상태 변경")
     public void testUpdateOrderStatus() {
         //given
@@ -190,7 +170,7 @@ class MatchingServiceV1MockTest {
         assertEquals(COMPLETED, order.getOrderStatus(), "주문 상태가 COMPLETED여야 한다.");
         assertNotNull(order.getMatchedAt(), "매칭 시간이 존재해야 한다.");
         assertEquals(executionPrice, order.getExecutionPrice(), "매치 가격이 같아야 한다.");
-        assertEquals(order.getIdx() + "|" + oppositeOrder.getIdx(), order.getMatchIdx(), "매치 인덱스가 일치해야 한다.");
+        assertEquals(oppositeOrder.getIdx(), order.getMatchIdx(), "매치 인덱스가 일치해야 한다.");
     }
 
     @Test

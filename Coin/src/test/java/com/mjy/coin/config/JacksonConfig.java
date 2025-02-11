@@ -1,4 +1,4 @@
-package com.mjy.coin.service.config;
+package com.mjy.coin.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;

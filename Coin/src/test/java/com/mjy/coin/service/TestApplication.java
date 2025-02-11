@@ -7,7 +7,7 @@ import org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration;
 
 @SpringBootApplication(
         scanBasePackages = {
-                "com.mjy.coin.service.config",
+                "com.mjy.coin.config",
                 "com.mjy.coin.service"
         },
         exclude = {KafkaAutoConfiguration.class}

@@ -1,4 +1,4 @@
-package com.mjy.coin.service.config.database;
+package com.mjy.coin.config.database;
 
 import jakarta.persistence.EntityManagerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;

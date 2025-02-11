@@ -1,4 +1,4 @@
-package com.mjy.coin.service.config;
+package com.mjy.coin.config;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeIn;

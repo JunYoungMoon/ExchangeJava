@@ -72,7 +72,7 @@ public class MatchingServiceV1 implements MatchingService {
             } else if (isOversizeMatch(remainingQuantity)) {
                 processOversizeMatch(order, oppositeOrder, remainingQuantity, executionPrice);
             } else if (isUndersizedMatch(remainingQuantity)) {
-                processUndersizedMatch(order, oppositeOrder, symbol, oppositeOrdersQueue, remainingQuantity, executionPrice);
+                processUndersizedMatch(order, oppositeOrder, remainingQuantity, executionPrice, oppositeOrdersQueue);
                 break; // 나의 주문은 더 이상 처리할 수 없으므로 종료
             }
         }
@@ -198,7 +198,7 @@ public class MatchingServiceV1 implements MatchingService {
     // 완전 체결 : 매칭 가격이고 나의 주문 수량이 반대 주문 수량과 완전 일치
     @Transactional
     public void processCompleteMatch(CoinOrderDTO order, CoinOrderDTO oppositeOrder, BigDecimal executionPrice) {
-        System.out.println("완전체결 : " + " 주문 : " + order + " 반대 주문 : " + oppositeOrder);
+        System.out.println("완전 체결 : " + " 주문 : " + order + " 반대 주문 : " + oppositeOrder);
 
         // 주문과 반대주문 모두 체결 상태 변경
         updateOrderStatus(order, oppositeOrder, executionPrice, COMPLETED, order.getIdx(), order.getQuantity());
@@ -212,7 +212,7 @@ public class MatchingServiceV1 implements MatchingService {
     // 부분 체결1 : 매칭 가격이고 나의 주문 수량이 반대 주문 수량보다 클때
     @Transactional
     public void processOversizeMatch(CoinOrderDTO order, CoinOrderDTO oppositeOrder, BigDecimal remainingQuantity, BigDecimal executionPrice) {
-        System.out.println("부분체결 (주문이 반대 주문보다 크다) : " + " 주문 : " + order + " 반대 주문 : " + oppositeOrder);
+        System.out.println("부분 체결1 (나의 주문 수량이 반대 주문 수량보다 클때) : " + " 주문 : " + order + " 반대 주문 : " + oppositeOrder);
 
         // 반대 주문 모두 체결 처리
         updateOrderStatus(oppositeOrder, order, executionPrice, COMPLETED, oppositeOrder.getIdx(), oppositeOrder.getQuantity());
@@ -220,7 +220,7 @@ public class MatchingServiceV1 implements MatchingService {
         updateOrderStatus(order, oppositeOrder, executionPrice, COMPLETED, null, oppositeOrder.getQuantity());
 
         // 주문과 반대주문 모두 DB 저장
-        //상대 주문 모두 업데이트 필요
+        // 상대 주문 모두 업데이트 필요
         masterCoinOrderRepository.save(CoinOrderMapper.toEntity(order));
         masterCoinOrderRepository.save(CoinOrderMapper.toEntity(oppositeOrder));
 
@@ -229,10 +229,24 @@ public class MatchingServiceV1 implements MatchingService {
     }
 
     // 부분 체결2 : 매칭 가격이고 나의 주문 수량이 반대 주문 수량보다 작을때
-    private void processUndersizedMatch(CoinOrderDTO order, CoinOrderDTO oppositeOrder, String symbol,
-                                        PriorityQueue<CoinOrderDTO> queue, BigDecimal remainingQuantity,
-                                        BigDecimal executionPrice) {
-        System.out.println("부분체결 (주문이 반대 주문보다 작다) : " + " 주문 : " + order + " 반대 주문 : " + oppositeOrder);
+    @Transactional
+    public void processUndersizedMatch(CoinOrderDTO order, CoinOrderDTO oppositeOrder, BigDecimal remainingQuantity, BigDecimal executionPrice, PriorityQueue<CoinOrderDTO> oppositeOrdersQueue) {
+        System.out.println("부분 체결2 (나의 주문 수량이 반대 주문 수량보다 작을때) : " + " 주문 : " + order + " 반대 주문 : " + oppositeOrder);
 
+        // 반대 주문 나의 주문 만큼 부분 체결 처리
+        updateOrderStatus(oppositeOrder, order, executionPrice, COMPLETED, oppositeOrder.getIdx(), order.getQuantity());
+        // 나의 주문 모두 체결 처리
+        updateOrderStatus(order, oppositeOrder, executionPrice, COMPLETED, null, order.getQuantity());
+
+        // 주문과 반대주문 모두 DB 저장
+        // 상대 주문 모두 업데이트 필요
+        masterCoinOrderRepository.save(CoinOrderMapper.toEntity(order));
+        masterCoinOrderRepository.save(CoinOrderMapper.toEntity(oppositeOrder));
+
+        // 상대 주문 남은 수량을 잔여 수량으로 설정
+        updateOrderStatus(oppositeOrder, order, executionPrice, PENDING, null, remainingQuantity);
+
+        // 상대 주문의 남은 주문을 다시 queue에 저장
+        oppositeOrdersQueue.add(oppositeOrder);
     }
 }

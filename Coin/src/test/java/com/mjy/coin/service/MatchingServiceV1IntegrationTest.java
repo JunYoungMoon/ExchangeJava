@@ -3,29 +3,29 @@ package com.mjy.coin.service;
 import com.mjy.coin.dto.CoinOrderDTO;
 import com.mjy.coin.dto.PriceVolumeDTO;
 import com.mjy.coin.enums.OrderType;
-import com.mjy.coin.repository.coin.master.MasterCoinOrderRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 
 import java.math.BigDecimal;
 import java.util.*;
 
-import static com.mjy.coin.enums.OrderStatus.COMPLETED;
 import static com.mjy.coin.enums.OrderStatus.PENDING;
 import static com.mjy.coin.enums.OrderType.BUY;
 import static com.mjy.coin.enums.OrderType.SELL;
-import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(classes = TestApplication.class)
 @ActiveProfiles("test")
+@TestPropertySource(properties = {
+        "SHARD_MASTER_PORT=15306",
+        "SHARD_SLAVE_PORT=16306"
+})
 class MatchingServiceV1IntegrationTest {
 
     @MockBean(name = "matchListKafkaTemplate")
@@ -108,7 +108,7 @@ class MatchingServiceV1IntegrationTest {
     public void testUndersizedMatch() {
         //given
         testPendingOrderCheck();
-        CoinOrderDTO order = createOrder(BUY, "100", "1.0");
+        CoinOrderDTO order = createOrder(SELL, "100", "1.0");
 
         //when & then
         matchingService.matchOrders(symbol,order);

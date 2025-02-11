@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 public class CoinOrderMapper {
     public static CoinOrder toEntity(CoinOrderDTO dto) {
         return CoinOrder.builder()
+                .idx(dto.getIdx())
                 .memberIdx(dto.getMemberIdx())
                 .memberUuid(dto.getMemberUuid())
                 .coinName(dto.getCoinName())

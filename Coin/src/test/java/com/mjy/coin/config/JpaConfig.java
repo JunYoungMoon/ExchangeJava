@@ -1,4 +1,4 @@
-package com.mjy.coin.service.config;
+package com.mjy.coin.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;

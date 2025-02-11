@@ -26,41 +26,60 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-security'
-//    implementation 'org.springframework.boot:spring-boot-starter-batch'
-    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.springframework.boot:spring-boot-starter-validation'
-    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
-    implementation 'org.springframework.boot:spring-boot-starter-mail'
-    implementation 'org.springframework.boot:spring-boot-starter-actuator'
-    implementation 'org.springframework.boot:spring-boot-starter-websocket'
-//    implementation 'org.springframework.boot:spring-boot-starter-data-cassandra'
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0'
-    implementation 'io.micrometer:micrometer-registry-prometheus'
-    implementation 'io.jsonwebtoken:jjwt-api:0.11.2'
-    implementation 'io.jsonwebtoken:jjwt-impl:0.11.2'
-    implementation 'io.jsonwebtoken:jjwt-jackson:0.11.2'
-    implementation 'com.bucket4j:bucket4j-redis:8.7.0'
-    implementation 'com.google.guava:guava:33.2.0-jre'
-    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
-    implementation 'org.springframework.kafka:spring-kafka'
-    implementation 'org.apache.kafka:kafka-clients'
+    // ✅ [Spring Boot 기본 스타터]
+    implementation 'org.springframework.boot:spring-boot-starter-security' // Spring Security
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client' // OAuth2 클라이언트
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa' // JPA (Hibernate 포함)
+    implementation 'org.springframework.boot:spring-boot-starter-web' // Spring MVC (REST API 지원)
+    implementation 'org.springframework.boot:spring-boot-starter-validation' // Bean Validation (검증)
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis' // Redis 사용
+    implementation 'org.springframework.boot:spring-boot-starter-mail' // 이메일 전송 지원
+    implementation 'org.springframework.boot:spring-boot-starter-actuator' // 애플리케이션 모니터링
+    implementation 'org.springframework.boot:spring-boot-starter-websocket' // 웹소켓 지원
+    // implementation 'org.springframework.boot:spring-boot-starter-batch' // (주석 처리됨) Spring Batch
+    // implementation 'org.springframework.boot:spring-boot-starter-data-cassandra' // (주석 처리됨) Cassandra DB 지원
 
-    implementation 'commons-codec:commons-codec:1.15' // MD5 해시 사용
+    // ✅ [API 문서화 및 모니터링]
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0' // OpenAPI(Swagger) 문서화
+    implementation 'io.micrometer:micrometer-registry-prometheus' // Prometheus 모니터링 연동
 
-//    implementation 'io.springfox:springfox-boot-starter:3.0.0'
-//    runtimeOnly 'com.h2database:h2'
-    runtimeOnly 'mysql:mysql-connector-java:8.0.30'
-    developmentOnly 'org.springframework.boot:spring-boot-devtools'
-    compileOnly 'org.projectlombok:lombok'
-    testCompileOnly 'org.projectlombok:lombok'
-    annotationProcessor 'org.projectlombok:lombok'
-    testAnnotationProcessor 'org.projectlombok:lombok'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'org.awaitility:awaitility:4.2.0'
-//    testImplementation 'org.springframework.kafka:spring-kafka-test'
+    // ✅ [JWT (JSON Web Token) 관련]
+    implementation 'io.jsonwebtoken:jjwt-api:0.11.2' // JWT API
+    implementation 'io.jsonwebtoken:jjwt-impl:0.11.2' // JWT 구현체
+    implementation 'io.jsonwebtoken:jjwt-jackson:0.11.2' // JWT + Jackson(JSON 파싱)
+
+    // ✅ [Redis 관련 기능]
+    implementation 'com.bucket4j:bucket4j-redis:8.7.0' // Redis 기반의 Rate Limiting(속도 제한)
+
+    // ✅ [유틸리티 라이브러리]
+    implementation 'com.google.guava:guava:33.2.0-jre' // Guava (컬렉션, 캐시 등 유틸리티 제공)
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310' // Java 8 날짜/시간 직렬화
+
+    // ✅ [Kafka 관련]
+    implementation 'org.springframework.kafka:spring-kafka' // Spring Kafka 지원
+    implementation 'org.apache.kafka:kafka-clients' // Kafka 클라이언트
+
+    // ✅ [해싱 및 인코딩 관련]
+    implementation 'commons-codec:commons-codec:1.15' // MD5 해시 등 암호화 유틸리티
+
+    // ✅ [데이터베이스 관련]
+    runtimeOnly 'mysql:mysql-connector-java:8.0.30' // MySQL 드라이버
+    // runtimeOnly 'com.h2database:h2' // (주석 처리됨) H2 인메모리 데이터베이스
+
+    // ✅ [개발 환경 지원]
+    developmentOnly 'org.springframework.boot:spring-boot-devtools' // 개발용 자동 재시작 도구
+
+    // ✅ [Lombok 관련 설정]
+    compileOnly 'org.projectlombok:lombok' // Lombok (코드 자동 생성)
+    testCompileOnly 'org.projectlombok:lombok' // Lombok (테스트 코드에서도 적용)
+    annotationProcessor 'org.projectlombok:lombok' // Lombok 어노테이션 처리기
+    testAnnotationProcessor 'org.projectlombok:lombok' // Lombok 어노테이션 처리기 (테스트)
+
+    // ✅ [테스트 관련 의존성]
+    testImplementation 'org.springframework.boot:spring-boot-starter-test' // Spring Boot 테스트 지원
+    testImplementation 'org.awaitility:awaitility:4.2.0' // 비동기 코드 테스트 지원
+    testImplementation 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.9.0' // P6Spy (SQL 로깅)
+    // testImplementation 'org.springframework.kafka:spring-kafka-test' // (주석 처리됨) Kafka 테스트 지원
 }
 
 tasks.named('test') {

@@ -1,4 +1,4 @@
-package com.mjy.coin.service.config;
+package com.mjy.coin.config;
 
 import io.lettuce.core.RedisClient;
 import lombok.RequiredArgsConstructor;
