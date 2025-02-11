@@ -66,7 +66,6 @@ class OrderQueueServiceTest {
         order.setFee(BigDecimal.valueOf(new Random().nextDouble() * 0.1));
         order.setCreatedAt(LocalDateTime.now());
         order.setMatchedAt(LocalDateTime.now());
-        order.setMatchIdx("match-" + idx);
         order.setUuid("uuid-" + idx);
         return order;
     }

@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -24,7 +23,7 @@ public class LimitOrderService implements OrderService {
 
     private final Set<String> orderHashSet = ConcurrentHashMap.newKeySet(); // 동시성 고려
 
-    private final PendingOrderMatcherService pendingOrderMatcherService;
+    private final MatchingService matchingService;
     private final OrderBookService orderBookService;
     private final OrderQueueService orderQueueService;
     private final MasterCoinOrderRepository masterCoinOrderRepository;
@@ -32,13 +31,13 @@ public class LimitOrderService implements OrderService {
     private final RedisService redisService;
 
     @Autowired
-    public LimitOrderService(@Qualifier("pendingOrderMatcherServiceV1") PendingOrderMatcherService pendingOrderMatcherService,
+    public LimitOrderService(@Qualifier("matchingServiceV1") MatchingService matchingService,
                              MasterCoinOrderRepository masterCoinOrderRepository,
                              SlaveCoinOrderRepository slaveCoinOrderRepository,
                              OrderQueueService orderQueueService,
                              OrderBookService orderBookService,
                              RedisService redisService) {
-        this.pendingOrderMatcherService = pendingOrderMatcherService;
+        this.matchingService = matchingService;
         this.masterCoinOrderRepository = masterCoinOrderRepository;
         this.slaveCoinOrderRepository = slaveCoinOrderRepository;
         this.orderBookService = orderBookService;
@@ -71,7 +70,7 @@ public class LimitOrderService implements OrderService {
 ////                }
 //
 //                // 주문 체결 시도
-//                pendingOrderMatcherService.matchOrders(order);
+//                matchingService.matchOrders(order);
 //            }
 //
             CoinOrder orderEntity = CoinOrderMapper.toEntity(order);
@@ -124,7 +123,7 @@ public class LimitOrderService implements OrderService {
             }
 
             // 주문 체결 시도
-            pendingOrderMatcherService.matchOrders(symbol, order);
+            matchingService.matchOrders(symbol, order);
 
             //호가 리스트 출력
 //            orderBookService.printOrderBook(key);

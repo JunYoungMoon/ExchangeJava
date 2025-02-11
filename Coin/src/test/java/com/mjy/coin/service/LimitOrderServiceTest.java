@@ -28,7 +28,7 @@ class LimitOrderServiceTest {
     private LimitOrderService limitOrderService;
 
     @MockBean
-    private PendingOrderMatcherServiceV1 priorityQueueManager;
+    private MatchingServiceV1 priorityQueueManager;
 
     @MockBean
     private OrderBookService orderBookService;
@@ -38,7 +38,6 @@ class LimitOrderServiceTest {
 
     @MockBean
     private MasterCoinOrderRepository masterCoinOrderRepository;
-
 
     @MockBean
     private RedisService redisService;

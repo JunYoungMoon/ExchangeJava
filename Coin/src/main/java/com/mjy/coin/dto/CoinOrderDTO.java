@@ -31,7 +31,7 @@ public class CoinOrderDTO {
 //    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     private LocalDateTime matchedAt;
 //    private LocalDateTime matchedAt; // 체결일자
-    private String matchIdx; // 매수 idx와 매도 idx를 결합한 매치 ID
+    private Long matchIdx; // 매칭되는 반대 주문의 idx
     private String uuid; //redis 전용 uuid
 
     public CoinOrderDTO() {
@@ -50,7 +50,7 @@ public class CoinOrderDTO {
             @JsonProperty("orderStatus") OrderStatus orderStatus,
             @JsonProperty("fee") BigDecimal fee,
             @JsonProperty("createdAt") LocalDateTime createdAt,
-            @JsonProperty("matchIdx") String matchIdx,
+            @JsonProperty("matchIdx") Long matchIdx,
             @JsonProperty("matchedAt") LocalDateTime matchedAt,
             @JsonProperty("executionPrice") BigDecimal executionPrice,
             @JsonProperty("uuid") String uuid

@@ -24,7 +24,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class PendingOrderMatcherServiceV2Test {
+class MatchingServiceV2Test {
 
     @Mock
     private OrderQueueService orderQueueService;
@@ -37,7 +37,7 @@ class PendingOrderMatcherServiceV2Test {
 
     @Spy
     @InjectMocks
-    private PendingOrderMatcherServiceV2 pendingOrderMatcherService;
+    private MatchingServiceV2 matchingService;
 
     private CoinOrderDTO createOrder(OrderType type, String price, String amount) {
         CoinOrderDTO order = new CoinOrderDTO();
@@ -56,7 +56,7 @@ class PendingOrderMatcherServiceV2Test {
         CoinOrderDTO oppositeOrder = createOrder(BUY, "110", "1.5");
 
         // when
-        BigDecimal remaining = pendingOrderMatcherService.calculateRemainingQuantity(order, oppositeOrder);
+        BigDecimal remaining = matchingService.calculateRemainingQuantity(order, oppositeOrder);
 
         // then
         assertEquals(0, remaining.compareTo(BigDecimal.ZERO));
@@ -69,8 +69,8 @@ class PendingOrderMatcherServiceV2Test {
         BigDecimal nonZeroQuantity = new BigDecimal("1.5");
 
         // when & then
-        assertTrue(pendingOrderMatcherService.isCompleteMatch(zeroQuantity), "남은 수량이 0인 경우 true 반환");
-        assertFalse(pendingOrderMatcherService.isCompleteMatch(nonZeroQuantity), "남은 수량이 양수인 경우 false 반환");
+        assertTrue(matchingService.isCompleteMatch(zeroQuantity), "남은 수량이 0인 경우 true 반환");
+        assertFalse(matchingService.isCompleteMatch(nonZeroQuantity), "남은 수량이 양수인 경우 false 반환");
     }
 
 
@@ -82,9 +82,9 @@ class PendingOrderMatcherServiceV2Test {
         BigDecimal negativeQuantity = new BigDecimal("-1.5");
 
         // when & then
-        assertTrue(pendingOrderMatcherService.isOversizeMatch(positiveQuantity), "남은 수량이 양수인 경우 true 반환");
-        assertFalse(pendingOrderMatcherService.isOversizeMatch(zeroQuantity), "남은 수량이 0인 경우 false 반환");
-        assertFalse(pendingOrderMatcherService.isOversizeMatch(negativeQuantity), "남은 수량이 음수인 경우 false 반환");
+        assertTrue(matchingService.isOversizeMatch(positiveQuantity), "남은 수량이 양수인 경우 true 반환");
+        assertFalse(matchingService.isOversizeMatch(zeroQuantity), "남은 수량이 0인 경우 false 반환");
+        assertFalse(matchingService.isOversizeMatch(negativeQuantity), "남은 수량이 음수인 경우 false 반환");
     }
 
     @Test
@@ -95,9 +95,9 @@ class PendingOrderMatcherServiceV2Test {
         BigDecimal positiveQuantity = new BigDecimal("1.5");
 
         // when & then
-        assertTrue(pendingOrderMatcherService.isUndersizedMatch(negativeQuantity), "남은 수량이 음수인 경우 true 반환");
-        assertFalse(pendingOrderMatcherService.isUndersizedMatch(zeroQuantity), "남은 수량이 0인 경우 false 반환");
-        assertFalse(pendingOrderMatcherService.isUndersizedMatch(positiveQuantity), "남은 수량이 양수인 경우 false 반환");
+        assertTrue(matchingService.isUndersizedMatch(negativeQuantity), "남은 수량이 음수인 경우 true 반환");
+        assertFalse(matchingService.isUndersizedMatch(zeroQuantity), "남은 수량이 0인 경우 false 반환");
+        assertFalse(matchingService.isUndersizedMatch(positiveQuantity), "남은 수량이 양수인 경우 false 반환");
     }
 
     @Test
@@ -105,34 +105,34 @@ class PendingOrderMatcherServiceV2Test {
         // Case 1: BUY 타입, 가격 일치, 수량 > 0 => true 반환
         CoinOrderDTO buyOrder = createOrder(BUY, "100", "1.5");
         CoinOrderDTO sellOrder = createOrder(SELL, "90", "1.5");
-        assertTrue(pendingOrderMatcherService.canMatchOrders(buyOrder, sellOrder), "BUY 주문이 SELL 주문과 가격 조건을 만족해야 함");
+        assertTrue(matchingService.canMatchOrders(buyOrder, sellOrder), "BUY 주문이 SELL 주문과 가격 조건을 만족해야 함");
 
         // Case 2: SELL 타입, 가격 일치, 수량 > 0 => true 반환
         CoinOrderDTO sellOrder2 = createOrder(SELL, "90", "1.5");
         CoinOrderDTO buyOrder2 = createOrder(BUY, "100", "1.5");
-        assertTrue(pendingOrderMatcherService.canMatchOrders(sellOrder2, buyOrder2), "SELL 주문이 BUY 주문과 가격 조건을 만족해야 함");
+        assertTrue(matchingService.canMatchOrders(sellOrder2, buyOrder2), "SELL 주문이 BUY 주문과 가격 조건을 만족해야 함");
 
         // Case 3: BUY 타입, 가격 불일치 => false 반환
         CoinOrderDTO buyOrderFail = createOrder(BUY, "80", "1.5");
         CoinOrderDTO sellOrderFail = createOrder(SELL, "90", "1.5");
-        assertFalse(pendingOrderMatcherService.canMatchOrders(buyOrderFail, sellOrderFail),
+        assertFalse(matchingService.canMatchOrders(buyOrderFail, sellOrderFail),
                 "BUY 주문이 SELL 주문의 가격 조건을 만족하지 않아야 함");
 
         // Case 4: SELL 타입, 가격 불일치 => false 반환
         CoinOrderDTO sellOrderFail2 = createOrder(SELL, "110", "1.5");
         CoinOrderDTO buyOrderFail2 = createOrder(BUY, "100", "1.5");
-        assertFalse(pendingOrderMatcherService.canMatchOrders(sellOrderFail2, buyOrderFail2),
+        assertFalse(matchingService.canMatchOrders(sellOrderFail2, buyOrderFail2),
                 "SELL 주문이 BUY 주문의 가격 조건을 만족하지 않아야 함");
 
         // Case 5: 주문 수량이 0 => false 반환
         CoinOrderDTO zeroAmountOrder = createOrder(BUY, "100", "0");
         CoinOrderDTO validOppositeOrder = createOrder(SELL, "90", "1.5");
-        assertFalse(pendingOrderMatcherService.canMatchOrders(zeroAmountOrder, validOppositeOrder),
+        assertFalse(matchingService.canMatchOrders(zeroAmountOrder, validOppositeOrder),
                 "수량이 0인 경우 false 반환");
 
         // Case 6: 수량 < 0 => false 반환
         CoinOrderDTO negativeAmountOrder = createOrder(BUY, "100", "-1.5");
-        assertFalse(pendingOrderMatcherService.canMatchOrders(negativeAmountOrder, validOppositeOrder),
+        assertFalse(matchingService.canMatchOrders(negativeAmountOrder, validOppositeOrder),
                 "수량이 음수인 경우 false 반환");
     }
 
@@ -163,10 +163,10 @@ class PendingOrderMatcherServiceV2Test {
         when(orderQueueService.getSellOrderQueue(key)).thenReturn(sellQueue);
 
         //then
-        PriorityQueue<CoinOrderDTO> resultForBuy = pendingOrderMatcherService.getOppositeOrdersQueue(buyOrder, key);
+        PriorityQueue<CoinOrderDTO> resultForBuy = matchingService.getOppositeOrdersQueue(buyOrder, key);
         assertEquals(sellQueue, resultForBuy, "BUY 주문은 SELL 큐를 반환");
 
-        PriorityQueue<CoinOrderDTO> resultForSell = pendingOrderMatcherService.getOppositeOrdersQueue(sellOrder, key);
+        PriorityQueue<CoinOrderDTO> resultForSell = matchingService.getOppositeOrdersQueue(sellOrder, key);
         assertEquals(buyQueue, resultForSell, "SELL 주문은 BUY 큐를 반환");
     }
 
@@ -179,7 +179,7 @@ class PendingOrderMatcherServiceV2Test {
         BigDecimal executionPrice = new BigDecimal("100.0");
 
         // when
-        pendingOrderMatcherService.updateOrderWithMatch(order, oppositeOrder, executionPrice);
+        matchingService.updateOrderWithMatch(order, oppositeOrder, executionPrice);
 
         // then
         assertEquals(COMPLETED, order.getOrderStatus(), "주문 상태가 COMPLETED여야 한다.");
@@ -210,10 +210,10 @@ class PendingOrderMatcherServiceV2Test {
         buyQueue.add(order);
         sellQueue.add(oppositeOrder);
 
-        BigDecimal executionPrice = pendingOrderMatcherService.getExecutionPrice(oppositeOrder);
+        BigDecimal executionPrice = matchingService.getExecutionPrice(oppositeOrder);
 
         //when
-        pendingOrderMatcherService.processCompleteMatch(order, oppositeOrder, key, sellQueue, executionPrice);
+        matchingService.processCompleteMatch(order, oppositeOrder, key, sellQueue, executionPrice);
 
         // then
         // 1. Redis 삽입 확인
@@ -243,14 +243,14 @@ class PendingOrderMatcherServiceV2Test {
         order.setOrderStatus(PENDING);
 
         // when
-        pendingOrderMatcherService.processNonMatchedOrder(key, order);
+        matchingService.processNonMatchedOrder(key, order);
 
         // then
         // 1. Redis에 미체결 주문이 저장되었는지 확인
         verify(redisService).insertOrderInRedis(eq(key), eq(PENDING), eq(order));
 
         // 2. Kafka로 미체결 주문 전송이 호출되었는지 확인
-        verify(pendingOrderMatcherService).sendPendingOrderToKafka(eq(order));
+        verify(matchingService).sendPendingOrderToKafka(eq(order));
 
         // 3. 주문 서비스에 주문이 추가되었는지 확인
         verify(orderQueueService).addBuyOrder(eq(key), eq(order));
